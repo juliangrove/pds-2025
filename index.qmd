@@ -39,5 +39,5 @@ PDS may be used to construct probabilistic models of human inference data, and i
 meanwhile, it seamlessly connects probabilistic models to compositional dynamic semantics in the Montagovian tradition by providing a setting to write full-fledged grammar fragments.
 
 PDS additionally provides a theory of dynamic discourse update, integrating aspects of discourse such as the common ground, the question under discussion [@ginzburg_dynamics_1996;@roberts_information_2012;@farkas_reacting_2010], and uncertainty about lexical meaning.
-Crucially, given a semantic theory of some discourse phenomenon couched with PDS, one may obtain a probabilistic model of some linguistic dataset, given a particular *response function* \parencite{grove_factivity_2024,grove_modeling_2024,grove_probabilistic_2024}.
+Crucially, given a semantic theory of some discourse phenomenon couched with PDS, one may obtain a probabilistic model of some linguistic dataset, given a particular *response function* [@grove_factivity_2024;@grove_modeling_2025;@grove_probabilistic_2024].
 We introduce PDS in the context empirical datasets studying factivity, vagueness, and the QUD.
