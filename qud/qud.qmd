@@ -1,0 +1,10 @@
+---
+title: "Probabilistic dynamic semantics"
+bibliography: ../pds.bib
+---
+
+# Modeling the prompt in inference judgment tasks
+
+# Some implementation details
+
+## Delta rules

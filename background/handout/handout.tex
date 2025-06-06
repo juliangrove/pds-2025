@@ -1,0 +1,147 @@
+\documentclass[nobib,nohyper]{tufte-handout}
+
+% Font setup
+\usepackage{fontspec}
+\setmainfont{Libertinus Serif}
+\usepackage[math-style=ISO]{unicode-math}
+\setmathfont{Libertinus Math}
+\setsansfont{Libertinus Sans}
+\setmonofont{inconsolata}
+
+% Other packages and configuration
+\usepackage{titlesec}
+\titleformat*{\section}{\sffamily\large}
+\titleformat*{\subsection}{\sffamily\large}
+\titleformat*{\subsubsection}{\sffamily\large}
+\usepackage{relsize}
+\usepackage{xurl}
+\renewcommand{\UrlFont}{\normalfont}
+\usepackage[
+style=authoryear,
+uniquename=false,
+dashed=false,
+date=year,
+url=false,          % Disable regular URL printing
+doi=true,           % Explicitly enable DOI
+isbn=false,
+useprefix=true,
+backend=biber,      % Essential for DOI support
+hyperref=true,      % For clickable DOIs
+giveninits=true     % For better author formatting
+]{biblatex}
+\DeclareFieldFormat{doi}{%
+  \iffieldundef{doi}{}
+  {\textsc{doi}\addcolon\space\href{https://doi.org/#1}{\nolinkurl{#1}}}%
+}
+\addbibresource{../../pds.bib}  % Bibliiography file
+\usepackage[colorlinks=true,urlcolor={[HTML]{689d6a}},citecolor={[HTML]{427b58}},linkcolor={[HTML]{689d6a}},bookmarks,bookmarksopen,bookmarksdepth=2]{hyperref}
+\usepackage{textcase}
+\let\MakeTextLowercase\relax
+
+% Commands and definitions
+\newcommand\abbr[1]{\mathtt{\textscale{0.9}{#1}}}
+
+\title{Background}
+\author{Julian Grove and Aaron Steven White}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+This course is about two major questions:
+\begin{itemize}
+\item How can semanticists use inference judgment datasets?
+  \begin{itemize}
+  \item statistical properties of a dataset \(↝\) semantic theory
+  \end{itemize}
+\item How should semantic theories be \emph{modified} so that they may characterize statistical generalizations observed from datasets?
+\end{itemize}
+
+\noindent We:
+\begin{itemize}
+\item bring the compositional, algebraic view of meaning into contact with linguistic datasets by introducing and applying the framework of Probabilistic Dynamic Semantics \parencite[PDS;][]{grove_factivity_2024,grove_modeling_2025,grove_probabilistic_2024};
+\item PDS seamlessly integrates theories of semantic competence with accounts of linguistic behavior in experimental settings by taking a modular approach:
+\end{itemize}
+
+given a dataset involving some semantic phenomenon, and which exhibits certain statistical properties, this course offers an approach to developing both (a) \emph{theories} of the meanings assigned to the expressions present in the dataset, and (b) \emph{linking hypotheses} that directly relate these theories to linguistic behavior.
+
+% \subsection{Existing probabilistic approaches to meaning}
+The ideas developed in this course build on and respond to existing probabilistic approaches to semantics and pragmatics, including those which use computational modeling to characterize inference \parencite{van_eijck_probabilistic_2012,zeevat_bayesian_2015,franke_probabilistic_2016,brasoveanu_computational_2020,bernardy_bayesian_2022,goodman_probabilistic_nodate}.
+Such models are motivated, in part, by the observation that linguistic inference tends to display substantial \emph{gradience}, giving rise to quantitative patterns that traditional semantic theory has difficulty capturing.
+Meanwhile, they often aim to explain Gricean linguistic behavior \parencite{grice_logic_1975} by regarding humans as Bayesian reasoners.
+Indeed, due to this emphasis on pragmatic principles, much modeling work blurs the semantics/pragmatics distinction, rendering the connection to traditional semantic theory somewhat opaque.
+
+To take a paradigm case, models within the Rational Speech Act (RSA) framework consider human interpreters as inferring meanings for an utterance which maximize the utterance's utility relative to a set of possible alternative utterances \parencite[i.a.]{frank_predicting_2012,lassiter_vagueness_2011,goodman_knowledge_2013,goodman_pragmatic_2016,lassiter_adjectival_2017,degen_rational_2023}.
+Probabilistic models of linguistic inference, including RSA, tend to encode Bayesian principles of probabilistic update in terms of \emph{Bayes' theorem}, which states that the posterior probability of an event given an observation is proportional to the prior probability of the event, multiplied by the likelihood of the observation given the event.
+RSA models give an explicit operational interpretation to Bayes' theorem by assuming that prior distributions over inferences encode world knowledge, and that likelihoods represent the utility-maximizing behavior of a pragmatic speaker.
+
+Despite their success in modeling a wide variety of semantic and pragmatic phenomena, probabilistic models of linguistic data remain largely divorced from semantic and pragmatic practice, both in theory and in implementation.
+RSA models, for example, regard the semantic interpretations which humans pragmatically reason about as being provided by a \emph{literal listener} that determines a distribution over inferences, given an utterance \parencite[see][]{degen_rational_2023}.
+But aside from the constraint that the literal listener's posterior distribution is proportional to its prior distribution (i.e., it acts as a mere filter), the semantic components of RSA models are generally designed by researchers on an \emph{ad hoc} basis:
+on the one hand, the space \(I\) of possible inferences must be decided by individual researchers in a way that depends on the task being modeled;
+on the other hand, the relation \(⟦·⟧\) between utterances and inferences is typically assumed without a justified connection to any semantic theory using, e.g., an explicit grammar fragment in the style of \textcite{montague_proper_1973}.
+
+% \subsection{PDS as a bridge between probabilistic models and semantic theory}
+Given the background, this course introduces students to a novel approach to probabilistic meaning which integrates traditional Montague semantics, as well as ideas in compositional dynamic semantics, with probabilistic computational models in a completely seamless fashion.
+The theoretical framework and methodology we introduce retain the crucial benefits of both kinds of approach to meaning:
+specifically, PDS may be used to construct probabilistic models of human inference data, and it is in principle compatible with existing probabilistic modeling paradigms such as RSA;
+meanwhile, it seamlessly connects probabilistic models to compositional dynamic semantics in the Montagovian tradition by providing a setting to write full-fledged grammar fragments.
+
+PDS integrates probabilistic modeling with semantic theory by couching probabilistic approaches to meaning entirely within typed λ-calculus, following \cite{grove_probabilistic_2023}.
+\citeauthor{grove_probabilistic_2023} present a formalism for studying probabilistic effects---e.g., sampling from a probability distribution or performing Bayesian update---based on \emph{monads}, a notion from category theory which has seen many fruitful applications within linguistic semantics \parencite[i.a.]{shan_monads_2002,charlow_semantics_2014,charlow_scope_2020}.
+PDS builds on \citeauthor{grove_probabilistic_2023}'s monadic framework by providing a full-fledged theory of dynamic discourse update, integrating aspects of discourse such as the common ground, the question under discussion \parencite[QUD;][]{ginzburg_dynamics_1996,roberts_information_2012,farkas_reacting_2010}, and uncertainty about lexical meaning.
+Crucially, given a semantic theory of some discourse phenomenon couched with PDS, one may obtain a probabilistic model of some linguistic dataset, given a particular \emph{response function} \parencite{grove_factivity_2024,grove_modeling_2025,grove_probabilistic_2024}. 
+
+\subsection{Semantic domains to be investigated in the course}
+
+This course introduces PDS in the context three empirical datasets which it uses it to model.
+These datasets study factivity, vagueness, and the QUD.
+
+Factivity is a property associated with certain clause-embedding predicates, e.g., \textit{love} and \textit{hate}, which trigger the inference that their complement clause is true, even in entailment-cancelling contexts (e.g., \textit{Jo \{loves, doesn't love\} that it's raining} \(↝\) \textit{it's raining}).
+Both \textcite{grove_factivity_2024} and \textcite{grove_modeling_2025} use inference datasets to study the factivity of various clause-embedding predicates.
+
+Vagueness is a property pertaining to certain natural language predicates;
+e.g., \textit{Jo is tall} produces substantial uncertainty about the minimum bound on Jo's actual height, leading \textit{tall} to be categorized as vague.
+The course instructors are currently collecting data on the dynamics of vagueness in discourse, which they will then model using PDS. 
+
+The QUD provides an important construct within PDS, since it is used to model the \emph{question prompt} in the experimental tasks used to collect inference datasets.
+\textcite{grove_modeling_2025} manipulate the question prompt used to measure factive inferences and show that explicitly modeling it within PDS improves models of experimental data.
+The instructors also have plans to conduct further experiments which explicitly manipulate the QUD used in experimental tasks.
+
+\subsection{Tentative outline}
+
+\subsection{Session 1}
+
+This session provides an introduction to existing approaches to probabilistic semantics and pragmatics, with an emphasis on RSA models, as well Bayesian statistical models of semantic inference data.
+We introduce RSA from a bird's eye view, and survey a few of its applications within linguistic semantics for illustration.
+We also use this session to discuss the limitations of RSA in practice---as well as those of statistical models of inference, more generally---mentioned above;
+i.e., that they have not been fully integrated with semantic analysis within the Montagovian tradition, presented in the form of grammar fragments.
+
+\subsection{Session 2}
+
+This session introduces the monadic approach to probabilistic semantics of \textcite{grove_probabilistic_2023}, along with the foundational aspects of PDS, which build on it.
+The following aspects of PDS will be covered:
+\begin{itemize}
+\item Basic discourse constructs, such as the common ground and QUD, and the relationship between these constructs and the structure of inference tasks.
+\item The determination of semantic analyses within PDS and their associated prior probability distributions.
+\item The determination of response functions and their associated likelihood functions.
+\end{itemize}
+ 
+\subsection{Session 3}
+
+This session applies PDS to the collection of linguistic datasets related to factivity, which are discussed in \cite{grove_factivity_2024}.
+
+\subsection{Session 4}
+
+This session applies PDS to the collection of linguistic datasets related to the dynamics of vagueness.
+
+\subsection{Session 5}
+
+This session applies PDS to the collection of linguistic datasets related to the QUD, which are discussed in \cite{grove_modeling_2025}.
+
+\printbibliography
+
+\end{document}

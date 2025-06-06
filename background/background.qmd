@@ -1,0 +1,57 @@
+---
+title: "Probabilistic dynamic semantics"
+bibliography: ../pds.bib
+---
+
+# Background
+
+## The traditional view of meaning (Aaron)
+
+- Compositionality: explains how lexical knowledge gives rise to
+
+### Challenges
+
+- Inference judgments arise from multiple causal factors, only one of which is semantic knowledge.
+- Traditional methodologies focus on small areas of the lexicon to support a given analysis (on the order of tens of examples), jeopardizing generalizations' validity.
+
+## Experimental semantics and pragmatics (Aaron)
+
+- Methodologies like inference judgment tasks provide a way of studying larger areas of the lexicon, potentially improving the validity of semantic generalizations.
+
+
+### Challenges
+
+- Generally, unclear how modeling constructs relate to semantic theory; i.e., what lexical semantic property is implicated and how it interacts with language-external factors.
+- In the setting of entire datasets, this question becomes one about gradience: what theoretical constructs underlie the relevant distributions of judgments?-
+  - Thus little progress on the first challenge for the traditional view.
+
+## A theoretically-oriented approach: RSA
+
+- Aims to distinguish semantic and pragmatic causes of inference behavior (i.e., L0 vs. L1/S1).
+
+### Challenges
+
+- Unclear what role compositionality can play (no theory of L0).
+
+# Setting the stage
+
+Three properties of PDS, all arising from our use of a monadic interface.
+
+## Compositionality for models of linguistic datasets
+
+- Seamless integration between semantic theory and models of probabilistic uncertainty.
+
+## Modularity
+
+- Factors affecting inference judgments may be theorized about independently and combined.
+  - Lexical and compositional semantics.
+  - World knowledge; etc.
+  - Response behavior.
+- One potential benefit of modularity is that PDS may have different uses; e.g., one may swap out a response function for a function relating a semantic representation to likely utterances (perhaps, S1).
+
+
+## Abstraction
+
+- We should be able to state models of inference judgment data abstractly, i.e., by *describing* probability distributions without worrying about, e.g., how they are computed.
+  - Consequence: separation between theory and model.
+- Abstraction allows PDS to be flexible (in principle) in its implementation.

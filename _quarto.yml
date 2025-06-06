@@ -1,19 +1,42 @@
 project:
   type: website
+  output-dir: docs
 
 website:
   title: "Probabilistic dynamic semantics"
-  navbar:
-    left:
-      - href: index.qmd
-        text: Home
-      - about.qmd
+  page-navigation: true
+  sidebar:
+    style: docked
+    search: true
+    contents:
+    - index.qmd
+    - section: "Background"
+      contents:
+      - background/background.qmd
+    - section: "Introduction to probabilistic dynamic semantics"
+      contents:
+      - pds-intro/pds-intro.qmd
+    - section: "Vagueness and imprecision"
+      contents:
+      - vagueness/vagueness.qmd
+    - section: "Factivity inferences"
+      contents:
+      - factivity/factivity.qmd
+    - section: "Modeling the question prompt"
+      contents:
+      - qud/qud.qmd
 
 format:
   html:
-    theme: cosmo
+    theme: [lux,tufte]
+    highlight-style: gruvbox-dark
     css: styles.css
     toc: true
+    code-tools: true
+
+# filters:
+  # - include-code-files
+  # - line-highlight
 
 
 

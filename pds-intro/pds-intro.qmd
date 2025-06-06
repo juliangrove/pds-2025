@@ -1,0 +1,38 @@
+---
+title: "Introduction"
+bibliography: ../pds.bib
+---
+
+# The Montagovian approach to meaning
+
+## Syntax, meaning, and compositionality
+
+### Expression-meaning homomorphisms
+
+### Type homomorphisms
+
+# Adding probabilistic types
+
+## A monadic interface for probabilistic programs
+
+# Enriching the interface
+
+## Adding discourse constructs
+
+### Common grounds
+
+#### Possible worlds 
+
+### Questions under discussion
+
+## Parameterized monads
+
+### States
+
+# Implementation
+
+## Probabilistic programs in Stan
+
+## Types, terms, and reduction rules
+
+## Delta rules

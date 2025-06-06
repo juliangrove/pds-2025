@@ -1,0 +1,10 @@
+---
+title: "Probabilistic dynamic semantics"
+bibliography: ../pds.bib
+---
+
+# Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments (Aaron)
+
+# Some implementation details
+
+## Delta rules

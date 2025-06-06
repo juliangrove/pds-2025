@@ -1,0 +1,24 @@
+---
+title: "Probabilistic dynamic semantics"
+bibliography: ../pds.bib
+---
+
+# Vagueness and imprecision
+
+# The data-collection pipeline
+
+## Scale norming
+
+## Likelihood inferences
+
+# Compositional semantics
+
+## Gradable adjectives
+
+## Scale-norming prompts
+
+## Likelihood prompts
+
+# Some implementation details
+
+## Delta rules

@@ -1,0 +1,1311 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nyt/global//global/global}
+    \entry{bernardy_bayesian_2022}{incollection}{}
+      \name{author}{4}{}{%
+        {{hash=4c7a19f9fca666a1e4615709da59e5b1}{%
+           family={Bernardy},
+           familyi={B\bibinitperiod},
+           given={Jean-Philippe},
+           giveni={J\bibinithyphendelim P\bibinitperiod}}}%
+        {{hash=ae2fc141962a1a977aaac1ac9095c0f4}{%
+           family={Blanck},
+           familyi={B\bibinitperiod},
+           given={Rasmus},
+           giveni={R\bibinitperiod}}}%
+        {{hash=5a0f441b19d49cc8d9a9402555fea64f}{%
+           family={Chatzikyriakidis},
+           familyi={C\bibinitperiod},
+           given={Stergios},
+           giveni={S\bibinitperiod}}}%
+        {{hash=150df5ea451c3ef1c08ad2da23cfdf3e}{%
+           family={Maskharashvili},
+           familyi={M\bibinitperiod},
+           given={Aleksandre},
+           giveni={A\bibinitperiod}}}%
+      }
+      \name{editor}{5}{}{%
+        {{hash=4c7a19f9fca666a1e4615709da59e5b1}{%
+           family={Bernardy},
+           familyi={B\bibinitperiod},
+           given={Jean-Philippe},
+           giveni={J\bibinithyphendelim P\bibinitperiod}}}%
+        {{hash=ae2fc141962a1a977aaac1ac9095c0f4}{%
+           family={Blanck},
+           familyi={B\bibinitperiod},
+           given={Rasmus},
+           giveni={R\bibinitperiod}}}%
+        {{hash=5a0f441b19d49cc8d9a9402555fea64f}{%
+           family={Chatzikyriakidis},
+           familyi={C\bibinitperiod},
+           given={Stergios},
+           giveni={S\bibinitperiod}}}%
+        {{hash=fd478f807d1a7dd462550b5ab79511e6}{%
+           family={Lappin},
+           familyi={L\bibinitperiod},
+           given={Shalom},
+           giveni={S\bibinitperiod}}}%
+        {{hash=150df5ea451c3ef1c08ad2da23cfdf3e}{%
+           family={Maskharashvili},
+           familyi={M\bibinitperiod},
+           given={Aleksandre},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {CSLI Publications}%
+      }
+      \strng{namehash}{151020dad0f4545a72b798ff90dd94df}
+      \strng{fullhash}{b0e8928ddb5063ff487c6446d879f211}
+      \strng{bibnamehash}{151020dad0f4545a72b798ff90dd94df}
+      \strng{authorbibnamehash}{151020dad0f4545a72b798ff90dd94df}
+      \strng{authornamehash}{151020dad0f4545a72b798ff90dd94df}
+      \strng{authorfullhash}{b0e8928ddb5063ff487c6446d879f211}
+      \strng{editorbibnamehash}{151020dad0f4545a72b798ff90dd94df}
+      \strng{editornamehash}{151020dad0f4545a72b798ff90dd94df}
+      \strng{editorfullhash}{8d8bd8cf2290b437647efc701507ffc2}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Probabilistic {Approaches} to {Linguistic} {Theory}}
+      \field{title}{Bayesian {Natural} {Language} {Semantics} and {Pragmatics}}
+      \field{year}{2022}
+    \endentry
+    \entry{brasoveanu_computational_2020}{book}{}
+      \name{author}{2}{}{%
+        {{hash=f42c4e55e5f2ebb62dcbc45fed8112f3}{%
+           family={Brasoveanu},
+           familyi={B\bibinitperiod},
+           given={Adrian},
+           giveni={A\bibinitperiod}}}%
+        {{hash=6281ed5b8d514c5d8307fba6a114cf64}{%
+           family={Dotlačil},
+           familyi={D\bibinitperiod},
+           given={Jakub},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{5204b699e3add2fc61da2b21695d2508}
+      \strng{fullhash}{5204b699e3add2fc61da2b21695d2508}
+      \strng{bibnamehash}{5204b699e3add2fc61da2b21695d2508}
+      \strng{authorbibnamehash}{5204b699e3add2fc61da2b21695d2508}
+      \strng{authornamehash}{5204b699e3add2fc61da2b21695d2508}
+      \strng{authorfullhash}{5204b699e3add2fc61da2b21695d2508}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-3-030-31844-4 978-3-030-31846-8}
+      \field{series}{Language, {Cognition}, and {Mind}}
+      \field{title}{Computational {Cognitive} {Modeling} and {Linguistic} {Theory}}
+      \field{urlday}{30}
+      \field{urlmonth}{6}
+      \field{urlyear}{2024}
+      \field{volume}{6}
+      \field{year}{2020}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.1007/978-3-030-31846-8
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/home/juliangrove/Documents/zotero/storage/B6AKWVAI/Brasoveanu and Dotlačil - 2020 - Computational Cognitive Modeling and Linguistic Th.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://link.springer.com/10.1007/978-3-030-31846-8
+      \endverb
+      \verb{url}
+      \verb http://link.springer.com/10.1007/978-3-030-31846-8
+      \endverb
+      \keyw{ACT-R Based Left-corner Parser,Cataphoric Presupposition Resolution,Cognitive Aspects of Processing Semantic Representations,Enriched Semantics,Incremental Dynamic Predicate Logic,Language Interpretation Processes,Meaning Representations in Formal Semantics,Natural Language Processing,Open Access,Processing Enriched Logical Forms,Processing of Lexical Semantic and Syntactic Representations,Psycholinguistics on Incremental Interpretation,Real-time Construction of Syntactic Representations,Real-time Semantic Interpretation,Semantics and Processing}
+    \endentry
+    \entry{charlow_semantics_2014}{thesis}{}
+      \name{author}{1}{}{%
+        {{hash=13ca5cdb8ee7d17611a79232017b6497}{%
+           family={Charlow},
+           familyi={C\bibinitperiod},
+           given={Simon},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {New York University}%
+      }
+      \list{location}{1}{%
+        {New York}%
+      }
+      \strng{namehash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{fullhash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{bibnamehash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{authorbibnamehash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{authornamehash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{authorfullhash}{13ca5cdb8ee7d17611a79232017b6497}
+      \field{extraname}{1}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{On the semantics of exceptional scope}
+      \field{type}{{PhD} {Thesis}}
+      \field{year}{2014}
+      \verb{urlraw}
+      \verb https://semanticsarchive.net/Archive/2JmMWRjY
+      \endverb
+      \verb{url}
+      \verb https://semanticsarchive.net/Archive/2JmMWRjY
+      \endverb
+    \endentry
+    \entry{charlow_scope_2020}{article}{}
+      \name{author}{1}{}{%
+        {{hash=13ca5cdb8ee7d17611a79232017b6497}{%
+           family={Charlow},
+           familyi={C\bibinitperiod},
+           given={Simon},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{fullhash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{bibnamehash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{authorbibnamehash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{authornamehash}{13ca5cdb8ee7d17611a79232017b6497}
+      \strng{authorfullhash}{13ca5cdb8ee7d17611a79232017b6497}
+      \field{extraname}{2}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{issn}{1573-0549}
+      \field{journaltitle}{Linguistics and Philosophy}
+      \field{number}{4}
+      \field{shorttitle}{The scope of alternatives}
+      \field{title}{The scope of alternatives: indefiniteness and islands}
+      \field{volume}{43}
+      \field{year}{2020}
+      \field{pages}{427\bibrangedash 472}
+      \range{pages}{46}
+      \verb{doi}
+      \verb 10.1007/s10988-019-09278-3
+      \endverb
+    \endentry
+    \entry{degen_rational_2023}{article}{}
+      \name{author}{1}{}{%
+        {{hash=dd2ab438d2870d0a198b4047b2d880a4}{%
+           family={Degen},
+           familyi={D\bibinitperiod},
+           given={Judith},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{dd2ab438d2870d0a198b4047b2d880a4}
+      \strng{fullhash}{dd2ab438d2870d0a198b4047b2d880a4}
+      \strng{bibnamehash}{dd2ab438d2870d0a198b4047b2d880a4}
+      \strng{authorbibnamehash}{dd2ab438d2870d0a198b4047b2d880a4}
+      \strng{authornamehash}{dd2ab438d2870d0a198b4047b2d880a4}
+      \strng{authorfullhash}{dd2ab438d2870d0a198b4047b2d880a4}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Annual Review of Linguistics}
+      \field{number}{1}
+      \field{title}{The Rational Speech Act Framework}
+      \field{volume}{9}
+      \field{year}{2023}
+      \field{pages}{519\bibrangedash 540}
+      \range{pages}{22}
+      \verb{doi}
+      \verb 10.1037/rev0000186
+      \endverb
+    \endentry
+    \entry{farkas_reacting_2010}{article}{}
+      \name{author}{2}{}{%
+        {{hash=540c631e64189a2b718303592d05f601}{%
+           family={Farkas},
+           familyi={F\bibinitperiod},
+           given={Donka\bibnamedelima F.},
+           giveni={D\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=bdd5e879621637697cbf5efdf50c5bed}{%
+           family={Bruce},
+           familyi={B\bibinitperiod},
+           given={Kim\bibnamedelima B.},
+           giveni={K\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+      }
+      \strng{namehash}{ff6f2616c8e83f359401b58b8a1ee327}
+      \strng{fullhash}{ff6f2616c8e83f359401b58b8a1ee327}
+      \strng{bibnamehash}{ff6f2616c8e83f359401b58b8a1ee327}
+      \strng{authorbibnamehash}{ff6f2616c8e83f359401b58b8a1ee327}
+      \strng{authornamehash}{ff6f2616c8e83f359401b58b8a1ee327}
+      \strng{authorfullhash}{ff6f2616c8e83f359401b58b8a1ee327}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0167-5133}
+      \field{journaltitle}{Journal of Semantics}
+      \field{month}{2}
+      \field{number}{1}
+      \field{title}{On {Reacting} to {Assertions} and {Polar} {Questions}}
+      \field{urlday}{28}
+      \field{urlmonth}{4}
+      \field{urlyear}{2024}
+      \field{volume}{27}
+      \field{year}{2010}
+      \field{urldateera}{ce}
+      \field{pages}{81\bibrangedash 118}
+      \range{pages}{38}
+      \verb{doi}
+      \verb 10.1093/jos/ffp010
+      \endverb
+      \verb{file}
+      \verb Snapshot:/home/juliangrove/Documents/zotero/storage/IA5F5WCC/1627586.html:text/html;Submitted Version:/home/juliangrove/Documents/zotero/storage/MVZU9NJA/Farkas and Bruce - 2010 - On Reacting to Assertions and Polar Questions.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1093/jos/ffp010
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1093/jos/ffp010
+      \endverb
+    \endentry
+    \entry{frank_predicting_2012}{article}{}
+      \name{author}{2}{}{%
+        {{hash=34397283b94e67a1618493e4c967cb29}{%
+           family={Frank},
+           familyi={F\bibinitperiod},
+           given={Michael\bibnamedelima C.},
+           giveni={M\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=17c6b9edbad988db7d426fba005cecff}{%
+           family={Goodman},
+           familyi={G\bibinitperiod},
+           given={Noah\bibnamedelima D.},
+           giveni={N\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \strng{namehash}{8ef07402739695b457d4978bea20355e}
+      \strng{fullhash}{8ef07402739695b457d4978bea20355e}
+      \strng{bibnamehash}{8ef07402739695b457d4978bea20355e}
+      \strng{authorbibnamehash}{8ef07402739695b457d4978bea20355e}
+      \strng{authornamehash}{8ef07402739695b457d4978bea20355e}
+      \strng{authorfullhash}{8ef07402739695b457d4978bea20355e}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Science}
+      \field{month}{5}
+      \field{note}{Publisher: American Association for the Advancement of Science}
+      \field{number}{6084}
+      \field{title}{Predicting {Pragmatic} {Reasoning} in {Language} {Games}}
+      \field{urlday}{20}
+      \field{urlmonth}{6}
+      \field{urlyear}{2022}
+      \field{volume}{336}
+      \field{year}{2012}
+      \field{urldateera}{ce}
+      \field{pages}{998\bibrangedash 998}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1126/science.1218633
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/home/juliangrove/Documents/zotero/storage/3I7QIQ4D/Frank and Goodman - 2012 - Predicting Pragmatic Reasoning in Language Games.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://www.science.org/doi/10.1126/science.1218633
+      \endverb
+      \verb{url}
+      \verb https://www.science.org/doi/10.1126/science.1218633
+      \endverb
+    \endentry
+    \entry{franke_probabilistic_2016}{article}{}
+      \name{author}{2}{}{%
+        {{hash=aa30cd9ac1061ac80fc3bf007cd48a5d}{%
+           family={Franke},
+           familyi={F\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=04e6613905aec889d86b7ddc2e914c2b}{%
+           family={Jäger},
+           familyi={J\bibinitperiod},
+           given={Gerhard},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{9e79147599ccf8ac98f9d214fc92f408}
+      \strng{fullhash}{9e79147599ccf8ac98f9d214fc92f408}
+      \strng{bibnamehash}{9e79147599ccf8ac98f9d214fc92f408}
+      \strng{authorbibnamehash}{9e79147599ccf8ac98f9d214fc92f408}
+      \strng{authornamehash}{9e79147599ccf8ac98f9d214fc92f408}
+      \strng{authorfullhash}{9e79147599ccf8ac98f9d214fc92f408}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1613-3706}
+      \field{journaltitle}{Zeitschrift für Sprachwissenschaft}
+      \field{month}{6}
+      \field{note}{Publisher: De Gruyter}
+      \field{number}{1}
+      \field{title}{Probabilistic pragmatics, or why {Bayes}’ rule is probably important for pragmatics}
+      \field{urlday}{20}
+      \field{urlmonth}{6}
+      \field{urlyear}{2022}
+      \field{volume}{35}
+      \field{year}{2016}
+      \field{urldateera}{ce}
+      \field{pages}{3\bibrangedash 44}
+      \range{pages}{42}
+      \verb{doi}
+      \verb 10.1515/zfs-2016-0002
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/home/juliangrove/Documents/zotero/storage/4EADNA6T/Franke and Jäger - 2016 - Probabilistic pragmatics, or why Bayes’ rule is pr.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://www.degruyter.com/document/doi/10.1515/zfs-2016-0002/html?lang=en
+      \endverb
+      \verb{url}
+      \verb https://www.degruyter.com/document/doi/10.1515/zfs-2016-0002/html?lang=en
+      \endverb
+      \keyw{context,experimental data,pragmatic reasoning,referential descriptions,scalar implicatures,speech acts}
+    \endentry
+    \entry{ginzburg_dynamics_1996}{incollection}{}
+      \name{author}{1}{}{%
+        {{hash=98fec0b13928b26f046549a7c04e3167}{%
+           family={Ginzburg},
+           familyi={G\bibinitperiod},
+           given={Jonathan},
+           giveni={J\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=1e91e93c135807f3affff2d19dd3f94c}{%
+           family={Seligman},
+           familyi={S\bibinitperiod},
+           given={Jerry},
+           giveni={J\bibinitperiod}}}%
+        {{hash=8c0a708533e3131a06e57595dd51f9a0}{%
+           family={Westerståhl},
+           familyi={W\bibinitperiod},
+           given={Dag},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Stanford}%
+      }
+      \list{publisher}{1}{%
+        {CSLI Publications}%
+      }
+      \strng{namehash}{98fec0b13928b26f046549a7c04e3167}
+      \strng{fullhash}{98fec0b13928b26f046549a7c04e3167}
+      \strng{bibnamehash}{98fec0b13928b26f046549a7c04e3167}
+      \strng{authorbibnamehash}{98fec0b13928b26f046549a7c04e3167}
+      \strng{authornamehash}{98fec0b13928b26f046549a7c04e3167}
+      \strng{authorfullhash}{98fec0b13928b26f046549a7c04e3167}
+      \strng{editorbibnamehash}{92da77814a59ee19fb46c76017648c00}
+      \strng{editornamehash}{92da77814a59ee19fb46c76017648c00}
+      \strng{editorfullhash}{92da77814a59ee19fb46c76017648c00}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Logic, {Language}, and {Computation}}
+      \field{title}{Dynamics and the semantics of dialogue}
+      \field{volume}{1}
+      \field{year}{1996}
+      \field{pages}{221\bibrangedash 237}
+      \range{pages}{17}
+    \endentry
+    \entry{goodman_pragmatic_2016}{article}{}
+      \name{author}{2}{}{%
+        {{hash=17c6b9edbad988db7d426fba005cecff}{%
+           family={Goodman},
+           familyi={G\bibinitperiod},
+           given={Noah\bibnamedelima D.},
+           giveni={N\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=34397283b94e67a1618493e4c967cb29}{%
+           family={Frank},
+           familyi={F\bibinitperiod},
+           given={Michael\bibnamedelima C.},
+           giveni={M\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{46854a34d8ca9bff3b9ae2203e1b5e56}
+      \strng{fullhash}{46854a34d8ca9bff3b9ae2203e1b5e56}
+      \strng{bibnamehash}{46854a34d8ca9bff3b9ae2203e1b5e56}
+      \strng{authorbibnamehash}{46854a34d8ca9bff3b9ae2203e1b5e56}
+      \strng{authornamehash}{46854a34d8ca9bff3b9ae2203e1b5e56}
+      \strng{authorfullhash}{46854a34d8ca9bff3b9ae2203e1b5e56}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1364-6613}
+      \field{journaltitle}{Trends in Cognitive Sciences}
+      \field{month}{11}
+      \field{number}{11}
+      \field{title}{Pragmatic {Language} {Interpretation} as {Probabilistic} {Inference}}
+      \field{urlday}{11}
+      \field{urlmonth}{2}
+      \field{urlyear}{2021}
+      \field{volume}{20}
+      \field{year}{2016}
+      \field{urldateera}{ce}
+      \field{pages}{818\bibrangedash 829}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1016/j.tics.2016.08.005
+      \endverb
+      \verb{file}
+      \verb ScienceDirect Snapshot:/home/juliangrove/Documents/zotero/storage/8FA53KSA/Goodman and Frank - 2016 - Pragmatic Language Interpretation as Probabilistic.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/S136466131630122X
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/S136466131630122X
+      \endverb
+    \endentry
+    \entry{goodman_knowledge_2013}{article}{}
+      \name{author}{2}{}{%
+        {{hash=17c6b9edbad988db7d426fba005cecff}{%
+           family={Goodman},
+           familyi={G\bibinitperiod},
+           given={Noah\bibnamedelima D.},
+           giveni={N\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=9b5fbd329613471b5b508b01353e8fb4}{%
+           family={Stuhlmüller},
+           familyi={S\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {eng}%
+      }
+      \strng{namehash}{9b6907ab52a654c9f88743448b65166f}
+      \strng{fullhash}{9b6907ab52a654c9f88743448b65166f}
+      \strng{bibnamehash}{9b6907ab52a654c9f88743448b65166f}
+      \strng{authorbibnamehash}{9b6907ab52a654c9f88743448b65166f}
+      \strng{authornamehash}{9b6907ab52a654c9f88743448b65166f}
+      \strng{authorfullhash}{9b6907ab52a654c9f88743448b65166f}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{issn}{1756-8765}
+      \field{journaltitle}{Topics in Cognitive Science}
+      \field{month}{1}
+      \field{number}{1}
+      \field{shorttitle}{Knowledge and implicature}
+      \field{title}{Knowledge and implicature: modeling language understanding as social cognition}
+      \field{volume}{5}
+      \field{year}{2013}
+      \field{pages}{173\bibrangedash 184}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1111/tops.12007
+      \endverb
+      \verb{file}
+      \verb Full Text:/home/juliangrove/Documents/zotero/storage/ZELMK4H3/Goodman and Stuhlmüller - 2013 - Knowledge and implicature modeling language under.pdf:application/pdf
+      \endverb
+      \keyw{Semantics,Language,Bayes Theorem,Humans,Psycholinguistics,Speech Perception,Comprehension,Data Interpretation,Statistical,Information Theory,Interpersonal Relations,Intuition,Judgment,Knowledge,Models,Psychological,Psychological Theory,Social Behavior}
+    \endentry
+    \entry{goodman_probabilistic_nodate}{misc}{}
+      \name{author}{7}{ul=2}{%
+        {{hash=17c6b9edbad988db7d426fba005cecff}{%
+           family={Goodman},
+           familyi={G\bibinitperiod},
+           given={Noah\bibnamedelima D.},
+           giveni={N\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=5c7ff02e1f8b4c4aa7bfddece14f23d2}{%
+           family={Tenenbaum},
+           familyi={T\bibinitperiod},
+           given={Joshua\bibnamedelima B.},
+           giveni={J\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+        {{hash=4e79b2bba2a5a7bcc288fe0b0233ed66}{%
+           family={Buchsbaum},
+           familyi={B\bibinitperiod},
+           given={Daphna},
+           giveni={D\bibinitperiod}}}%
+        {{hash=b10ba3ed7c8ca7a3510fa532b7756a7f}{%
+           family={Hartshorne},
+           familyi={H\bibinitperiod},
+           given={Joshua},
+           giveni={J\bibinitperiod}}}%
+        {{hash=0435451b44899ac9f14ab7c07098a169}{%
+           family={Hawkins},
+           familyi={H\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=ca8abea0fa89e835f5e6b6d492ee7832}{%
+           family={O'Donnell},
+           familyi={O\bibinitperiod},
+           given={Timothy},
+           giveni={T\bibinitperiod}}}%
+        {{hash=d38fb2182140bfd8126c669e5cada5b8}{%
+           family={Tessler},
+           familyi={T\bibinitperiod},
+           given={Michael\bibnamedelima Henry},
+           giveni={M\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+      }
+      \strng{namehash}{7e0acf2ebe525d55d4c360fe7f14a7d4}
+      \strng{fullhash}{6f3897a1c58eafa21b6c57a29674f1c1}
+      \strng{bibnamehash}{7e0acf2ebe525d55d4c360fe7f14a7d4}
+      \strng{authorbibnamehash}{7e0acf2ebe525d55d4c360fe7f14a7d4}
+      \strng{authornamehash}{7e0acf2ebe525d55d4c360fe7f14a7d4}
+      \strng{authorfullhash}{6f3897a1c58eafa21b6c57a29674f1c1}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{url}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Probabilistic Models of Cognition}
+      \field{title}{Probabilistic {Models} of {Cognition} - 2nd {Edition}}
+      \field{urlday}{30}
+      \field{urlmonth}{6}
+      \field{urlyear}{2024}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb Probabilistic Models of Cognition - 2nd Edition:/home/juliangrove/Documents/zotero/storage/JFDC54BM/probmods.org.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://probmods.org/
+      \endverb
+      \verb{url}
+      \verb http://probmods.org/
+      \endverb
+    \endentry
+    \entry{grice_logic_1975}{incollection}{}
+      \name{author}{1}{}{%
+        {{hash=2e777ac70f24c53e553de8fa3bef13b4}{%
+           family={Grice},
+           familyi={G\bibinitperiod},
+           given={H.\bibnamedelimi Paul},
+           giveni={H\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=d59bef1c480e103dec86b71e47802b1b}{%
+           family={Cole},
+           familyi={C\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+        {{hash=b2bd978f51cae016d5a94d61bbffbdee}{%
+           family={Morgan},
+           familyi={M\bibinitperiod},
+           given={Jerry\bibnamedelima L.},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York}%
+      }
+      \list{publisher}{1}{%
+        {Academic Press}%
+      }
+      \strng{namehash}{2e777ac70f24c53e553de8fa3bef13b4}
+      \strng{fullhash}{2e777ac70f24c53e553de8fa3bef13b4}
+      \strng{bibnamehash}{2e777ac70f24c53e553de8fa3bef13b4}
+      \strng{authorbibnamehash}{2e777ac70f24c53e553de8fa3bef13b4}
+      \strng{authornamehash}{2e777ac70f24c53e553de8fa3bef13b4}
+      \strng{authorfullhash}{2e777ac70f24c53e553de8fa3bef13b4}
+      \strng{editorbibnamehash}{cee440d678832a7b5c7e0015f964a4b3}
+      \strng{editornamehash}{cee440d678832a7b5c7e0015f964a4b3}
+      \strng{editorfullhash}{cee440d678832a7b5c7e0015f964a4b3}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Syntax and {Semantics}}
+      \field{title}{Logic and {Conversation}}
+      \field{volume}{3, Speech Acts}
+      \field{year}{1975}
+      \field{pages}{41\bibrangedash 58}
+      \range{pages}{18}
+    \endentry
+    \entry{grove_probabilistic_2023}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=edcb13cf42edd79a079f0ff698bfe98f}{%
+           family={Grove},
+           familyi={G\bibinitperiod},
+           given={Julian},
+           giveni={J\bibinitperiod}}}%
+        {{hash=4c7a19f9fca666a1e4615709da59e5b1}{%
+           family={Bernardy},
+           familyi={B\bibinitperiod},
+           given={Jean-Philippe},
+           giveni={J\bibinithyphendelim P\bibinitperiod}}}%
+      }
+      \name{editor}{4}{}{%
+        {{hash=4af1a0967ec82ba5cc99a3ca0aa2309f}{%
+           family={Yada},
+           familyi={Y\bibinitperiod},
+           given={Katsutoshi},
+           giveni={K\bibinitperiod}}}%
+        {{hash=855645dd3ae6f05b49d8f7e88e94d50d}{%
+           family={Takama},
+           familyi={T\bibinitperiod},
+           given={Yasufumi},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=9375c1785df878a82bc0db487cbbc01f}{%
+           family={Mineshima},
+           familyi={M\bibinitperiod},
+           given={Koji},
+           giveni={K\bibinitperiod}}}%
+        {{hash=51658217d2834d3221eb3eaa8ba37d0c}{%
+           family={Satoh},
+           familyi={S\bibinitperiod},
+           given={Ken},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer Nature Switzerland}%
+      }
+      \strng{namehash}{4e29758ba6c9e1abc52d7f4e2b9b20cf}
+      \strng{fullhash}{4e29758ba6c9e1abc52d7f4e2b9b20cf}
+      \strng{bibnamehash}{4e29758ba6c9e1abc52d7f4e2b9b20cf}
+      \strng{authorbibnamehash}{4e29758ba6c9e1abc52d7f4e2b9b20cf}
+      \strng{authornamehash}{4e29758ba6c9e1abc52d7f4e2b9b20cf}
+      \strng{authorfullhash}{4e29758ba6c9e1abc52d7f4e2b9b20cf}
+      \strng{editorbibnamehash}{1c9f75c92c35210e4645280217c8eaf6}
+      \strng{editornamehash}{1c9f75c92c35210e4645280217c8eaf6}
+      \strng{editorfullhash}{da239b5b4011c696a10881795da37003}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{New {Frontiers} in {Artificial} {Intelligence}}
+      \field{isbn}{978-3-031-36190-6}
+      \field{series}{Lecture {Notes} in {Computer} {Science}}
+      \field{title}{Probabilistic {Compositional} {Semantics}, {Purely}}
+      \field{year}{2023}
+      \field{pages}{242\bibrangedash 256}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1007/978-3-031-36190-6_17
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/home/juliangrove/Documents/zotero/storage/RF52GLSD/Grove et al. - 2023 - Probabilistic Compositional Semantics, Purely.pdf:application/pdf
+      \endverb
+    \endentry
+    \entry{grove_factivity_2024}{misc}{}
+      \name{author}{2}{}{%
+        {{hash=edcb13cf42edd79a079f0ff698bfe98f}{%
+           family={Grove},
+           familyi={G\bibinitperiod},
+           given={Julian},
+           giveni={J\bibinitperiod}}}%
+        {{hash=d6d466a926d56807db11f7b9049cc119}{%
+           family={White},
+           familyi={W\bibinitperiod},
+           given={Aaron\bibnamedelima Steven},
+           giveni={A\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {LingBuzz}%
+      }
+      \strng{namehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{fullhash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{bibnamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authorbibnamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authornamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authorfullhash}{2d60abaa0ab681953afdff0aac19b69e}
+      \field{extraname}{1}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradate}{1}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{3}
+      \field{note}{LingBuzz Published In: submitted}
+      \field{title}{Factivity, presupposition projection, and the role of discrete knowlege in gradient inference judgments}
+      \field{urlday}{25}
+      \field{urlmonth}{4}
+      \field{urlyear}{2024}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb LingBuzz Full Text PDF:/home/juliangrove/Documents/zotero/storage/MGH26R9W/Grove and White - 2024 - Factivity, presupposition projection, and the role.pdf:application/pdf;Snapshot:/home/juliangrove/Documents/zotero/storage/5GIFA2H3/Grove and White - 2024 - Factivity, presupposition projection, and the role.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb https://ling.auf.net/lingbuzz/007450
+      \endverb
+      \verb{url}
+      \verb https://ling.auf.net/lingbuzz/007450
+      \endverb
+      \keyw{monads,presupposition projection,semantics,probabilistic semantics,factivity}
+    \endentry
+    \entry{grove_probabilistic_2024}{unpublished}{}
+      \name{author}{2}{}{%
+        {{hash=edcb13cf42edd79a079f0ff698bfe98f}{%
+           family={Grove},
+           familyi={G\bibinitperiod},
+           given={Julian},
+           giveni={J\bibinitperiod}}}%
+        {{hash=d6d466a926d56807db11f7b9049cc119}{%
+           family={White},
+           familyi={W\bibinitperiod},
+           given={Aaron\bibnamedelima Steven},
+           giveni={A\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {University of Rochester}%
+      }
+      \strng{namehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{fullhash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{bibnamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authorbibnamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authornamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authorfullhash}{2d60abaa0ab681953afdff0aac19b69e}
+      \field{extraname}{2}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradate}{2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{10}
+      \field{title}{Probabilistic dynamic semantics}
+      \field{urlday}{20}
+      \field{urlmonth}{10}
+      \field{urlyear}{2024}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb LingBuzz Full Text PDF:/home/juliangrove/Documents/zotero/storage/LNIE28S3/Grove and White - 2024 - Probabilistic dynamic semantics.pdf:application/pdf;Snapshot:/home/juliangrove/Documents/zotero/storage/QB4VDZR9/008478.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb https://ling.auf.net/lingbuzz/008478
+      \endverb
+      \verb{url}
+      \verb https://ling.auf.net/lingbuzz/008478
+      \endverb
+      \keyw{monads,dynamic semantics,semantics,combinatory categorial grammar,experimental linguistics,probabilistic models}
+    \endentry
+    \entry{grove_modeling_2025}{article}{}
+      \name{author}{2}{}{%
+        {{hash=edcb13cf42edd79a079f0ff698bfe98f}{%
+           family={Grove},
+           familyi={G\bibinitperiod},
+           given={Julian},
+           giveni={J\bibinitperiod}}}%
+        {{hash=d6d466a926d56807db11f7b9049cc119}{%
+           family={White},
+           familyi={W\bibinitperiod},
+           given={Aaron\bibnamedelima Steven},
+           giveni={A\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{fullhash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{bibnamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authorbibnamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authornamehash}{2d60abaa0ab681953afdff0aac19b69e}
+      \strng{authorfullhash}{2d60abaa0ab681953afdff0aac19b69e}
+      \field{extraname}{3}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2694-1791}
+      \field{journaltitle}{Experiments in Linguistic Meaning}
+      \field{month}{1}
+      \field{title}{Modeling the prompt in inference judgment tasks}
+      \field{urlday}{2}
+      \field{urlmonth}{4}
+      \field{urlyear}{2025}
+      \field{volume}{3}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \field{pages}{176\bibrangedash 187}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.3765/elm.3.5857
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/home/juliangrove/Documents/zotero/storage/HT7YMRYK/Grove and White - 2025 - Modeling the prompt in inference judgment tasks.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://journals.linguisticsociety.org/proceedings/index.php/ELM/article/view/5857
+      \endverb
+      \verb{url}
+      \verb https://journals.linguisticsociety.org/proceedings/index.php/ELM/article/view/5857
+      \endverb
+      \keyw{dynamic semantics,presupposition,factivity,probabilistic models}
+    \endentry
+    \entry{lassiter_vagueness_2011}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=f2107cb1d12ccc8e4e5e2c8bba6f24aa}{%
+           family={Lassiter},
+           familyi={L\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+      }
+      \name{editor}{4}{}{%
+        {{hash=81714ff6306d89048e5d89ac8e526e03}{%
+           family={Nouwen},
+           familyi={N\bibinitperiod},
+           given={Rick},
+           giveni={R\bibinitperiod}}}%
+        {{hash=8c97469b3485142bfd7afd2c9394424b}{%
+           family={Rooij},
+           familyi={R\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod},
+           prefix={van},
+           prefixi={v\bibinitperiod}}}%
+        {{hash=ce0324512aa63e86ee41e7d50119f292}{%
+           family={Sauerland},
+           familyi={S\bibinitperiod},
+           given={Uli},
+           giveni={U\bibinitperiod}}}%
+        {{hash=2db2b38dc406714b8696e8a41210f08d}{%
+           family={Schmitz},
+           familyi={S\bibinitperiod},
+           given={Hans-Christian},
+           giveni={H\bibinithyphendelim C\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{f2107cb1d12ccc8e4e5e2c8bba6f24aa}
+      \strng{fullhash}{f2107cb1d12ccc8e4e5e2c8bba6f24aa}
+      \strng{bibnamehash}{f2107cb1d12ccc8e4e5e2c8bba6f24aa}
+      \strng{authorbibnamehash}{f2107cb1d12ccc8e4e5e2c8bba6f24aa}
+      \strng{authornamehash}{f2107cb1d12ccc8e4e5e2c8bba6f24aa}
+      \strng{authorfullhash}{f2107cb1d12ccc8e4e5e2c8bba6f24aa}
+      \strng{editorbibnamehash}{7da1faf0793c17071e65ad6998e094a1}
+      \strng{editornamehash}{7da1faf0793c17071e65ad6998e094a1}
+      \strng{editorfullhash}{f954cf19150cd099b2243a96a943fadd}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Vagueness in {Communication}}
+      \field{isbn}{978-3-642-18446-8}
+      \field{series}{Lecture {Notes} in {Computer} {Science}}
+      \field{title}{Vagueness as {Probabilistic} {Linguistic} {Knowledge}}
+      \field{year}{2011}
+      \field{pages}{127\bibrangedash 150}
+      \range{pages}{24}
+      \verb{doi}
+      \verb 10.1007/978-3-642-18446-8_8
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/home/juliangrove/Documents/zotero/storage/STP83VD5/Lassiter - 2011 - Vagueness as Probabilistic Linguistic Knowledge.pdf:application/pdf
+      \endverb
+      \keyw{probability,higher-order vagueness,lexical representation,Vagueness}
+    \endentry
+    \entry{lassiter_adjectival_2017}{article}{}
+      \name{author}{2}{}{%
+        {{hash=f2107cb1d12ccc8e4e5e2c8bba6f24aa}{%
+           family={Lassiter},
+           familyi={L\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=17c6b9edbad988db7d426fba005cecff}{%
+           family={Goodman},
+           familyi={G\bibinitperiod},
+           given={Noah\bibnamedelima D.},
+           giveni={N\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{f58d13d7a75a80c9854857ca99ef7e4b}
+      \strng{fullhash}{f58d13d7a75a80c9854857ca99ef7e4b}
+      \strng{bibnamehash}{f58d13d7a75a80c9854857ca99ef7e4b}
+      \strng{authorbibnamehash}{f58d13d7a75a80c9854857ca99ef7e4b}
+      \strng{authornamehash}{f58d13d7a75a80c9854857ca99ef7e4b}
+      \strng{authorfullhash}{f58d13d7a75a80c9854857ca99ef7e4b}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1573-0964}
+      \field{journaltitle}{Synthese}
+      \field{month}{10}
+      \field{number}{10}
+      \field{title}{Adjectival vagueness in a {Bayesian} model of interpretation}
+      \field{urlday}{11}
+      \field{urlmonth}{2}
+      \field{urlyear}{2021}
+      \field{volume}{194}
+      \field{year}{2017}
+      \field{urldateera}{ce}
+      \field{pages}{3801\bibrangedash 3836}
+      \range{pages}{36}
+      \verb{doi}
+      \verb 10.1007/s11229-015-0786-1
+      \endverb
+      \verb{file}
+      \verb Springer Full Text PDF:/home/juliangrove/Documents/zotero/storage/R9VJEYNS/Lassiter and Goodman - 2017 - Adjectival vagueness in a Bayesian model of interp.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1007/s11229-015-0786-1
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1007/s11229-015-0786-1
+      \endverb
+    \endentry
+    \entry{montague_proper_1973}{incollection}{}
+      \name{author}{1}{}{%
+        {{hash=7c6ba51ce7aee268ca16ba50bb7f44f2}{%
+           family={Montague},
+           familyi={M\bibinitperiod},
+           given={Richard},
+           giveni={R\bibinitperiod}}}%
+      }
+      \name{editor}{3}{}{%
+        {{hash=e479ded1d684815dc3a6bd451e9a6aea}{%
+           family={Hintikka},
+           familyi={H\bibinitperiod},
+           given={K.\bibnamedelimi J.\bibnamedelimi J.},
+           giveni={K\bibinitperiod\bibinitdelim J\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=8463e4ea3a7d7ff0bbb823294678b205}{%
+           family={Moravcsik},
+           familyi={M\bibinitperiod},
+           given={J.\bibnamedelimi M.\bibnamedelimi E.},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+        {{hash=9016de0aaea4a11f15e82dc2bed9dd1c}{%
+           family={Suppes},
+           familyi={S\bibinitperiod},
+           given={P.},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {Dordrecht}%
+      }
+      \list{publisher}{1}{%
+        {Springer Netherlands}%
+      }
+      \strng{namehash}{7c6ba51ce7aee268ca16ba50bb7f44f2}
+      \strng{fullhash}{7c6ba51ce7aee268ca16ba50bb7f44f2}
+      \strng{bibnamehash}{7c6ba51ce7aee268ca16ba50bb7f44f2}
+      \strng{authorbibnamehash}{7c6ba51ce7aee268ca16ba50bb7f44f2}
+      \strng{authornamehash}{7c6ba51ce7aee268ca16ba50bb7f44f2}
+      \strng{authorfullhash}{7c6ba51ce7aee268ca16ba50bb7f44f2}
+      \strng{editorbibnamehash}{dfc4ba5e4f1fc6f7f81b5e177db50010}
+      \strng{editornamehash}{dfc4ba5e4f1fc6f7f81b5e177db50010}
+      \strng{editorfullhash}{dfc4ba5e4f1fc6f7f81b5e177db50010}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Approaches to {Natural} {Language}: {Proceedings} of the 1970 {Stanford} {Workshop} on {Grammar} and {Semantics}}
+      \field{isbn}{978-94-010-2506-5}
+      \field{series}{Synthese {Library}}
+      \field{title}{The {Proper} {Treatment} of {Quantification} in {Ordinary} {English}}
+      \field{urlday}{24}
+      \field{urlmonth}{10}
+      \field{urlyear}{2020}
+      \field{year}{1973}
+      \field{urldateera}{ce}
+      \field{pages}{221\bibrangedash 242}
+      \range{pages}{22}
+      \verb{doi}
+      \verb 10.1007/978-94-010-2506-5_10
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1007/978-94-010-2506-5_10
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1007/978-94-010-2506-5_10
+      \endverb
+      \keyw{Common Noun,English Sentence,Individual Concept,Recursive Definition,Syntactic Rule}
+    \endentry
+    \entry{roberts_information_2012}{article}{}
+      \name{author}{1}{}{%
+        {{hash=789648fb900c09779075655a0ed96fbb}{%
+           family={Roberts},
+           familyi={R\bibinitperiod},
+           given={Craige},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{789648fb900c09779075655a0ed96fbb}
+      \strng{fullhash}{789648fb900c09779075655a0ed96fbb}
+      \strng{bibnamehash}{789648fb900c09779075655a0ed96fbb}
+      \strng{authorbibnamehash}{789648fb900c09779075655a0ed96fbb}
+      \strng{authornamehash}{789648fb900c09779075655a0ed96fbb}
+      \strng{authorfullhash}{789648fb900c09779075655a0ed96fbb}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{issn}{1937-8912}
+      \field{journaltitle}{Semantics and Pragmatics}
+      \field{month}{12}
+      \field{shorttitle}{Information {Structure}}
+      \field{title}{Information {Structure}: {Towards} an integrated formal theory of pragmatics}
+      \field{urlday}{26}
+      \field{urlmonth}{7}
+      \field{urlyear}{2023}
+      \field{volume}{5}
+      \field{year}{2012}
+      \field{urldateera}{ce}
+      \field{pages}{6:1\bibrangedash 69}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.3765/sp.5.6
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/home/juliangrove/Documents/zotero/storage/WYLXPA35/Roberts - 2012 - Information Structure Towards an integrated forma.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://semprag.org/index.php/sp/article/view/sp.5.6
+      \endverb
+      \verb{url}
+      \verb https://semprag.org/index.php/sp/article/view/sp.5.6
+      \endverb
+      \keyw{assertion,focus,formal pragmatics,information structure,questions}
+    \endentry
+    \entry{shan_monads_2002}{article}{}
+      \name{author}{1}{}{%
+        {{hash=a0556a70ac5960b57d6194e299c32a7a}{%
+           family={Shan},
+           familyi={S\bibinitperiod},
+           given={Chung-chieh},
+           giveni={C\bibinithyphendelim c\bibinitperiod}}}%
+      }
+      \strng{namehash}{a0556a70ac5960b57d6194e299c32a7a}
+      \strng{fullhash}{a0556a70ac5960b57d6194e299c32a7a}
+      \strng{bibnamehash}{a0556a70ac5960b57d6194e299c32a7a}
+      \strng{authorbibnamehash}{a0556a70ac5960b57d6194e299c32a7a}
+      \strng{authornamehash}{a0556a70ac5960b57d6194e299c32a7a}
+      \strng{authorfullhash}{a0556a70ac5960b57d6194e299c32a7a}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv:cs/0205026}
+      \field{month}{5}
+      \field{note}{arXiv: cs/0205026}
+      \field{title}{Monads for natural language semantics}
+      \field{urlday}{6}
+      \field{urlmonth}{10}
+      \field{urlyear}{2020}
+      \field{year}{2002}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb arXiv Fulltext PDF:/home/juliangrove/Documents/zotero/storage/5RUT4NXE/Shan - 2002 - Monads for natural language semantics.pdf:application/pdf;arXiv.org Snapshot:/home/juliangrove/Documents/zotero/storage/J5FDJHVE/Shan - 2002 - Monads for natural language semantics.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/cs/0205026
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/cs/0205026
+      \endverb
+      \keyw{Computer Science - Computation and Language,Computer Science - Programming Languages,D.3.1,F.3.2,I.2.7}
+    \endentry
+    \entry{van_eijck_probabilistic_2012}{incollection}{}
+      \name{author}{2}{}{%
+        {{hash=9e7292c27370cc8340a3baf9e9a87fff}{%
+           family={Eijck},
+           familyi={E\bibinitperiod},
+           given={Jan},
+           giveni={J\bibinitperiod},
+           prefix={van},
+           prefixi={v\bibinitperiod}}}%
+        {{hash=fd478f807d1a7dd462550b5ab79511e6}{%
+           family={Lappin},
+           familyi={L\bibinitperiod},
+           given={Shalom},
+           giveni={S\bibinitperiod}}}%
+      }
+      \name{editor}{5}{}{%
+        {{hash=acb6b40868c86f5dbc872e49a38670e3}{%
+           family={Christoff},
+           familyi={C\bibinitperiod},
+           given={Zoé},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=50c5ab6c78c65f30317c0b80bfe04b8b}{%
+           family={Galeazzi},
+           familyi={G\bibinitperiod},
+           given={Paolo},
+           giveni={P\bibinitperiod}}}%
+        {{hash=a0c7c1d2a38af04b82a0adb49ff4ee05}{%
+           family={Gierasimczuk},
+           familyi={G\bibinitperiod},
+           given={Nina},
+           giveni={N\bibinitperiod}}}%
+        {{hash=920d002a0f2995781e1b31560b59244c}{%
+           family={Marcoci},
+           familyi={M\bibinitperiod},
+           given={Alexandru},
+           giveni={A\bibinitperiod}}}%
+        {{hash=bb779ce4ba07b7e9dc90528c845cf1b2}{%
+           family={Smets},
+           familyi={S\bibinitperiod},
+           given={Sonya},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Citeseer}%
+      }
+      \strng{namehash}{00bb25711e24e83faaeaafaa68cd8d89}
+      \strng{fullhash}{00bb25711e24e83faaeaafaa68cd8d89}
+      \strng{bibnamehash}{00bb25711e24e83faaeaafaa68cd8d89}
+      \strng{authorbibnamehash}{00bb25711e24e83faaeaafaa68cd8d89}
+      \strng{authornamehash}{00bb25711e24e83faaeaafaa68cd8d89}
+      \strng{authorfullhash}{00bb25711e24e83faaeaafaa68cd8d89}
+      \strng{editorbibnamehash}{04ae3d4c7bf92c1cc41294744ec25936}
+      \strng{editornamehash}{04ae3d4c7bf92c1cc41294744ec25936}
+      \strng{editorfullhash}{6a1ef3c0db1f0ab69aaa7357b4cd06db}
+      \field{sortinit}{v}
+      \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Logic and interactive rationality (LIRA)}
+      \field{title}{Probabilistic semantics for natural language}
+      \field{volume}{2}
+      \field{year}{2012}
+      \field{pages}{17\bibrangedash 35}
+      \range{pages}{19}
+    \endentry
+    \entry{zeevat_bayesian_2015}{book}{}
+      \name{editor}{2}{}{%
+        {{hash=e407d23a408c6584b7e6117b6072dcc9}{%
+           family={Zeevat},
+           familyi={Z\bibinitperiod},
+           given={Henk},
+           giveni={H\bibinitperiod}}}%
+        {{hash=2db2b38dc406714b8696e8a41210f08d}{%
+           family={Schmitz},
+           familyi={S\bibinitperiod},
+           given={Hans-Christian},
+           giveni={H\bibinithyphendelim C\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{f39badc8a7335e19f71c4f9fe540467a}
+      \strng{fullhash}{f39badc8a7335e19f71c4f9fe540467a}
+      \strng{bibnamehash}{f39badc8a7335e19f71c4f9fe540467a}
+      \strng{editorbibnamehash}{f39badc8a7335e19f71c4f9fe540467a}
+      \strng{editornamehash}{f39badc8a7335e19f71c4f9fe540467a}
+      \strng{editorfullhash}{f39badc8a7335e19f71c4f9fe540467a}
+      \field{sortinit}{Z}
+      \field{sortinithash}{96892c0b0a36bb8557c40c49813d48b3}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{editor}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-3-319-17063-3 978-3-319-17064-0}
+      \field{series}{Language, {Cognition}, and {Mind}}
+      \field{title}{Bayesian {Natural} {Language} {Semantics} and {Pragmatics}}
+      \field{urlday}{30}
+      \field{urlmonth}{6}
+      \field{urlyear}{2024}
+      \field{volume}{2}
+      \field{year}{2015}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.1007/978-3-319-17064-0
+      \endverb
+      \verb{urlraw}
+      \verb https://link.springer.com/10.1007/978-3-319-17064-0
+      \endverb
+      \verb{url}
+      \verb https://link.springer.com/10.1007/978-3-319-17064-0
+      \endverb
+      \keyw{natural language semantics,analysis of counter factuals,Bayesian interpretation,Bayesian natural language semantics,Bayesian networks,Bayesian Pragmatics,causal Bayesian models,computational logic,computational natural language interpretation,logic and semantics,natural language processing,Signal processing and probability,stochastic methods for language interpretation,Syntax-semantics distinction}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
