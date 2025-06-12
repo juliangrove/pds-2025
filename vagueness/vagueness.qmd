@@ -3,15 +3,23 @@ title: "Probabilistic dynamic semantics"
 bibliography: ../pds.bib
 ---
 
-# Vagueness and imprecision
+# Probabilistic programs in Stan (Aaron)
 
-# The data-collection pipeline
+## Structure of a Stan program
+
+## Mapping lambda-terms to Stan code
+
+# Case study: vagueness and imprecision (Julian)
+
+## Background on vagueness and imprecision
+
+# The data-collection pipeline (Julian)
 
 ## Scale norming
 
 ## Likelihood inferences
 
-# Compositional semantics
+# Compositional semantics (Julian)
 
 ## Gradable adjectives
 
@@ -19,6 +27,6 @@ bibliography: ../pds.bib
 
 ## Likelihood prompts
 
-# Some implementation details
+# Some implementation details (Julian)
 
 ## Delta rules

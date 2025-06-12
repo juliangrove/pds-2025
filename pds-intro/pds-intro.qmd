@@ -33,8 +33,14 @@ bibliography: ../pds.bib
 
 # Implementation
 
-## Probabilistic programs in Stan
-
 ## Types, terms, and reduction rules
 
 ## Delta rules
+
+### Further research: expanding delta rules with a theorem prover
+
+## Navigation
+
+- [← Back to Index](../index.html)
+- [Next: PDS Intro →](../pds-intro/pds-intro.html)
+

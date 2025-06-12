@@ -1,42 +1,71 @@
+# project:
+#   type: website
+#   output-dir: docs
+
+# website:
+#   title: "Probabilistic dynamic semantics"
+#   page-navigation: true
+#   sidebar:
+#     style: docked
+#     search: true
+#     contents:
+#     - index.qmd
+#     - section: "Background"
+#       contents:
+#       - background/background.qmd
+#     - section: "Introduction to probabilistic dynamic semantics"
+#       contents:
+#       - pds-intro/pds-intro.qmd
+#     - section: "Vagueness and imprecision"
+#       contents:
+#       - vagueness/vagueness.qmd
+#     - section: "Factivity inferences"
+#       contents:
+#       - factivity/factivity.qmd
+#     - section: "Modeling the question prompt"
+#       contents:
+#       - qud/qud.qmd
+
+# format:
+#   html:
+#     theme: [lux,tufte]
+#     highlight-style: gruvbox-dark
+#     css: styles.css
+#     toc: true
+#     code-tools: true
+    
+# # filters:
+#   # - include-code-files
+#   # - line-highlight
+
+
 project:
   type: website
   output-dir: docs
 
 website:
   title: "Probabilistic dynamic semantics"
-  page-navigation: true
-  sidebar:
-    style: docked
-    search: true
-    contents:
-    - index.qmd
-    - section: "Background"
-      contents:
-      - background/background.qmd
-    - section: "Introduction to probabilistic dynamic semantics"
-      contents:
-      - pds-intro/pds-intro.qmd
-    - section: "Vagueness and imprecision"
-      contents:
-      - vagueness/vagueness.qmd
-    - section: "Factivity inferences"
-      contents:
-      - factivity/factivity.qmd
-    - section: "Modeling the question prompt"
-      contents:
-      - qud/qud.qmd
+  navbar:
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "Background"
+        href: background/background.qmd
+      - text: "PDS Intro"
+        href: pds-intro/pds-intro.qmd
+      - text: "Vagueness"
+        href: vagueness/vagueness.qmd
+      - text: "Factivity"
+        href: factivity/factivity.qmd
+      - text: "QUD"
+        href: qud/qud.qmd
 
 format:
-  html:
-    theme: [lux,tufte]
+  revealjs:
+    theme: default
     highlight-style: gruvbox-dark
+    slide-number: true
+    chalkboard: true
+    preview-links: auto
     css: styles.css
-    toc: true
-    code-tools: true
-    
-# filters:
-  # - include-code-files
-  # - line-highlight
-
-
-
+    footer: "Probabilistic dynamic semantics"

@@ -55,3 +55,8 @@ Three properties of PDS, all arising from our use of a monadic interface.
 - We should be able to state models of inference judgment data abstractly, i.e., by *describing* probability distributions without worrying about, e.g., how they are computed.
   - Consequence: separation between theory and model.
 - Abstraction allows PDS to be flexible (in principle) in its implementation.
+
+## Navigation
+
+- [← Back to Index](../index.html)
+- [Next: PDS Intro →](../pds-intro/pds-intro.html)
