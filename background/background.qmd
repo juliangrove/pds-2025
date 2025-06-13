@@ -7,7 +7,7 @@ bibliography: ../pds.bib
 
 ## The traditional view of meaning (Aaron)
 
-- Compositionality: explains how lexical knowledge gives rise to
+- Compositionality: explains how lexical knowledge gives rise to patterns of inference.
 
 ### Challenges
 
