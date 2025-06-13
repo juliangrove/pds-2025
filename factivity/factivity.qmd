@@ -1,26 +1,11 @@
 ---
-title: "Probabilistic dynamic semantics"
+title: "Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments"
 bibliography: ../pds.bib
 ---
 
-# Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments (Aaron)
+{{< include factivity-aaron.qmd >}}
 
-## The problem of gradience in veridicality judgments
+{{< include factivity-julian.qmd >}}
 
-### White & Rawlins 2019
-
-### Degen & Tonhauser 2022
-
-## Two hypotheses
-
-### The Fundamental Discreteness Hypothesis
-
-### The Fundamental Gradience Hypothesis
-
-## Lexica
-
-### The fundamental discreteness hyp
-
-# Some implementation details
-
-## Delta rules
+- [← Back to Index](../index.html)
+- [Next: Questions under discussion →](../qud/qud.html)

@@ -53,8 +53,8 @@ website:
         href: background/background.qmd
       - text: "PDS Intro"
         href: pds-intro/pds-intro.qmd
-      - text: "Vagueness"
-        href: vagueness/vagueness.qmd
+      - text: "Stan/Adjectives"
+        href: stan-adjectives/stan-adjectives.qmd
       - text: "Factivity"
         href: factivity/factivity.qmd
       - text: "QUD"

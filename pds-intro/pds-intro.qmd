@@ -1,46 +1,10 @@
 ---
-title: "Introduction"
+title: "PDS Introduction"
 bibliography: ../pds.bib
 ---
 
-# The Montagovian approach to meaning
-
-## Syntax, meaning, and compositionality
-
-### Expression-meaning homomorphisms
-
-### Type homomorphisms
-
-# Adding probabilistic types
-
-## A monadic interface for probabilistic programs
-
-## Probabilistic programs as DAGs
-
-# Enriching the interface
-
-## Adding discourse constructs
-
-### Common grounds
-
-#### Possible worlds 
-
-### Questions under discussion
-
-## Parameterized monads
-
-### States
-
-# Implementation
-
-## Types, terms, and reduction rules
-
-## Delta rules
-
-### Further research: expanding delta rules with a theorem prover
-
-## Navigation
+{{< include pds-intro-julian.qmd >}}
 
 - [← Back to Index](../index.html)
-- [Next: PDS Intro →](../pds-intro/pds-intro.html)
+- [Next: Stan/Adjectives →](../stan-adjectives/stan-adjectives.html)
 
