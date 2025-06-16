@@ -15,3 +15,12 @@
 .gb-green {
     color: #b8bb26;
 }
+
+.huge {
+  font-size: 3em;
+  font-weight: bold; /* optional */
+}
+
+.smaller {
+  font-size: 90%;
+}

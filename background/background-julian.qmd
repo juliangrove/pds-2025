@@ -1,30 +1,240 @@
-## A theoretically-oriented approach: RSA
+---
+bibliography: ../pds.bib
+---
+---
 
-- Aims to distinguish semantic and pragmatic causes of inference behavior (i.e., L0 vs. L1/S1).
+### A theoretically-oriented approach
 
+::: {style="text-align: center;"}
+[R]{.huge} ational [S]{.huge} peech [A]{.huge} ct
+
+Models
+:::
+<br>
+[@frank_predicting_2012;@goodman_pragmatic_2016; among many others].
+<br><br>
+[See @degen_rational_2023 for a recent overview of RSA and associated literature.]{.fragment}
+
+---
+
+### How it works
+
+:::: {.columns}
+::: {.column width="50%"}
+![Cookies (7 of them)](images/7cookies.jpg){width=500}
+:::
+::: {.column width="50%"}
+- $u = \textit{Jo ate five cookies}$
+- $n_{\textit{cookies}} ≥ 5$ <small>(literal meaning)</small>
+
+::: {.fragment}
+Three components:
+
+- A [literal listener]{.gb-orange} $L_{0}$:
+  $u ↦ P(w ∣ u)$
+- A [pragmatic speaker]{.gb-orange} $S_{1}$:
+  $w ↦ P(u ∣ w)$
+- A [pragmatic listener]{.gb-orange} $L_{1}$:
+  $u ↦ P(w ∣ u)$
+:::
+:::
+::::
+
+---
+
+### The literal listener $L_{0}$
+
+::: {style="text-align: center;"}
+<br>
+$$
+P_{L_{0}}(w ∣ u) ∝ 𝟙(w ≥ n) × P (w)
+$$
+
+::: {.fragment}
+::: {#incremental-row-table}
+| $w =$ | 5 | 6  |7 |
+| - | - | - | - |
+| $u = \textit{Jo ate 5 cookies}$ | 1/3 | 1/3 | 1/3 |
+| $u = \textit{Jo ate 6 cookies}$ | 0 | 1/2 | 1/2 |
+| $u = \textit{Jo ate 7 cookies}$ | 0 | 0 | 1 |
+:::
+:::
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('#incremental-row-table table tbody tr').forEach(tr => {
+    tr.classList.add('fragment');
+  });
+});
+</script>
+
+:::
+
+---
+
+### The pragmatic speaker $S_{0}$
+
+::: {style="text-align: center;"}
+<br>
+$$
+P_{S_{1}}(u ∣ w) ∝ \frac{P_{L_{0}}(w ∣ u)^{α}}{e^{α × C(u)}}
+$$
+
+::: {.fragment}
+Assume: $α = 4$, and $C(u)$ is constant.
+:::
+
+::: {.fragment}
+::: {#incremental-col-table}
+| $w =$ | 5 | 6  |7 |
+| - | - | - | - |
+| $u = \textit{Jo ate 5 cookies}$ | 1 | 0.16 | 0.01 |
+| $u = \textit{Jo ate 6 cookies}$ | 0 | 0.84 | 0.06 |
+| $u = \textit{Jo ate 7 cookies}$ | 0 | 0 | 0.93 |
+:::
+:::
+:::
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const container = document.querySelector('#incremental-col-table');
+  if (!container) return;
+
+  const table = container.querySelector('table');
+  if (!table) return;
+
+  const rows = table.querySelectorAll('tr');
+  const numCols = rows[0].children.length;
+
+  for (let col = 1; col < numCols; col++) {
+    const fragIndex = col;
+    rows.forEach(row => {
+      const cells = row.children;
+      if (cells.length > col) {
+        const cell = cells[col];
+        cell.classList.add('fragment');
+        cell.setAttribute('data-fragment-index', fragIndex);
+      }
+    });
+  }
+});
+</script>
+
+---
+
+### The pragmatic listener $L_{1}$
+
+::: {style="text-align: center;"}
+<br>
+$$
+P_{L_{1}}(w ∣ u) ∝ P_{S_{1}}(u ∣ w) × P (w)
+$$
+
+::: {.fragment}
+::: {#incremental-row-table}
+| $w =$ | 5 | 6  |7 |
+| - | - | - | - |
+| $u = \textit{Jo ate 5 cookies}$ | 0.85 | 0.14 | 0.01 |
+| $u = \textit{Jo ate 6 cookies}$ | 0 | 0.93 | 0.07 |
+| $u = \textit{Jo ate 7 cookies}$ | 0 | 0 | 1 |
+:::
+:::
+:::
+
+---
+
+### RSA
+
+- **Modularity**: aims to distinguish semantic and pragmatic causes of inference behavior:
+  - literal listener vs. pragmatic listener/speaker
+
+::: {.fragment}
 ### Challenges
+- Not super clear what role compositionality can play:
+  - The theory of L0 must come from outside.
+  - Models typically operate at the sentence level...
+    - how do pragmatic effects of individual expressions determine the global pragmatic effect of an utterance?
+:::
 
-- Unclear what role compositionality can play (no theory of L0).
+---
 
-# Setting the stage
+### Setting the stage
 
-Three properties of PDS, all arising from our use of a monadic interface.
+PDS has three important properties:
 
-## Compositionality for models of linguistic datasets
+- [compositionality]{.gb-orange}: models of linguistic datasets are derived compositionally from semantic grammar fragments.
+- [modularity]{.gb-orange}: factors affecting inference judgments may be theorized about independently and combined.
+- [abstraction]{.gb-orange}: models of meaning and inference should be statable *abstractly*, without reference to implementation.
 
-- Seamless integration between semantic theory and models of probabilistic uncertainty.
+---
 
-## Modularity
+### Compositionality for models
 
-- Factors affecting inference judgments may be theorized about independently and combined.
-  - Lexical and compositional semantics.
-  - World knowledge; etc.
-  - Response behavior.
-- One potential benefit of modularity is that PDS may have different uses; e.g., one may swap out a response function for a function relating a semantic representation to likely utterances (perhaps, S1).
+What could it mean for models of linguistic datasets to be *compositional*?
 
+::: {.fragment}
+Basic strategy:
 
-## Abstraction
+- build the distributional assumptions associated with a mixed-effects model *into the semantics*...
+  - when basic meanings compose, so do these assumptions.
+:::
 
-- We should be able to state models of inference judgment data abstractly, i.e., by *describing* probability distributions without worrying about, e.g., how they are computed.
-  - Consequence: separation between theory and model.
-- Abstraction allows PDS to be flexible (in principle) in its implementation.
+---
+
+### Distributions in the semantics
+
+What do they represent?
+
+- **Uncertainty.** [I.e., about what inferences are licensed.]{.smaller}
+
+::: {.fragment}
+[Traditional view of meaning:]{.smaller} programs that compute values.
+
+- $⟦\textit{jo laughs}⟧ = ⟦\textit{laughs}⟧ ▹ ⟦\textit{jo}⟧ = laughs(j)$
+:::
+::: {.fragment}
+[Probabilistic view:]{.smaller} instead, compute probability distributions.
+
+- $⟦\textit{jo laughs}⟧ = ⟦\textit{laughs}⟧ ▹ ⟦\textit{jo}⟧ =$ [$\begin{array}[t]{l}
+  j ∼ JoDistr \\
+  laugh ∼ LaughDistr \\
+  Return (laugh(j))
+  \end{array}$]{.smaller}
+:::
+
+---
+
+### Modularity
+
+Factors affecting inference judgments can be theorized about independently and combined:
+
+- lexical and compositional semantics
+- world knowledge
+- response behavior: how does someone use a testing instrument (e.g., slider scale)?
+
+::: {.fragment}
+An upshot: PDS can have different uses.
+
+- E.g., swap out a model of response behavior for a model of likely utterances (perhaps, $S_{1}$).
+:::
+
+---
+
+### Abstraction
+
+We should be able to state models of inference judgment data abstractly:
+
+- *describing* probability distributions,
+- not worrying how they are computed.
+
+::: {.fragment}
+Consequence: separation between theory and model.
+
+- Allows flexibility about implementation.
+- Allows the theory to be simpler.
+- Allows seamless integration between formal semantics and probabilistic semantics. (More tomorrow!)
+:::
+
+---
+
+### References
