@@ -66,6 +66,7 @@ format:
     highlight-style: gruvbox-dark
     slide-number: true
     chalkboard: true
+    incremental: true
     preview-links: auto
     css: styles.css
     footer: "Probabilistic dynamic semantics"
