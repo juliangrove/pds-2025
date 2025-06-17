@@ -1,0 +1,27 @@
+# Modeling the prompt in inference judgment tasks
+
+# Some implementation details
+
+## Delta rules
+
+# Outlook
+
+## Other empirical domains
+
+### Conventional implicatures (e.g., parentheticals)
+
+### Evidentials (e.g., Sarah Murray's work)
+
+### Non-canonical questions (e.g., Kyle Rawlins's work)
+
+#### 'what if', resistance and resolution in discourse, epistemic resistance moves
+
+### Socio-semantic inferences (e.g., Andrea Beltrama's work)
+
+## Other kinds of experimental tasks
+
+### Dynamics of imprecision (project with Yifan and Helena)
+
+## Other uses of the framework
+
+### Relating operational semantics of lambda-terms to response behavior (e.g., psychosemantics of 'most')

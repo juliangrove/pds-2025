@@ -1,0 +1,11 @@
+---
+title: "Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments"
+bibliography: ../../pds.bib
+---
+
+{{< include factivity-aaron.qmd >}}
+
+{{< include factivity-julian.qmd >}}
+
+- [← Back to Index](../index.html)
+- [Next: Questions under discussion →](../qud/qud.html)
