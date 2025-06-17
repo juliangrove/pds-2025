@@ -1,0 +1,8 @@
+---
+title: "Modeling questions under discussion"
+bibliography: ../../pds.bib
+---
+
+{{< include qud-julian.qmd >}}
+
+- [← Back to Index](../index.html)

@@ -1,0 +1,10 @@
+---
+title: "PDS Introduction"
+bibliography: ../../pds.bib
+---
+
+{{< include pds-intro-julian.qmd >}}
+
+- [← Back to Index](../index.html)
+- [Next: Stan/Adjectives →](../stan-adjectives/stan-adjectives.html)
+

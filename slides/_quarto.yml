@@ -1,14 +1,14 @@
 project:
   type: website
-  output-dir: docs
-
+  output-dir: ../docs/slides
+  render:
+    - "background/background.qmd"
+    - "pds-intro/pds-intro.qmd"
+    - "adjectives/adjectives.qmd"
+    - "factivity/factivity.qmd"
+    - "qud/qud.qmd"
+ 
 format:
-  html:
-    theme: [lux,tufte]
-    highlight-style: gruvbox-dark
-    css: notes/styles.css
-    toc: true
-    code-tools: true
   revealjs:
     theme: default
     highlight-style: gruvbox-dark
@@ -16,9 +16,5 @@ format:
     chalkboard: true
     incremental: true
     preview-links: auto
-    css: slides/styles.css
+    css: styles.css
     footer: "Probabilistic dynamic semantics"
-
-projects:
-  - notes
-  - slides
