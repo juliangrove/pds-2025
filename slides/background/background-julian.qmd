@@ -195,11 +195,11 @@ What do they represent?
 ::: {.fragment}
 [Probabilistic view:]{.smaller} instead, compute probability distributions.
 
-- $⟦\textit{jo laughs}⟧ = ⟦\textit{laughs}⟧ ▹ ⟦\textit{jo}⟧ =$ [$\begin{array}[t]{l}
+- $⟦\textit{jo laughs}⟧ = ⟦\textit{laughs}⟧ ▹ ⟦\textit{jo}⟧ =$ ${\small\begin{array}[t]{l}
   j ∼ JoDistr \\
   laugh ∼ LaughDistr \\
   Return (laugh(j))
-  \end{array}$]{.smaller}
+  \end{array}}$
 :::
 
 ---
