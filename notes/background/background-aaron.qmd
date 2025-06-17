@@ -1,19 +1,128 @@
-## The traditional view of meaning
+# The traditional view of meaning
 
-- Compositionality: explains how lexical knowledge gives rise to patterns of inference.
+The enterprise of formal semantics, as it has developed since the pioneering work of Montague in the early 1970s, rests on a deceptively simple foundation: the principle of compositionality. According to this principle, the meaning of a complex expression is determined by the meanings of its parts and the way those parts are combined. This idea, which can be traced back through Frege to ancient grammarians, provides the cornerstone for a mathematical theory of natural language meaning that has proven remarkably successful at explaining a wide range of semantic phenomena.
 
-### Challenges
+In the Montagovian tradition, compositionality is implemented through a systematic mapping from syntactic structures to semantic representations. Each lexical item receives a meaning of an appropriate semantic type—entities for proper names, functions from entities to truth values for common nouns and intransitive verbs, and more complex functional types for determiners, intensional verbs, and other expressions. The semantic composition rules, primarily function application but also including more sophisticated operations for handling quantifier scope and intensionality, then specify how these lexical meanings combine to yield the meanings of phrases and sentences.
 
-- Inference judgments arise from multiple causal factors, only one of which is semantic knowledge.
-- Traditional methodologies focus on small areas of the lexicon to support a given analysis (on the order of tens of examples), jeopardizing generalizations' validity.
+This approach has yielded deep insights into numerous semantic phenomena. The analysis of quantifier scope ambiguities, for instance, reveals how a sentence like "Every student read some book" can receive multiple interpretations depending on the relative scope of the two quantifiers. The treatment of intensional contexts explains why "John seeks a unicorn" doesn't commit us to the existence of unicorns, while "John finds a unicorn" typically does. The theory of presupposition projection accounts for the complex patterns by which presuppositions of embedded clauses do or don't become commitments of the speaker. In each case, the formal machinery of typed lambda calculus, possible worlds, and compositional semantic rules provides precise predictions about meaning and inference.
 
-## Experimental semantics and pragmatics
+## Challenges from the laboratory
 
-- Methodologies like inference judgment tasks provide a way of studying larger areas of the lexicon, potentially improving the validity of semantic generalizations.
+Yet cracks have begun to appear in this elegant edifice, particularly as semanticists have ventured beyond the armchair into the laboratory. When we measure people's actual judgments about meaning and inference in controlled experimental settings, we encounter phenomena that sit uncomfortably with the categorical predictions of classical formal semantics.
 
+Consider the phenomenon of vagueness. Traditional semantic theory might analyze an adjective like "tall" as denoting a function from individuals to truth values, perhaps relativized to a context that supplies a threshold. An individual is tall if their height exceeds this threshold; otherwise, they are not tall. This predicts sharp boundaries: for any precise threshold, every individual is determinately tall or not tall. But when we ask people to judge whether individuals of various heights are tall, we don't find evidence of sharp boundaries. Instead, we find gradience: as height increases, the proportion of "tall" judgments increases smoothly. Someone who is 5'10" might be judged tall by 60% of participants, while someone who is 6'0" might be judged tall by 85%. This gradience appears robust across tasks, contexts, and populations.
 
-### Challenges
+Or consider factivity, the phenomenon whereby certain predicates seem to presuppose the truth of their complements. Classical analyses treat factivity as a lexical property: predicates like "know," "discover," and "regret" trigger a presupposition that their complement is true, while predicates like "think," "say," and "hope" do not. This predicts categorical patterns in inference judgments. If someone says "Mary knows that it's raining," we should invariably infer that it's raining. If someone says "Mary thinks that it's raining," we should not draw this inference (or at least, not with the same strength).
 
-- Generally, unclear how modeling constructs relate to semantic theory; i.e., what lexical semantic property is implicated and how it interacts with language-external factors.
-- In the setting of entire datasets, this question becomes one about gradience: what theoretical constructs underlie the relevant distributions of judgments?-
-  - Thus little progress on the first challenge for the traditional view.
+But again, experimental investigation reveals a more complex picture. When participants are asked to judge whether various inferences follow from sentences with clause-embedding predicates, their judgments don't fall into neat categories. Instead, different predicates are associated with different strengths of inference, and these strengths vary continuously. "Know" triggers stronger inferences than "discover," which triggers stronger inferences than "be right," which triggers stronger inferences than "think." There are no clear boundaries between "factive" and "non-factive" predicates—just a continuum of inference strengths.
+
+These empirical discoveries pose a fundamental challenge to formal semantics. The mathematical tools of the field—functions, sets, relations, lambda abstraction—naturally express categorical distinctions. A function either applies to an argument or it doesn't. A proposition is either true at a world or it isn't. A presupposition is either satisfied or it isn't. How then can we account for the pervasive gradience found in semantic judgments?
+
+## The problem of multiple influences
+
+The challenge is compounded when we consider the multiple factors that influence semantic judgments. When a participant in an experiment judges whether "John knows that the meeting was cancelled" implies that the meeting was cancelled, their response reflects not just their semantic knowledge of "know," but also:
+
+Their beliefs about how likely it is that meetings get cancelled in general. If cancellations are rare in their experience, they might be more hesitant to infer that this particular meeting was cancelled, even if they treat "know" as factive. Conversely, if cancellations are common, they might be more willing to draw the inference.
+
+The specific context provided in the experimental scenario. If the scenario mentions that John has been having technical difficulties with his email, participants might question whether John's knowledge is reliable. If the scenario emphasizes John's reliability and well-connectedness, they might be more confident in the inference.
+
+Their approach to the experimental task itself. Some participants might adopt a cautious strategy, only endorsing inferences they're absolutely certain about. Others might be more liberal, endorsing inferences that seem probable. These strategic differences can masquerade as differences in semantic knowledge.
+
+Processing limitations and attention. Computing inferences requires cognitive resources. Participants who are tired, distracted, or rushed might fail to compute inferences they would otherwise endorse, or might endorse inferences they would reject given more time to reflect.
+
+Individual differences in linguistic experience. Participants vary in their exposure to different predicates in different contexts. Someone who has primarily encountered "discover" in scientific contexts might have different intuitions than someone who has encountered it primarily in everyday conversation.
+
+Traditional semantic theory abstracts away from these factors, seeking to characterize semantic knowledge in its pure form. But experimental data necessarily reflects all of these influences together. How can we disentangle semantic knowledge from the various performance factors that affect judgment tasks?
+
+## The poverty of introspective data
+
+These challenges are amplified by the empirical poverty of traditional semantic methodology. A typical semantics paper might analyze one or two phenomena in depth, considering perhaps twenty or thirty carefully constructed examples. The judgments reported are typically those of the author, perhaps checked with a few colleagues. This methodology has obvious limitations.
+
+First, there's the problem of bias. Semanticists crafting examples to support a particular analysis may unconsciously select examples that fit their theory while overlooking problematic cases. Even when authors strive for objectivity, the space of possible examples is vast, and the selection inevitably reflects theoretical preconceptions.
+
+Second, there's the problem of idiosyncrasy. Individual speakers vary in their judgments, and the judgments of professional linguists may not be representative of the broader population. A construction that seems perfectly acceptable to a semanticist immersed in technical literature might strike ordinary speakers as marginal or unnatural.
+
+Third, there's the problem of limited coverage. With only a handful of examples, it's impossible to explore the full range of factors that might affect acceptability or inference patterns. Subtle interactions between lexical items, contextual factors, and construction types may go unnoticed.
+
+These limitations become particularly acute when we consider the scale of the phenomena semanticists study. English has hundreds of clause-embedding predicates, each potentially exhibiting different inferential properties. There are thousands of gradable adjectives, each with its own scale structure and standards of comparison. The combinatorial explosion of possible constructions quickly outstrips what can be explored through introspection alone.
+
+# Experimental semantics and pragmatics
+
+In response to these challenges, a new field has emerged at the intersection of formal semantics and experimental psychology. Experimental semantics and pragmatics brings the tools of behavioral experimentation to bear on questions about meaning and inference. Instead of relying solely on the introspective judgments of a few speakers, researchers collect judgments from large numbers of naive participants under controlled conditions.
+
+The basic paradigm is straightforward. Participants are presented with linguistic stimuli—sentences, dialogues, or short texts—and asked to make judgments about them. These judgments might concern acceptability ("How natural does this sentence sound?"), truth conditions ("Is this sentence true in the described scenario?"), or inference ("Does this conclusion follow from this premise?"). By systematically varying the stimuli and analyzing patterns in the responses, researchers can map out the empirical landscape of semantic phenomena with unprecedented precision.
+
+## The inference judgment task paradigm
+
+One particularly influential experimental paradigm is the inference judgment task. In a typical study, participants are presented with a premise sentence and asked to judge whether various conclusions follow. For instance:
+
+**Premise**: Sarah discovered that the keys were in the drawer.
+
+**Question**: Were the keys in the drawer?
+
+**Response options**: Definitely no — Probably no — Might be — Probably yes — Definitely yes
+
+By collecting such judgments for many different predicates, embedded clauses, and inference types, researchers can build detailed profiles of the inferential properties of different expressions. The MegaVeridicality dataset, for instance, contains over 500,000 inference judgments covering essentially all the clause-embedding predicates in English.
+
+The richness of this data reveals patterns invisible to traditional methodology. We can see not just which predicates trigger which inferences, but how strongly they trigger them. We can identify subtle distinctions between near-synonyms. We can discover unexpected interactions between predicates and their syntactic environments. And crucially, we can observe the gradience that pervades inference judgments.
+
+## The challenge of linking theory to behavior
+
+But the move from introspective judgments to behavioral data brings new challenges. When a participant moves a slider to indicate their confidence that an inference follows, what exactly are they telling us? The response reflects not just their semantic knowledge but also their understanding of the task, their decision criteria, their attention to relevant features of the stimulus, and various forms of response bias.
+
+This is the linking problem: how do we connect theoretical claims about semantic knowledge to predictions about behavioral data? Traditional semantics could remain agnostic about this connection. If the theory says that "know" presupposes its complement, and speakers judge that "John knows that p" implies p, the theory is confirmed. The exact process by which speakers compute this inference could be left to psycholinguistics.
+
+But experimental semantics cannot maintain this separation. To learn about semantics from behavioral data, we need explicit theories of how semantic knowledge is deployed in judgment tasks. We need linking hypotheses that specify how abstract semantic representations give rise to concrete behavioral responses.
+
+Consider again the factivity data. When we find that "know" triggers inference ratings of 0.8 on average (on a 0-1 scale), while "think" triggers ratings of 0.3, what should we conclude? One possibility is that semantic knowledge itself is gradient: "know" is associated with a strong but not absolute commitment to the truth of its complement. Another possibility is that semantic knowledge is categorical—"know" does presuppose its complement—but various performance factors introduce noise into the judgments.
+
+These different possibilities make different predictions about the fine-grained structure of the data. If semantic knowledge is gradient, we might expect smooth, unimodal distributions of judgments. If semantic knowledge is categorical but performance factors introduce noise, we might expect bimodal distributions or mixture patterns. Distinguishing these possibilities requires careful modeling of the linking function between semantics and behavior.
+
+## The promise of probabilistic approaches
+
+This is where probabilistic approaches enter the picture. Probability theory provides tools for modeling uncertainty, variability, and gradience—exactly the phenomena that challenge classical semantic theory. By embedding semantic analyses within probabilistic models, we can capture both the categorical aspects of meaning (what classical theory got right) and the gradient aspects revealed by experimental work.
+
+A probabilistic approach might model the meaning of "tall" not as a simple threshold function but as a probability distribution over thresholds. Different contexts induce different distributions, capturing the context-sensitivity of gradable adjectives. Individual judgments arise by sampling from these distributions, introducing variability. The result is a theory that predicts gradient judgment patterns while maintaining a compositional semantic core.
+
+Consider how we might represent this in code using the PDS framework:
+
+```haskell
+-- Traditional categorical approach
+tallCategorical :: Double -> Entity -> Bool
+tallCategorical threshold x = height x > threshold
+
+-- Probabilistic approach in PDS
+tall :: Entity -> P Bool
+tall x = do
+  threshold <- normal 175 10  -- Sample threshold from normal distribution
+  height <- getHeight x       -- Get entity's height
+  return (height >= threshold)
+```
+
+This code illustrates the key move from categorical to probabilistic semantics. Instead of a fixed threshold, we sample from a distribution. The monadic structure (using `do` notation) allows us to compose probabilistic computations naturally.
+
+Similarly, a probabilistic approach to factivity might treat presupposition as fundamentally categorical but subject to probabilistic modulation:
+
+```haskell
+-- Factive predicate with probabilistic presupposition
+know :: Prop -> Agent -> P Prop
+know p x = do
+  factiveReading <- bernoulli 0.9  -- 90% chance of factive reading
+  if factiveReading
+    then do
+      observe p  -- Presuppose p is true
+      return (Know x p)
+    else return (Know x p)  -- Non-factive reading
+```
+
+By modeling this probabilistic variation explicitly, we can explain gradient judgment patterns without abandoning the insights of classical presupposition theory.
+
+## Bridging competence and performance
+
+The move to probabilistic semantics thus offers a way to bridge the competence/performance divide that has long separated theoretical and experimental approaches to meaning. Classical semantic theory characterizes competence—speakers' abstract knowledge of meaning. Experimental work reveals performance—how this knowledge is deployed in actual judgment tasks. Probabilistic models can encompass both, showing how categorical semantic knowledge gives rise to gradient behavioral patterns through probabilistic processes.
+
+This bridge is built on explicit linking theories that specify how semantic representations are mapped to behavioral responses. These linking theories are not mere technical appendages but integral parts of our theories of meaning. They force us to be explicit about aspects of semantic processing that traditional theories could leave implicit: How do speakers handle uncertainty about meaning? How do they integrate semantic knowledge with world knowledge? How do they map continuous mental representations onto discrete response options?
+
+By addressing these questions, probabilistic approaches promise a more complete theory of meaning—one that encompasses not just the abstract structure of semantic knowledge but also its deployment in actual communication and reasoning. This is the promise that motivates the framework we'll develop in this course: Probabilistic Dynamic Semantics.
+
+As Julian will show in the next section, approaches like Rational Speech Act models have made important strides in modeling pragmatic inference. But as we'll see, these approaches face their own challenges, particularly around compositionality. PDS offers a way forward by building probabilistic reasoning directly into the compositional semantics, allowing uncertainty and gradience to percolate through semantic derivations in a principled way.

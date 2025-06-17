@@ -3,9 +3,9 @@ title: "Stan/Adjectives"
 bibliography: ../../pds.bib
 ---
 
-{{< include adjectives-aaron.qmd >}}
-
 {{< include adjectives-julian.qmd >}}
+
+{{< include adjectives-aaron.qmd >}}
 
 - [← Back to Index](../index.html)
 - [Next: Factivity →](../factivity/factivity.html)

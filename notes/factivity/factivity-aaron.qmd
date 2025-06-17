@@ -1,19 +1,281 @@
 # Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments
 
+The phenomenon of factivity has served as a crucial testing ground for theories of presupposition since @kiparsky_fact_1970 introduced the term. At its core, factivity concerns a seemingly simple observation: certain predicates appear to take for granted the truth of their complements. When someone asserts "John knows that it's raining," they seem to presuppose—rather than assert—that it is indeed raining. This presupposition persists even when the sentence is embedded under negation ("John doesn't know that it's raining"), in questions ("Does John know that it's raining?"), or in conditionals ("If John knows that it's raining, he'll bring an umbrella"). The inference that it's raining projects through these operators in a way that ordinary entailments do not.
+
 ## The problem of gradience in veridicality judgments
 
-### White & Rawlins 2019
+For decades, theoretical work on factivity proceeded under the assumption that predicates could be neatly classified into discrete categories. Some predicates—know, realize, discover, regret—were factive, triggering presuppositions about the truth of their complements. Others—think, believe, say, claim—were non-factive, carrying no such presuppositions. This categorical view aligned well with the dominant frameworks in formal semantics, where meanings are modeled as functions, propositions as sets of possible worlds, and presuppositions as definedness conditions.
 
-### Degen & Tonhauser 2022
+But as researchers began to investigate factivity empirically, measuring actual speaker judgments at scale, a more complex picture emerged. Instead of finding clear categorical distinctions, they discovered pervasive gradience. Different predicates triggered inferences of different strengths, and these strengths varied continuously rather than clustering into discrete groups. This gradience posed a fundamental challenge to traditional theories: if factivity is a binary property, why do we observe continuous variation in judgment data?
+
+### White & Rawlins 2018: The first systematic mapping
+
+The MegaVeridicality dataset, developed by @white_lexicosyntactic_2018, provided the first comprehensive empirical map of veridicality inferences across the English clause-embedding lexicon. Their project was ambitious in scope, examining essentially all clause-embedding predicates in English—over 500 in total—and collecting inference judgments from thousands of participants.
+
+Their methodology was elegantly simple. Participants were presented with sentences containing clause-embedding predicates and asked to judge whether certain inferences followed. The basic paradigm looked like this:
+
+**Stimulus**: Someone {knew/thought/discovered/...} that a particular thing happened.  
+**Question**: Did that thing happen?  
+**Response options**: yes / maybe or maybe not / no
+
+They also tested projection by embedding the predicates under negation:
+
+**Stimulus**: Someone {didn't know/didn't think/didn't discover/...} that a particular thing happened.  
+**Question**: Did that thing happen?  
+**Response options**: yes / maybe or maybe not / no
+
+The logic was straightforward. If a predicate is factive, it should trigger strong positive inferences in both the positive and negative frames. If it's non-factive, it should trigger weak or negative inferences, especially under negation. By mapping responses (yes = 1, maybe = 0, no = -1) to numerical values and averaging across participants, they could locate each predicate in a two-dimensional space defined by its inference strength in positive and negative contexts.
+
+What they found challenged the received wisdom. Rather than observing distinct clusters corresponding to factive and non-factive predicates, they found a continuous distribution. Predicates were strewn across the space with no clear boundaries between categories. Some patterns emerged—cognitive factives like "know" and "realize" occupied a different region from emotive factives like "love" and "hate"—but the overall picture was one of continuity rather than discreteness.
+
+This wasn't entirely surprising to White and Rawlins. As they noted, inference judgments in natural language are influenced by many factors beyond the semantics of individual predicates. World knowledge, contextual information, and pragmatic reasoning all play roles. A sentence like "John discovered that the keys were in the drawer" strongly suggests the keys were indeed in the drawer, but this inference can be defeated in appropriate contexts: "John discovered that the keys were in the drawer, but he was hallucinating at the time."
+
+Still, the sheer pervasiveness of the gradience was striking. It wasn't just a few borderline cases blurring otherwise clear categories. The entire landscape of veridicality inferences appeared to be organized along continuous dimensions. White and Rawlins suggested that this gradience likely reflected the fine-grained semantics of particular verbs—subtle differences in meaning that traditional categorical approaches overlooked.
+
+### Degen & Tonhauser 2022: Gradience as a theoretical challenge
+
+Where White and Rawlins documented gradience as an empirical phenomenon, @degen_are_2022 weaponized it as a theoretical challenge. Their paper "Are there factive predicates?" used the persistence of gradient patterns across multiple experimental paradigms to argue against the traditional view of factivity as a discrete lexical property.
+
+Their experimental campaign was comprehensive, involving six experiments that varied both the task (projection judgments, veridicality judgments, contradiction detection) and the response mode (slider scales, binary forced choice). They focused on twenty predicates that represented the range of categories proposed in the literature:
+
+**Canonically factive**: be annoyed, discover, know, reveal, see  
+**Non-factive (non-veridical)**: pretend, say, suggest, think  
+**Non-factive (veridical)**: be right, demonstrate  
+**Optionally factive**: acknowledge, admit, announce, confess, confirm, establish, hear, inform, prove
+
+If the traditional categorical view were correct, Degen and Tonhauser argued, we should see clear breaks in the data corresponding to these category boundaries. Canonically factive predicates should pattern together, triggering consistently strong inferences. Non-factive predicates should pattern together, triggering weak inferences. The boundaries between categories should be sharp and consistent across tasks.
+
+But that's not what they found. Across all six experiments, predicates arranged themselves along a continuum. In their projection experiment, mean ratings varied continuously from about 0.2 (on a 0-1 scale) for "pretend" to about 0.85 for "be annoyed," with no clear gaps or clusters. The same gradient patterns appeared whether participants made binary judgments or used continuous scales, whether they evaluated projection or veridicality, whether they judged entailment or contradiction.
+
+Particularly striking was the behavior of predicates traditionally classified as factive. Even "know"—the paradigm case of a factive predicate—didn't trigger categorical judgments. Its mean projection rating was around 0.75, well below what we'd expect if participants consistently treated it as presupposing its complement. Meanwhile, predicates like "demonstrate" and "be right," traditionally classified as non-factive, triggered surprisingly strong inferences, with ratings around 0.6.
+
+Degen and Tonhauser drew a strong conclusion from these patterns: "The results of our experiments provide evidence against the hypothesis that there exists a class of factive predicates that is distinguished from non-factive predicates by properties of projection and veridicality" (p. 589). The gradience, they argued, was incompatible with theories that posit a binary semantic property of factivity. Instead, they suggested that projection and veridicality inferences arise from general pragmatic reasoning, with different predicates providing more or less support for such inferences based on their meaning and use.
+
+### The methodological sophistication
+
+What made Degen and Tonhauser's challenge particularly forceful was their methodological sophistication. They anticipated and addressed many potential objections to their gradient findings:
+
+**Maybe gradience is just noise?** They showed that the gradience was highly systematic, with predicates maintaining their relative positions across different experiments. The correlation between mean ratings in their projection and veridicality experiments was 0.94—hardly what we'd expect from random noise.
+
+**Maybe the tasks are flawed?** They used multiple tasks based on different theoretical diagnostics for factivity. The gradient patterns persisted across all of them. If the gradience were a task artifact, it's unlikely it would appear so consistently.
+
+**Maybe participants are confused?** They included clear control items that participants judged as expected. Participants had no trouble giving categorical judgments when the stimuli warranted them. The gradience appeared specifically for the critical items.
+
+**Maybe it's just a few bad items?** They tested multiple items per predicate and found consistent patterns. The gradience wasn't driven by outliers but reflected the central tendency for each predicate.
+
+**Maybe written stimuli are unnatural?** They noted that similar gradient patterns appeared in corpus data from natural speech and writing. The gradience wasn't an artifact of experimental materials.
+
+Through this systematic approach, Degen and Tonhauser built a compelling case that the gradience in factivity judgments is a robust empirical phenomenon demanding theoretical explanation.
 
 ## Two hypotheses
 
-### The Fundamental Discreteness Hypothesis
+The gradience documented by White and Rawlins, and weaponized by Degen and Tonhauser, admits of at least two interpretations. These interpretations differ fundamentally in how they conceive the relationship between semantic knowledge and behavioral judgments.
 
 ### The Fundamental Gradience Hypothesis
 
-## Lexica
+According to the Fundamental Gradience Hypothesis, the gradience observed in behavioral data directly reflects gradience in the underlying semantic representations. On this view, there is no discrete property of "being factive." Instead, predicates lexically encode continuous degrees of speaker commitment to the truth of their complements.
 
-### The fundamental discreteness hypothesis
+This hypothesis represents a radical departure from traditional semantic theory. Instead of modeling presupposition as a binary phenomenon—either a predicate presupposes its complement or it doesn't—we would need to develop gradient notions of presupposition. Perhaps predicates are associated with probability distributions over their complements, or perhaps they encode degrees of speaker certainty.
 
-### The fundamental gradience hypothesis
+The appeal of this hypothesis is its directness. If we observe gradient behavioral patterns, and if these patterns are systematic and robust, the simplest explanation might be that they reflect gradient semantic knowledge. Why posit discrete categories that are never directly observed when we can model the gradience directly?
+
+Moreover, the Fundamental Gradience Hypothesis aligns with broader trends in cognitive science toward probabilistic and gradient representations. If phonological categories are gradient, if syntactic acceptability is gradient, if conceptual categories are gradient, why should semantic categories be any different? The mind might simply not traffic in the discrete, categorical representations beloved by formal semanticists.
+
+Under this hypothesis, a predicate like "know" doesn't categorically presuppose its complement. Instead, it encodes a strong but not absolute commitment—perhaps around 0.8 on a 0-1 scale. "Think" encodes a weaker commitment, perhaps around 0.3. "Be annoyed" encodes a very strong commitment, perhaps 0.95. These lexically specified commitment strengths would directly drive the gradient behavioral patterns.
+
+### The Fundamental Discreteness Hypothesis
+
+The Fundamental Discreteness Hypothesis maintains that semantic knowledge is fundamentally discrete—predicates either do or don't presuppose their complements—but various factors conspire to produce gradient behavioral patterns. This hypothesis preserves the insights of traditional semantic theory while acknowledging the empirical reality of gradience.
+
+On this view, the gradience emerges from the interaction of discrete semantic knowledge with various sources of uncertainty and variability:
+
+**Lexical uncertainty**: Speakers might be uncertain whether a particular predicate is factive. Perhaps "discover" is factive in some speakers' grammars but not others. Perhaps individual speakers are uncertain and must guess based on contextual cues.
+
+**Pragmatic intrusion**: Even if speakers know that "know" is factive, they might accommodate non-factive uses in appropriate contexts. Conversely, non-factive predicates might trigger factive-like inferences through pragmatic strengthening.
+
+**World knowledge effects**: The plausibility of the embedded proposition affects inference strength. "John discovered that water is wet" triggers stronger inferences than "John discovered that water is dry," even though "discover" has the same semantic properties in both cases.
+
+**Task-related factors**: Mapping from categorical semantic knowledge to continuous behavioral responses introduces noise. Response strategies, attention, and decision criteria all contribute variability.
+
+The Fundamental Discreteness Hypothesis thus treats gradience as a performance phenomenon rather than a competence phenomenon. The underlying semantic knowledge is discrete and categorical, but its expression in behavior is modulated by numerous factors that introduce variability and gradience.
+
+This hypothesis preserves the theoretical elegance of traditional approaches while acknowledging empirical reality. It suggests that the gradient patterns, while real and systematic, don't directly reflect the structure of semantic knowledge. Instead, they reflect the complex process by which discrete knowledge is deployed in context and mapped onto behavioral responses.
+
+### Empirical predictions
+
+These hypotheses make different predictions about the fine structure of the data:
+
+**Distribution shapes**: The Fundamental Gradience Hypothesis predicts unimodal distributions of judgments for each predicate, centered around the lexically encoded commitment strength. The Fundamental Discreteness Hypothesis predicts multimodal distributions reflecting mixture of discrete interpretations, though these might be obscured by response noise.
+
+**Individual differences**: Under gradience, different speakers might have slightly different commitment strengths for the same predicate, leading to continuous individual variation. Under discreteness, speakers should cluster into groups—those who treat a predicate as factive and those who don't.
+
+**Contextual effects**: Gradience predicts that context should shift the mean commitment strength continuously. Discreteness predicts that context should affect the probability of factive vs. non-factive interpretations, changing the mixture proportions rather than shifting a single distribution.
+
+**Cross-linguistic patterns**: If gradience is fundamental, related predicates in different languages might have different commitment strengths. If discreteness is fundamental, we should find similar categorical distinctions across languages, even if the gradient behavioral patterns differ.
+
+**Priming and adaptation**: Under discreteness, it should be possible to prime factive or non-factive interpretations of ambiguous predicates. Under gradience, priming should cause continuous shifts in commitment strength.
+
+**Development**: Children acquiring language should show different patterns under the two hypotheses. Discreteness predicts stage-like transitions as children acquire categorical distinctions. Gradience predicts continuous refinement of commitment strengths.
+
+## Lexica under each hypothesis
+
+To make these abstract considerations concrete, let's examine how the lexicon would be structured under each hypothesis. The details matter here, because they determine what kinds of compositional semantic analyses are possible and how these analyses connect to behavioral predictions.
+
+### Lexica under the Fundamental Discreteness Hypothesis
+
+Under the Fundamental Discreteness Hypothesis, factivity remains a binary property, but its expression is probabilistic. We can formalize this using the tools of PDS:
+
+```haskell
+-- Core factive entry for "know"
+knowFactive :: Prop -> Agent -> P Prop
+knowFactive p x = do
+  observe p  -- Presuppose p is true
+  return (Know x p)
+
+-- Non-factive variant  
+knowNonFactive :: Prop -> Agent -> P Prop
+knowNonFactive p x = return (Know x p)  -- No presupposition
+
+-- Lexical entry with uncertainty
+know :: Prop -> Agent -> P Prop
+know p x = do
+  factive <- bernoulli 0.9  -- 90% chance of factive interpretation
+  if factive
+    then knowFactive p x
+    else knowNonFactive p x
+```
+
+This analysis says that "know" is ambiguous between a factive and non-factive interpretation, with a strong bias (90%) toward the factive interpretation. The `observe` operation in the factive variant implements presupposition as a hard constraint—if p is false, the derivation crashes.
+
+Different predicates would have different probabilities of receiving factive interpretations:
+
+```haskell
+discover p x = do
+  factive <- bernoulli 0.95  -- Almost always factive
+  if factive then discoverFactive p x else discoverNonFactive p x
+
+think p x = do  
+  factive <- bernoulli 0.1   -- Rarely factive
+  if factive then thinkFactive p x else thinkNonFactive p x
+
+hear p x = do
+  factive <- bernoulli 0.6   -- Genuinely ambiguous  
+  if factive then hearFactive p x else hearNonFactive p x
+```
+
+This approach preserves the insight that factivity is a discrete property—on any given occasion of use, a predicate either does or doesn't presuppose its complement. But it allows for gradient behavioral patterns through probabilistic variation in which interpretation is accessed.
+
+The probability of factive interpretation might itself be context-dependent:
+
+```haskell
+knowInContext p x context = do
+  baseProbability <- return 0.9
+  adjustment <- contextualAdjustment context
+  let probability = baseProbability + adjustment
+  factive <- bernoulli probability
+  if factive then knowFactive p x else knowNonFactive p x
+```
+
+This allows the model to capture how contextual factors modulate factivity without abandoning the discrete underlying representation.
+
+### Lexica under the Fundamental Gradience Hypothesis
+
+Under the Fundamental Gradience Hypothesis, predicates directly encode degrees of commitment rather than triggering discrete presuppositions. We might model this using graded notions of observation:
+
+```haskell
+-- Graded observation
+softObserve :: Double -> Prop -> P ()
+softObserve strength p = do
+  truth <- evaluate p
+  if truth
+    then return ()  -- No effect if true
+    else factor (negate strength)  -- Reduce probability if false
+
+-- Gradient "know"  
+know :: Prop -> Agent -> P Prop
+know p x = do
+  softObserve 0.8 p  -- Strong but not absolute commitment
+  return (Know x p)
+
+-- Gradient "think"
+think :: Prop -> Agent -> P Prop  
+think p x = do
+  softObserve 0.3 p  -- Weak commitment
+  return (Think x p)
+
+-- Gradient "be annoyed"
+beAnnoyed :: Prop -> Agent -> P Prop
+beAnnoyed p x = do
+  softObserve 0.95 p  -- Very strong commitment
+  return (Annoyed x p)
+```
+
+Instead of presupposition as a hard constraint, we have degrees of soft commitment. These commitments directly determine inference strength—the stronger the commitment, the more likely participants are to infer the truth of the complement.
+
+This approach naturally captures the continuous variation in inference strength across predicates. It also allows for more nuanced interactions with context:
+
+```haskell
+knowWithPrior :: Prop -> Agent -> Double -> P Prop
+knowWithPrior p x prior = do
+  let commitment = 0.8
+  let posteriorStrength = commitment * prior / 
+                         (commitment * prior + (1 - commitment) * (1 - prior))
+  softObserve posteriorStrength p
+  return (Know x p)
+```
+
+Here, the effective commitment strength results from combining the lexical commitment with prior beliefs about the proposition. This captures how world knowledge modulates inference strength without requiring discrete category changes.
+
+### Compositional consequences
+
+The choice between discrete and gradient representations has consequences that ripple through the compositional semantics. Consider how factivity interacts with negation:
+
+Under discreteness:
+```haskell
+-- Negation preserves presupposition
+not (knowFactive p x) = do
+  observe p  -- Presupposition projects
+  k <- return (Know x p)
+  return (Not k)
+```
+
+Under gradience:
+```haskell
+-- Negation interacts with commitment
+not (know p x) = do
+  softObserve 0.7 p  -- Slightly weaker under negation?
+  k <- return (Know x p)  
+  return (Not k)
+```
+
+Or consider embedding under attitude verbs:
+
+Under discreteness:
+```haskell
+-- Clear projection or plugging
+believe (knowFactive p x) y = do
+  observe p  -- Does presupposition project?
+  -- This depends on whether "believe" is a plug
+```
+
+Under gradience:
+```haskell
+-- Continuous modulation
+believe (know p x) y = do
+  softObserve 0.5 p  -- Commitment weakened by embedding
+  -- Strength depends on properties of "believe"
+```
+
+These compositional differences provide ways to empirically distinguish the hypotheses. If factivity is discrete, we expect categorical projection behavior—presuppositions either project or they don't. If factivity is gradient, we expect continuous modulation of commitment strength through different embeddings.
+
+### The road forward
+
+The debate between fundamental discreteness and fundamental gradience isn't merely technical—it touches on foundational questions about the nature of semantic knowledge. Are meanings discrete symbolic structures that get probabilistically deployed? Or are they inherently probabilistic from the ground up?
+
+The answer matters for how we build theories of meaning. If discreteness is correct, we can maintain the elegant mathematical frameworks of formal semantics while adding a probabilistic layer to handle performance factors. If gradience is correct, we need new mathematical tools—perhaps drawing on probability theory, information theory, or machine learning—to model inherently gradient meanings.
+
+But perhaps most importantly, the answer matters for how we understand the relationship between linguistic competence and performance. The traditional view maintains a sharp distinction: competence consists of discrete, categorical knowledge, while performance involves the probabilistic deployment of this knowledge. The gradient view blurs this distinction: if meanings are inherently probabilistic, then competence itself is gradient.
+
+Resolving this debate requires careful empirical work that goes beyond documenting gradient patterns. We need to examine the fine structure of the gradience, test for predicted differences in distribution shapes, explore individual differences, and trace developmental trajectories. And we need formal models that can precisely specify what each hypothesis predicts.
+
+This is where frameworks like Probabilistic Dynamic Semantics prove invaluable. By providing tools to implement both discrete and gradient theories within a common framework, PDS allows us to move beyond verbal arguments to precise, testable predictions. The models we build aren't just statistical descriptions of the data—they're theories of how semantic knowledge is represented and deployed. And by comparing these theories quantitatively, we can make progress on one of the fundamental questions in the study of meaning.
