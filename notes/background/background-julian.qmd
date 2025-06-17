@@ -251,5 +251,3 @@ This second consequence allows:
 - Allows flexibility about implementation.
 - Allows the theory to be simpler.
 - Allows seamless integration between formal semantics and probabilistic semantics. (More tomorrow!)
-
-### References
