@@ -8,7 +8,7 @@ For decades, theoretical work on factivity proceeded under the assumption that p
 
 But as researchers began to investigate factivity empirically, measuring actual speaker judgments at scale, a more complex picture emerged. Instead of finding clear categorical distinctions, they discovered pervasive gradience. Different predicates triggered inferences of different strengths, and these strengths varied continuously rather than clustering into discrete groups. This gradience posed a fundamental challenge to traditional theories: if factivity is a binary property, why do we observe continuous variation in judgment data?
 
-### White & Rawlins 2018: The first systematic mapping
+### Datasets
 
 The MegaVeridicality dataset, developed by @white_lexicosyntactic_2018, provided the first comprehensive empirical map of veridicality inferences across the English clause-embedding lexicon. Their project was ambitious in scope, examining essentially all clause-embedding predicates in English—over 500 in total—and collecting inference judgments from thousands of participants.
 
