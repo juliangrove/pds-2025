@@ -1,16 +1,1744 @@
-# The Montagovian approach
+---
+bibliography: ../../pds.bib
+format:
+  html:
+    css: ../styles.css
+    html-math-method: mathjax
+    mathjax-config:
+      loader: {load: ['[tex]/bussproofs','[tex]/bbox','[tex]/colorbox']}
+      tex:
+        packages: {'[+]': ['bussproofs','bbox','colorbox']}
+---
 
-## Syntax, meaning, compositionality
+::: {.hidden}
+$$
+\newcommand{\expr}[3]{\begin{array}{c}
+#1 \\
+\bbox[lightblue,5px]{#2}
+\end{array} ⊢ #3}
+\newcommand{\ct}[1]{\texttt{#1}}
+\newcommand{\updct}[1]{\ct{upd\_#1}}
+\newcommand{\abbr}[1]{\mathtt{#1}}
+\newcommand{\pure}[1]{\bbox[border: 1px solid orange]{\bbox[border: 4px solid transparent]{#1}}}
+\def\P{\mathtt{P}}
+\def\True{\ct{T}}
+\def\False{\ct{F}}
+\def\ite{\ct{if\_then\_else}}
+\def\Do{\abbr{do}}
+$$
+:::
 
-### Expression-meaning homomorphisms
+# Overview
 
-### Type homomorphisms
+Compositional dynamic semantic theories often model utterance meanings as maps from discourse states into sets of discourse states.^[
+	In its distributive implementations, that is.
+	For a discussion of distributive vs. non-distributive variants of dynamic semantics, see, e.g., @charlow_where_2019.
+]
+PDS inherits this functional view of utterances; 
+but following much work in the probabilistic semantics and pragmatics literature \citep[][i.a.]{van_benthem_dynamic_2009,lassiter_vagueness_2011,frank_predicting_2012,zeevat_implicit_2013,lassiter_adjectival_2017,bergen_pragmatic_2016}, it translates this idea into a probabilistic setting:
+in PDS, utterances denote maps from discourse states to *probability distributions* over discourse states.
+Thus in comparison to traditional dynamic semantics, PDS introduces a weighting on discourse states, allowing one to model preferences for certain resolutions of ambiguity over others.
 
-# Adding probabilistic types
+## Probability distributions as monadic values
 
-## A monadic interface for probabilistic programs
+In and of itself, this extension is not novel.
+More novel is that we view probability distributions as *monadic values* that inhabit types arising from a *probability monad* (see, e.g., @giorgolo_one_2014, @bernardy_predicates_2019, @grove_probabilistic_2023).
+We formalize this view soon;
+but the gist is that viewing probability distributions this way allows PDS (i) to map linguistic expressions of a particular type to probability distributions over objects of that type so that the usual compositional structure of semantic analyses is retained;
+and thereby (ii) to compose probabilistic analyses with other analyses of, say, anaphora;
+as well as (iii) to define explicit *linking models* that map probability distributions over discourse states to probability distributions over judgments recorded using some response instrument.^[
+  This type of capability is often discussed in the experimental linguistics literature under the heading of *linking hypotheses* or *linking assumptions* (see @phillips_theories_2021).
+  For our purposes, we define linking models to be statistical models that relate a PDS analysis (which determines a probability distribution over the inferences supported by a linguistic expression) to comprehenders' judgments, as recorded using a particular instrument.
+]
 
-## Probabilistic programs as DAGs
+Crucial for PDS is that because probability distributions are characterized by a monad, they may themselves be *stacked* while retaining properties important for semantic composition.^[
+  More to the point, monads give rise to *functors*, which are composable, giving rise to the "stacking".
+]
+That is, the types derived from a probability monad may be inhabited by distributions over familiar types of objects---entities, truth values, functions from entities to truth values, and the like---or they may be inhabited by distributions *over* such distributions.
+And this stacking can be as deep as is necessary to model the sorts of uncertainty of interest to the analyst.
+
+## Two kinds of uncertainty
+
+We argue here that at least two levels of stacking are necessary in order to appropriately model two kinds of interpretive uncertainty, respectively, which we refer to as *resolved* (or *type-level*) *uncertainty* and *unresolved* (or *token-level*) *uncertainty*.
+Resolved uncertainty is any kind of uncertainty which relates to lexical, structural, or semantic (e.g., scopal) ambiguity.
+For example, a polysemous word gives rise to resolved uncertainty.
+Based on the content of its direct object, *ran* in (@ex-run-sketch) seems likely to take on its locomotion sense, though it remains plausible that it has a management sense if Jo is understood to be the race's organizer.
+
+(@ex-run-sketch) Jo ran a race.
+
+In contrast, unresolved uncertainty is that which is associated with an expression in view of some *fixed* meaning it has.
+Vague adjectives may give rise to unresolved uncertainty, for example, as witnessed by the vague inferences they support:
+the minimum degree of height *tall* requires to hold of entities of which it is true remains uncertain on any use of (@ex-tall-sketch), even while the adjective's meaning plausibly does not always vary across such uses.
+
+(@ex-tall-sketch) Jo is tall.
+
+In general, we conceptualize unresolved uncertainty as reflecting the uncertainty that one has about a given inference at a particular point in some discourse, having fixed the meanings of the linguistic expressions.
+
+Put slightly differently, resolved uncertainty is a property of one's knowledge about the meanings of expressions *qua* expressions.
+Sometimes *run* means this;
+sometimes it means that.
+Thus, any analysis of the uncertainty about the meaning of *run* should capture that it is uncertainty about *types* of utterance act.
+In contrast, unresolved uncertainty encompasses any semantic uncertainty which remains, having fixed the type of utterance act---it is uncertainty pertaining to the semantically licensed inferences themselves.^[
+  See @beaver_presupposition_1999 and @beaver_presupposition_2001, which describe an analogous bifurcation of orders of pragmatic reasoning in the representation of the common ground.
+]
+
+To capture this idea, our approach regards these types of uncertainty as interacting with each other in a restricted fashion by taking advantage of the fact that distributions may be stacked.
+Because resolved uncertainty must be resolved in order for one to draw semantically licensed inferences from uses of particular expressions, we take resolved parameters to be *fixed* in the computation of unresolved uncertainty.
+This rigid connection among sources of uncertainty is a natural consequence of structuring probabilistic reasoning in terms of stacked probability distributions.
+
+## Discourse states
+
+We follow a common in dynamic semantics practice by regarding discourse states as lists of parameters.
+We depart slightly from the usual assumption that these lists are homogenous by treating them as potentially arbitrarily complex, i.e., *heterogeneous* [though see @bumford_dynamic_2022].
+As such, they could be structured according to a variety of models sometimes employed in formal pragmatics [e.g., @farkas_reacting_2010].
+For example, we will define one parameter of this list to be a representation of the Stalnakerian common ground [or more aptly, the "context set": @stalnaker_assertion_1978 et seq.] and another parameter to be a stack of Questions Under Discussion [QUDs: @ginzburg_dynamics_1996; @roberts_information_2012].
+
+We represent common grounds as probability distributions over indices encoding information about possible worlds, as well as what we call *contexts*.
+The possible world part of an index represents facts about how the (non-linguistic) world is---e.g., a particular individual's height---while the context part encodes certain facts about lexical meaning---e.g., the identity of the height threshold conveyed by a vague adjective, such as *tall* [see, i.a.: @kennedy_scale_2005; @kennedy_vagueness_2007; @lassiter_vagueness_2011].
+
+Utterances---and more broadly, discourses---map tuples of parameters onto probability distributions over new tuples of parameters.
+Moreover, complex linguistic acts may be *sequenced*;
+in general, the effect on an ongoing discourse of multiple linguistic acts may be computed by using the sequencing operation (*bind*) native to the probability monad.
+In this sense, compositionality of interpretation obtains in PDS from the level of individual morphemes all the way up to the level of complex exchanges.
+For example, a discourse may consist in (i) making an assertion, which (perhaps, under a simplified model) modifies the common ground; 
+(ii) asking a question, which adds a QUD to the top of the QUD stack;
+or (iii) a sequence of these.
+Regardless, we require the functions encoding discourses to return probabilistic values, in order to capture their inherent uncertainty.
+
+## Linking models
+
+A linking model takes a discourse as conceived above, together with an initial probability distribution over discourse states, and links them to a distribution over responses to the current QUD.
+The possible responses to the QUD are determined by a data collection instrument, which could be a Likert scale, a slider scale, or something else.
+Furthermore, the *distribution* over responses is fixed by a likelihood function whose choice is constrained by the nature of the values encoded by the instrument. 
+Thus a Bernoulli distribution for instruments that produce binary values; 
+a categorical distribution for instruments that produce unordered, multivalued discrete responses;
+a linked logit distribution for instruments that produce ordered, multivalued discrete responses;
+and so on.
+
+# Syntax, meaning, compositionality
+
+The syntactic and semantic substrate we employ is Combinatory Categorial Grammar (CGG).
+CCG is a highly lexicalized grammar formalism, in which expressions are equipped with syntactic types---i.e., *categories*.
+Syntactic types in CCG encode an expression's selectional and distributional properties.
+A noun phrase such as *a race*, for example, may be given the type $np$, while a determiner---something which, in English, occurs to the left of a noun in order to form a noun phrase---may be given the type $np / n$.
+Thus the forward direction of the slash indicates that a noun should occur to the *right* of the determiner.
+
+We use CCG in our presentation of PDS because one of our goals is to write *semantic grammar fragments* which produce analyses of a given collection of probabilistic semantic phenomena.
+Having a grammar fragment (e.g., one which generates the stimuli about which inference judgments are experimentally collected to create some linguistic dataset) allows one to implement an unbroken chain that connects the semantic analysis of some phenomenon to a probabilistic model of judgments about expressions featuring the phenomenon.
+CCG is likely to be sufficiently expressive to capture most (if not all) of the kinds of syntactic dependencies found in natural languages (@joshi_tree_1985, @vijay-shanker_equivalence_1994 et seq.; cf. @kobele_generating_2006).
+Meanwhile, because it is semantically transparent, it makes writing such grammar fragments relatively straightforward.
+
+## CCG
+
+For current purposes, we can assume the following small set of atomic syntactic types.
+$$
+\begin{align*}
+\mathcal{A} &\Coloneqq np ∣ n ∣ s
+\end{align*}
+$$
+Here we have the usual categories for noun phrases ($np$), nouns ($n$), and sentences ($s$).
+$$
+\begin{align*}
+\mathcal{C}_{\mathcal{A}} &\Coloneqq \mathcal{A} ∣ \mathcal{C}_{\mathcal{A}}/\mathcal{C}_{\mathcal{A}} ∣ \mathcal{C}_{\mathcal{A}}\backslash\mathcal{C}_{\mathcal{A}}
+\end{align*}
+$$
+Thus following \Cref{def:atomic_cats}, $\mathcal{C}_{\mathcal{A}}$ includes the five elements of $\mathcal{A}$, as well as
+\begin{align*}
+  s/np, s\backslash np, np/n, (np\backslash n)/ np, (s\backslash s)/s,
+\end{align*}
+and so on.
+Any complex syntactic type in $\mathcal{C}_{\mathcal{A}}$ features slashes, which indicate on which side an expression of that type takes its argument.
+Thus an expression of type $b/ a$ (for some two types $a\) and \(b$) occurs with an expression of type $a$ on its right in order to form an expression of type $b$, while an expression of type $b\backslash a$ occurs with an expression of type $a$ on its *left* in order to form an expression of type $b$.
+We adopt the convention of notating syntactic types without parentheses when possible, under the assumption that they are left-associative;
+i.e., $a∣_{1}b∣_{2}c ≝ (a∣_{1}b)∣_{2}a$ (where $∣_{1}$ and $∣_{2}$ are either forward or backward slashes).
+Thus for example, the type $s\backslash(np/ np)$ continues to be written as such, while the type $(s\backslash np)/ np$ may be shortened to '$s\backslash np/ np$'.
+
+To write CCG expressions, we use the notation
+\begin{align*}
+  \expr{s}{m}{c}
+\end{align*}
+which is to be read as stating that string $s$ has category $c$ and semantic value $m$.
+We assume $s$ to be a string over some alphabet $Σ$ (i.e., $s ∈ Σ^{*}$), which we regard as a finite set;
+e.g., the set of ``morphemes of English''.
+Meanwhile, we assume $m$ to be a typed λ-term.
+We leave somewhat open the question of what types of λ-terms may be used to define semantic values, but we adopt at least the typing rules in \Cref{fig:typing_lc}.
+Assuming that all semantic values are closed terms, we therefore have abstractions ($λx.t$), applications ($t(u)$), and $n$-ary tuples ($⟨t_{1}, ⋯, t_{n}⟩$), along with the empty tuple $⋄$.
+We additionally assume that λ-terms can feature constants, drawn from some countable set.
+
+As for the semantic types themselves, we can assume that there are the following atomic types, where $e$ is the type of entities, and $t$ is the type of the truth values $\True$ and $\False$.
+
+\begin{align*}
+A \Coloneqq e ∣ t
+\end{align*}
+
+The full set of types over $A$ ($\mathcal{T}_{A}$) is then defined as follows:
+
+\begin{align*}
+   \mathcal{T}_{A} \Coloneqq A ∣ \mathcal{T}_{A} → \mathcal{T}_{A} ∣ \mathcal{T}_{A} × \mathcal{T}_{A} ∣ ⋄
+\end{align*}
+
+Just as with complex syntactic types, we adopt the convention of notating complex semantic types without parentheses when possible.
+Unlike syntactic types, we assume semantic types are right-associative.^[
+  These conventions mirror each other in the sense that the input type of a function type is assumed to be atomic unless otherwise specified by the use of parentheses.
+Typing rules for typed λ-terms may then be given as follows:
+
+$$ \small
+\begin{array}{c}
+\begin{prooftree}
+\AxiomC{}
+\RightLabel{$\mathtt{Ax}$}\UnaryInfC{$Γ, x : α ⊢ x : α$}
+\end{prooftree}
+& \begin{prooftree}
+\AxiomC{$Γ, x : α ⊢ t : β$}
+\RightLabel{${→}\mathtt{I}$}\UnaryInfC{$Γ ⊢ λx.t : α → β$}
+\end{prooftree}
+& \begin{prooftree}
+\AxiomC{$Γ ⊢ t : α → β$}
+\AxiomC{$Γ ⊢ u : α$}
+\RightLabel{${→}\mathtt{E}$}\BinaryInfC{$Γ ⊢ t(u) : β$}
+\end{prooftree} \\[2mm]
+\begin{prooftree}
+\AxiomC{}
+\RightLabel{$⋄\mathtt{I}$}\UnaryInfC{$Γ ⊢ ⋄ : ⋄$}
+\end{prooftree}
+& \begin{prooftree}
+\AxiomC{$Γ ⊢ t : α$}
+\AxiomC{$Γ ⊢ u : β$}
+\RightLabel{$×\mathtt{I}$}\BinaryInfC{$Γ ⊢ ⟨t, u⟩ : α × β$}
+\end{prooftree}
+& \begin{prooftree}
+\AxiomC{$Γ ⊢ t : α_1 × α_2$}
+\RightLabel{$×\mathtt{E}_{j}$}\UnaryInfC{$Γ ⊢ π_{j}(t) : α_{j}$}
+\end{prooftree}
+\end{array}
+$$
+
+These cover λ-abstractions, applications, the unit type $⋄$ (which is inhabited by the empty tuple $⋄$), pairing, and projections.
+
+Although we employ atomic types only for entities and truth values, we will make use of a form of intensionality in our semantic fragments, so that meanings will generally depend on an index of evaluation (which we typically denote '$i$').
+However, we make no commitments about its type, thus allowing expressions' meanings to be polymorphic---this choice will be justified later on in these notes, when we introduce the full system.
+Meanwhile, we'll provide the polymorphic types of such meanings using Greek letters to represent type variables (e.g., $ι$ for $i$), while retaining Latin letters for atomic types.
+
+In CCG, expressions are combined to form new expressions using application rules, as well as composition ($\textbf{B}$) rules and (often) type-raising ($\textbf{T}$) and substitution ($\textbf{S}$) rules (see, e.g., @steedman_syntactic_2000).
+The string *every linguist* can be derived by *right* application from expressions for the strings *every* and *linguist*, for example.
+
+(@ex-every-linguist)
+$$ \small
+\frac{\expr{\textit{every}}{λp, q, i.∀y.p(y)(i) → q(y)(i)}{s}/(s\backslash np)/ n \hspace{1cm} \expr{\textit{linguist}}{λx, i.\ct{ling}(i)(x)}{n}}{
+\expr{\textit{every linguist}}{λq, i.∀y.\ct{ling}(i)(y) → q(y)(i)}{s}/(s\backslash np)
+}>
+$$
+
+The resulting expression has the syntactic type of a quantifier;
+in this case, it takes on its right an expression which takes a noun phrase on its left to form a sentence, and it forms a sentence with that expression.
+This type---$s/(s\backslash np)$---is mirrored by the type of the λ-term which is the expression's semantic value:
+$(e → ι → t) → ι → t$.
+Indeed, the two are related by a *type homomorphism*;
+i.e., a map from syntactic types to semantic types that preserves certain structure---here, the structure of syntactic types formed via slashes ($/$ and $\backslash$), which get turned into semantic types formed via arrows ($→$).
+We may codify the behavior of this homomorphism on atomic syntactic types.
+
+(@ex-type-interp)
+$⟦np⟧ = e$ <br>
+$⟦n⟧ = e → ι → t$ <br>
+$⟦s⟧ = ι → t$
+
+The CCG derivation given in (@ex-every-linguist) tacitly assumes that noun phrases denote entities, that nouns denote functions from entities to *propositions* (i.e., functions of type $ι → t$), and that sentences denote propositions.
+
+Crucially, *every* CCG rule is analogous to the application rules in that it preserves the structure of syntactic types in the types of semantic values via the type homomorphism.
+For another example, the rightward composition rule can be used to combine *every linguist* with *saw*.
+
+(@ex-every-linguist-saw)
+$$ \small
+\frac{\expr{\textit{every linguist}}{λq, i.∀y.\ct{ling}(i)(y) → q(y)(i)}{s}/ (s\backslash np)
+\hspace{1cm}
+\expr{\textit{saw}}{λx, y, i.\ct{see}(i)(x)(y)}{s}\backslash np/ np}{
+\expr{\textit{every linguist saw}}{λx, i.∀y.\ct{ling}(i)(y) → \ct{see}(i)(x)(y)}{s}/ np
+}{>}\textbf{B}
+$$
+
+Here, the resulting type---$s/ np$---is mapped to $⟦np⟧ → ⟦s⟧ = e → ι → t$, which is precisely the type of the resulting semantic value.
+
+## Adding probabilistic types
+
+The type system presented in above included types for entities, truth values, and types formed from these.
+PDS is inspired by the presentation in @grove_probabilistic_2023, who illustrate how a semantics incorporating Bayesian reasoning can be encoded using a λ-calculus with such a frugal type system;
+however, whereas @grove_probabilistic_2023 represent probabilistic reasoning using continuations, we employ a somewhat more abstract presentation by incorporating a new type constructor ($\P$).
+In addition, we add a type $r$ to represent real numbers, for the following new set of atomic types.
+
+$$
+A \Coloneqq e ∣ t ∣ r
+$$
+
+Then, the full (and final) set of types can be given as follows.
+
+$$
+\mathcal{T}_{A} \Coloneqq A ∣ \mathcal{T}_{A} → \mathcal{T}_{A} ∣ \mathcal{T}_{A} × \mathcal{T}_{A} ∣ ⋄ ∣ \P \mathcal{T}_{A}
+$$
+
+Types of the form $\P α$ are inhabited by *probabilistic programs* that represent probability distributions over values of type $α$.
+For example, a program of type $\P t$ represents a probability distribution over truth values (i.e., a [Bernoulli distribution](https://en.wikipedia.org/wiki/Bernoulli_distribution)); 
+a program of type $\P e$ represents a probability distribution over entities (e.g., a [categorical distribution](https://en.wikipedia.org/wiki/Categorical_distribution});
+a program of type $\P r$ represents a probability distribution over real numbers (e.g., a [normal distribution](https://en.wikipedia.org/wiki/Normal_distribution));
+and a program of type $\P (e → t)$ represents a probability distribution over functions from entities to truth values.
+Given the new inventory of probabilistic types, probabilistic programs are typed as follows:
+
+$$
+\begin{array}{c}
+\begin{prooftree}
+\AxiomC{$Γ ⊢ t : α$}
+\RightLabel{$\mathtt{Return}$}\UnaryInfC{$Γ ⊢ \pure{t} : \P α$}
+\end{prooftree}
+& \begin{prooftree}
+\AxiomC{$Γ ⊢ t : \P α$}
+\AxiomC{$Γ, x : α ⊢ u : \P β$}
+\RightLabel{$\mathtt{Bind}$}\BinaryInfC{$Γ ⊢ \left(\begin{array}{l} x ∼ t \\ u\end{array}\right) : \P β$}
+\end{prooftree}
+\end{array}
+$$
+
+Thus there are to constructors that can be used to produce typed probabilistic programs;
+we call these '*return*', and '*bind*'.
+The $\mathtt{Return}$ rule effectively turns any value $t$ into a [degenerate distribution](https://en.wikipedia.org/wiki/Degenerate_distribution);
+i.e., a probability distribution all of whose probability mass is assigned to the value $t$.
+We denote this distribution by wrapping the relevant value in an orange box, as shown.
+Meanwhile, the $\mathtt{Bind}$ rule allows one to compose probabilistic programs together.
+Given some program $t$, one can sample a value ($x$) from $t$ and then keep going with the program $u$.
+We describe some of the interactions between return and bind in a little more detail (and with some illustrative examples) next.
+
+### The probability monad
+
+Importantly, the map $\P$ from types to types is defined to be a *monad*.
+The typing rules given above feature one rule corresponding to each of two different *monadic operators*:
+$\mathtt{Return}$ (an introduction rule) and $\mathtt{Bind}$ (an elimination rule).^[
+  See \cite{bernardy_bayesian_2022}, where similar rules are presented in a somewhat more refined, dependently typed setting.
+]
+As a monad, $\P$ (together with return and bind) should satisfy the following *monad laws*;
+i.e., the following equalities---*Left identity*, *Right identity*, and *Associativity*---should be supported:
+
+$$
+\begin{array}{c}
+\textit{Left identity} & \textit{Right identity} & \textit{Associativity} \\[1mm]
+\begin{array}{l}
+x ∼ \pure{v} \\
+k
+\end{array}\ \ =\ \ k[v/x] 
+& \begin{array}{l}
+x ∼ m \\
+\pure{x}
+\end{array}\ \ =\ \ m 
+& \begin{array}{l}
+y ∼ \left(\begin{array}{l}
+x ∼ m \\
+n
+\end{array}\right) \\
+o
+\end{array}\ \ =\ \ \begin{array}{l}
+x ∼ m \\
+y ∼ n \\
+o
+\end{array}
+\end{array}
+$$
+
+These provide tight constraints on the behavior probabilistic programs.
+Left identity says that sampling a value from a degenerate distribution (via return and bind) is trivial:
+it can only result in the single value that the degenerate distribution assigns all of its mass to.
+The law encodes this fact by allowing one to simply continue with rest of the relevant probabilistic program ($k$, whatever that may be), but with the returned value $v$ substituted for the sampled value $x$. 
+
+What Right identity says is sort of symmetrical:
+sampling a value from a program $m$ and immediately returning that value as new degenerate distribution is *also* trivial;
+you can always get rid of this extra step.
+
+Finally, Associativity says that sampling a value ($y$) from a complex probabilistic program is the same as sampling it from the distribution defined in the final step of this program.
+For example, if one has one normal distribution parameterized by a value sampled from another,
+
+$$
+\begin{array}{l}
+y ∼ \left(\begin{array}{l}
+x ∼ \abbr{Normal}(0, 1) \\
+\abbr{Normal}(x, 1)
+\end{array}\right) \\
+o
+\end{array}
+$$
+
+one can always pull out the parts of this complex distribution to yield a series of bind statements:
+
+$$
+\begin{array}{l}
+x ∼ \abbr{Normal}(0, 1) \\
+y ∼ \abbr{Normal}(x, 1) \\
+o
+\end{array}
+$$
+
+<!--   \(\begin{tikzpicture}[ -->
+<!--     grow=right, -->
+<!--     sibling distance=1cm, -->
+<!--     level distance=8mm, -->
+<!--     every node/.style={text centered,anchor=west}, -->
+<!--     edge from parent/.style={draw,->,>=stealth}, -->
+<!--     baseline={([yshift=-4.5mm]current bounding box.north)}, -->
+<!--     ] -->
+<!--     \node (x) {\(\)} -->
+<!--     child {node (pure_x) {$\pure{x}$} -->
+<!--       child {node (m) {$m$} -->
+<!--         edge from parent node[midway,above] {\scriptsize $y$} -->
+<!--       } -->
+<!--       edge from parent node[midway,above] {\scriptsize $x$} -->
+<!--     }; -->
+<!--   \end{tikzpicture} = -->
+<!--   \begin{tikzpicture}[ -->
+<!--     grow=right, -->
+<!--     sibling distance=1cm, -->
+<!--     level distance=8mm, -->
+<!--     every node/.style={text centered,anchor=west}, -->
+<!--     edge from parent/.style={draw,->,>=stealth}, -->
+<!--     baseline={([yshift=-4.5mm]current bounding box.north)}, -->
+<!--     ] -->
+<!--     \node (y) {} -->
+<!--     child {node (m) {$m$} -->
+<!--       edge from parent node[midway,above] {\scriptsize $y$} -->
+<!--     }; -->
+<!--   \end{tikzpicture}\) \\ -->
+<!--   \(\begin{tikzpicture}[ -->
+<!--     grow=right, -->
+<!--     sibling distance=1cm, -->
+<!--     level distance=8mm, -->
+<!--     every node/.style={text centered,anchor=west}, -->
+<!--     edge from parent/.style={draw,->,>=stealth}, -->
+<!--     baseline={([yshift=-4.5mm]current bounding box.north)}, -->
+<!--     ] -->
+<!--     \node (y) {\(\)} -->
+<!--     child {node (m) {$m$} -->
+<!--       child {node (pure_x) {$\pure{x}$} -->
+<!--         edge from parent node[midway,above] {\scriptsize $x$} -->
+<!--       } -->
+<!--       edge from parent node[midway,above] {\scriptsize $y$} -->
+<!--     }; -->
+<!--   \end{tikzpicture} = -->
+<!--   \begin{tikzpicture}[ -->
+<!--     grow=right, -->
+<!--     sibling distance=1cm, -->
+<!--     level distance=8mm, -->
+<!--     every node/.style={text centered,anchor=west}, -->
+<!--     edge from parent/.style={draw,->,>=stealth}, -->
+<!--     baseline={([yshift=-4.5mm]current bounding box.north)}, -->
+<!--     ] -->
+<!--     \node (y) {} -->
+<!--     child {node (m) {$m$} -->
+<!--       edge from parent node[midway,above] {\scriptsize $y$} -->
+<!--     }; -->
+<!--   \end{tikzpicture}\) \\ -->
+<!--   \(\begin{tikzpicture}[ -->
+<!--     grow=right, -->
+<!--     sibling distance=1cm, -->
+<!--     level distance=8mm, -->
+<!--     every node/.style={text centered,anchor=west}, -->
+<!--     edge from parent/.style={draw,->,>=stealth}, -->
+<!--     baseline={([yshift=-4.5mm]current bounding box.north)}, -->
+<!--     ] -->
+<!--     \node (x) {} -->
+<!--     child {node (m) {$m$} -->
+<!--       child {node (n) {$n$} -->
+<!--         child {node (o) {$o$} -->
+<!--           edge from parent node[midway,above] {\scriptsize $z$} -->
+<!--         } -->
+<!--         edge from parent node[midway,above] {\scriptsize $y$} -->
+<!--       } -->
+<!--       edge from parent node[midway,above] {\scriptsize $x$} -->
+<!--     }; -->
+<!--   \end{tikzpicture} = -->
+<!--   \begin{tikzpicture}[ -->
+<!--     grow=right, -->
+<!--     sibling distance=1cm, -->
+<!--     level distance=8mm, -->
+<!--     every node/.style={text centered,anchor=west}, -->
+<!--     edge from parent/.style={draw,->,>=stealth}, -->
+<!--     baseline={([yshift=-4.5mm]current bounding box.north)}, -->
+<!--     ] -->
+<!--     \node (x) {} -->
+<!--     child {node (m) {$m$} -->
+<!--       child {node (n) {$n$} -->
+<!--         child {node (o) {$o$} -->
+<!--           edge from parent node[midway,above] {\scriptsize $z$} -->
+<!--         } -->
+<!--         edge from parent node[midway,above] {\scriptsize $y$} -->
+<!--       } -->
+<!--       edge from parent node[midway,above] {\scriptsize $x$} -->
+<!--     }; -->
+<!--   \end{tikzpicture}\) -->
+<!-- \end{tabular} -->
+<!-- \ -->
+
+### Some examples
+
+We can recruit return and bind to characterize complex probability distributions.
+To illustrate, suppose we have some categorical distribution, $\ct{mammal}: \P e$, on mammals.
+We can represent a distribution on mammals' mothers as in (@ex-mother).
+
+(@ex-mother)
+$$
+\begin{array}[t]{l}
+x ∼ \ct{mammal}\\
+\pure{\ct{mother}(x)}
+\end{array}
+$$
+
+Here, a random entity $x: e$ is *sampled* from $\ct{mammal}: \P e$ using bind, and then $\ct{mother}(x): e$ is returned, as indicated by the orange box.
+Since return turns things of type $α$ into probabilistic programs of type $\P α$, the resulting probabilistic program is of type $\P e$.
+Furthermore, assuming that the probability distribution $\ct{mammal}$ only has support on (i.e., assigns non-zero probability to) the entities which are mammals, the distribution which results will only have support on the entities which are the mothers of entities which are mammals.
+
+#### Reweighting distributions
+
+Our probabilistic language also comes with a operator $\abbr{factor}$ for scaling probability distributions according to some weight.^[
+  We define $\abbr{factor}$ here as a primitive of the language of probabilistic programs (i.e., a constant).
+  In their continuation-based treatment, \cite{grove_probabilistic_2023} implement $\abbr{factor}$ so that it has the scaling behavior described only informally here.
+  One could (if they wanted to) interpret the current system into one that uses continuations, so that $\abbr{factor}$ has the behavior needed.
+]
+
+(@ex-factor)
+$$\abbr{factor} : r → \P ⋄$$
+
+For instance, we may constrain our "mother" distribution so that it assigns more weight to the mothers of mammals which are hungrier.
+
+(@ex-hungry-mother)
+$$\begin{array}[t]{l}
+x ∼ \ct{mammal} \\
+\abbr{factor}(\ct{hungry}(x)) \\
+\pure{\ct{mother}(x)}
+\end{array}$$
+
+Here, $\ct{hungry} : e → r$ maps entities onto degrees representing how hungry they are.
+Thus the program above represents a probability distribution over entities which assigns non-zero probabilities only to entities which are the mother of some mammal, and which assigns greater probabilities to entities the hungrier their children are.
+
+#### Making observations
+
+In terms of $\abbr{factor}$, we may define another function, $\abbr{observe}$.
+
+(@ex-observe)
+$$
+\begin{align*}
+\abbr{observe}\ \ &:\ \ t → \P ⋄ \\
+\abbr{observe}(p)\ \ &=\ \ \abbr{factor}(𝟙(p))
+\end{align*}
+$$
+
+$\abbr{observe}$ takes a truth value and either keeps or throws out the distribution represented by the expression which follows it, depending on whether this truth value is $\True$ or $\False$.
+This is accomplished by factoring a distribution by the value of an indicator function ($𝟙$) applied to the truth value.^[
+  See @grove_probabilistic_2023 for further details.
+]
+
+(@ex-indicator)
+$$
+\begin{align*}
+𝟙\ \ &:\ \ t → r \\
+𝟙(\True)\ \ &=\ \ 1 \\
+𝟙(\False)\ \ &=\ \ 0
+\end{align*}
+$$
+
+For instance, we may instead constrain our "mother" program to describe a distribution over only dogs' mothers.
+
+(@ex-dog-mother)
+$$
+\begin{array}[t]{l}
+x ∼ \ct{mammal} \\
+\abbr{observe}(\ct{dog}(x)) \\
+\pure{\ct{mother}(x)}
+\end{array}
+$$
+
+This distribution assigns a probability of $0$ to any entity which is not the mother of some dog.
+Indeed, we could use both $\abbr{factor}$ and $\abbr{observe}$ to define another distribution which assigns a probability of $0$ to any entity which is not the mother of some dog, and which assigns greater probabilities to mothers of hungrier dogs.
+
+(@ex-hungry-dog-mother)
+$$
+\begin{array}[t]{l}
+x ∼ \ct{mammal} \\
+\abbr{factor}(\ct{hungry}(x)) \\
+\abbr{observe}(\ct{dog}(x)) \\
+\pure{\ct{mother}(x)}
+\end{array}
+$$
+
+## The common ground
+
+Here, we make good on the assumption mentioned earlier that common grounds amount to probability distributions over indices of some kind.
+In general, we will allow the meanings of expressions to be determined by indices in the following way.
+For any constants, e.g.,
+
+$$
+\begin{align*}
+\ct{see} &: ι → e → e → t \\
+\ct{ling} &: ι → e → t
+\end{align*}
+$$,
+
+etc., there other constants
+
+$$
+\begin{align*}
+\updct{see} &: (e → e → t) → ι → ι \\
+\updct{ling} &: (e → t) → ι → ι 
+\end{align*}
+$$
+
+which may update some index $i$ with a particular value.
+Thus our theory of indices is effectively a theory of *states and locations*:
+any given index represents a kind of state;
+meanwhile, constants such as $\ct{see}$ and $\ct{ling}$ represent different locations associated with that state.
+For example, given some index $i$, $\updct{see}(p)(i)$ is a new index just like $i$, but where the value stored at the location $\ct{see}$ has been overwritten by $p$.
+As a result, our constants should satisfy equations like the following:
+
+(@ex-indices-eqs)
+$$
+\begin{align*}
+\ct{see}(\updct{see}(p)(i)) &= p \\
+\ct{see}(\updct{ling}(p)(i)) &= \ct{see}(i) \\[2mm]
+\ct{ling}(\updct{ling}(p)(i)) &= p \\
+\ct{ling}(\updct{see}(p)(i)) &= \ct{ling}(i)
+\end{align*}
+$$
+
+That is, when $\ct{see}$ encounters an index which has been updated at its associated location, it grabs the value that the index has been updated with.
+If it encounters an index which has been updated at a different location, it keeps looking.
+(Similarly, for $\ct{ling}$.)
+
+Finally, we define a common ground to be a probability distribution over indices.
+
+(@ex-common-ground)
+Definition:
+a *common ground* is a probabilistic program of type $\P ι$.
+
+Here, again, $ι$ is understood to be a variable over types:
+its type doesn't really matter, as long as it can be understood as supporting the theory of states and locations described just above.
+We further define a constant representing a *starting* index, which we call '$\ct{@}$'. 
+
+(@ex-starting-index)
+$$\ct{@} : ι$$
+
+Let's briefly consider a concrete example.
+One way of defining a common ground is by encoding a distribution over heights for some entity;
+say, Jo.
+The following common ground updates the value stored for the constant $\ct{height} : ι → e → r$:
+
+(@ex-jo-cg)
+$$
+\begin{array}[t]{l}
+h ∼ \abbr{Normal}(0, 1) \\
+\pure{\updct{height}(λx.h)(\ct{@})}
+\end{array}
+$$
+
+This common ground encodes uncertainty about Jo's height by associating it with a normal distribution centered at 0 and with a standard deviation of 1.
+Note that because we are considering only one individual---Jo---we can update the height value globally.
+If we wish to describe a common ground that encodes uncertainty about the heights of more than individual---say, Jo and Bo---we can make the function with which indices are updated a bit more sophisticated:
+
+(@ex-jo-bo-cg)
+$$
+\begin{array}[t]{l}
+h_{j} ∼ \abbr{Normal}(0, 1) \\
+h_{b} ∼ \abbr{Normal}(0, 1) \\
+\pure{\updct{height}(λx.\ite(x = \ct{j}, h_{j}, h_{b}))(\ct{@})}
+\end{array}
+$$
+
+Here, $\ite$ should be understood as satisfying the following two equations:
+
+(@ex-ite)
+$$
+\begin{align*}
+\ite(\True, x, y) &= x \\
+\ite(\False, x, y) &= y
+\end{align*}
+$$
+
+Thus the common ground in (@ex-jo-bo-cg) updates the starting index with a value for $\ct{height}$ consisting of a function that returns $h_{j}$ on the argument $\ct{j}$ (i.e., Jo) and $h_{b}$ otherwise (i.e., when the argument is $\ct{b}$, i.e., Bo)
+
+## Expressions and discourses
+
+### States
+
+We now turn to discourse states.
+These, like indices, are understood in terms of a theory of states and locations (and similarly, as having some polymorphic type $σ$).
+We generally refer to the values stored in discourse states as *metalinguistic parameters*.
+These include, e.g., the common ground and the QUD, along with other conversationally relevant features of discourse (e.g., representations of the entities to which pronouns can refer, the available antecedents for ellipsis, etc.).
+One can view a discourse state as akin to the context state of @farkas_reacting_2010, though the type of state we employ is in principle less constrained, insofar as the type of individual parameters is open ended.
+Since discourse states provide access to the common ground and the QUD, they are associated with constants and equations like the following:
+
+(@ex-states-eqs)
+$$
+\begin{align*}
+\ct{CG}(\updct{CG}(cg)(s)) &= cg \\
+\ct{CG}(\updct{QUD}(q)(s)) &= \ct{CG}(s) \\[2mm]
+\ct{QUD}(\updct{QUD}(q)(s)) &= q \\
+\ct{QUD}(\updct{CG}(cg)(s)) &= \ct{QUD}(s)
+\end{align*}
+$$
+
+Though we haven't yet discussed the types we take to be associated with QUDs, note that $\ct{CG}$ and $\updct{CG}$ ought to have the following types:
+
+(@ex-cg-types)
+$$
+\begin{align*}
+\ct{CG} &: σ → \P ι \\
+\updct{CG} &: \P ι → σ → σ
+\end{align*}
+$$
+
+Finally, as for indices, we provide a constant $\ct{ϵ}$ representing a "starting" state:
+
+(@ex-epsilon)
+$$
+\ct{ϵ} : σ
+$$
+
+### Expression meanings
+
+We regard expressions' probabilistic semantic values as functions of type $σ → \P (α × σ^{\prime})$, where $σ$ and $σ^{\prime}$ should be understood to represent the types of discourse states.
+We abbreviate this type as $ℙ^{σ}_{σ^{\prime}} α$:
+
+(@ex-p-abbrev)
+$$
+ℙ^{σ}_{σ^{\prime}} α ≝ σ → \P (α × σ^{\prime})
+$$
+
+Thus given an input state $s : σ$, the semantic value of an expression produces a probability distribution over pairs of ordinary semantic values of type $α$ and possible output states $s^{\prime} : σ^{\prime}$.
+An expression of category $np$, for instance, now has the *probabilistic* type $ℙ^{σ}_{σ^{\prime}}(⟦np⟧) \,\, = \,\, ℙ^{σ}_{σ^{\prime}} e \,\, = \,\, σ → \P (e × σ^{\prime})$.
+
+Building on this view of expressions, we regard an ongoing discourse as a function of type $ℙ^{σ}_{σ^{\prime}} ⋄$.
+The effects that both expressions and discourses have are therefore *stateful-probabilistic*:
+they map input states to probability distributions over output states.
+Discourses differ from expressions in that the value discourses compute is trivial:
+it is invariably the empty tuple $⋄$, as determined by its type.
+Thus while expressions produce both stateful-probabilistic effects *and* values, discourses have *only* effects, i.e., they merely update the state.
+
+\subsubsection{Semantic composition via parameterized monads}
+\label{sec:parameterized_monads}
+
+\begin{figure}
+  \makebox[\textwidth]{
+    \begin{tblr}{colspec={cc},colsep=1cm}
+      *Left identity* & *Right identity* \\[1mm]
+      \(\begin{array}{rl}
+        \mathtt{do}_{p, p, q} & x ← \return{v}_{p} \\
+                      & k(x)
+      \end{array}\ \ =\ \ \ k(v)\) & \(\begin{array}{rl}
+        \mathtt{do}_{p, q, q} & x ← m \\
+                      & \return{x}_{q}
+      \end{array} \ \ =\ \ \ m\) \\[2mm]
+      \SetCell[r=1,c=2]{c} *Associativity* \\[1mm]
+      \SetCell[r=1,c=2]{c} \(\begin{array}{rl}
+        \mathtt{do}_{p, r, s} & y ← \left(\begin{array}{rl}
+          \mathtt{do}_{p, q, r} & x ← m \\
+                        & n(x)
+        \end{array}\right) \\
+                      & o(y)
+      \end{array}\ \ =\ \ \ \begin{array}{rl}
+        \mathtt{do}_{p, q, s} & x ← m \\
+                      & \left(\begin{array}{rl}
+                        \mathtt{do}_{q, r, s} & y ← n(x) \\
+                                      & o(y)
+                      \end{array}\right)
+      \end{array}\)
+    \end{tblr}
+  }
+  \caption{The parameterized monad laws.}
+ \label{fig:p_monad_laws}
+\end{figure}
+
+The setup we have introduced allows for the possibility that the state parameter $σ$ *changes* in the course of evaluating an expression's probabilistic semantic value.
+Such a value may map an input state $s : σ$ onto a probability distribution over outputs states of type $σ^{\prime}$ ($σ^{\prime} ≠ σ$).
+This flexibility is useful to capture the changing nature of certain components of the discourse state.
+For example, the QUDs stored in a state may consist of questions of different types---e.g., degree questions, individual questions, etc.
+Thus whenever an utterance functions to add a QUD to the state, the input state's type may not match the output state's type.
+
+To countenance this type-level flexibility, we view the types $ℙ^{σ}_{σ^{\prime}} α$ as arising from a *parameterized* State.Probability monad, given the collection $\mathcal{S}_{σ}$ of possible state parameters.^[
+  See @atkey_parameterised_2009 on the parameterized State monad and parameterized monads more generally.
+  The current parameterized monad can be viewed as applying a parameterized State monad *transformer* to the underlying probability monad $\P$;
+  see @liang_monad_1995 on monad transformers.
+]
+Parameterized monads are associated with their own definitions of (parameterized) return and bind.
+To increase clarity, while distinguishing the notations for parameterized and vanilla monads, we present the bind statements of a parameterized monad $ℙ$ using Haskell's $\mathtt{do}$-notation.
+
+% \begin{definition}[Parameterized monad \citep{atkey_parameterised_2009}]\label{def:p_monad}
+  % Given a collection $\mathcal{S}$ of parameters, a parameterized monad is a map $ℙ$ from triples consisting of two parameters and a type onto types (i.e., given parameters $p, q ∈ \mathcal{S}$ and a type $α$, $ℙ^{p}_{q} α$ is some new type), equipped with two operators satisfying the parameterized monad laws (\Cref{fig:p_monad_laws}).
+  % \begin{align*}
+    % \return{(·)}_{p}\ \ &:\ \ α → ℙ^{p}_{p} α \tag{`return'} \\
+    % \begin{array}{rl}
+      % \mathtt{do}_{p, q, r} & x ← \_\_ \\
+                    % & \_\_(x)
+    % \end{array}\ \
+    % &:\ \ ℙ^{p}_{q} α → (α → ℙ^{q}_{r} β) → ℙ^{p}_{r} β \tag{`bind'}
+  % \end{align*}
+% \end{definition}
+The particular parameterized monad we employ is State.Probability, where the relevant collection of parameters is $\mathcal{S}_{σ}$.
+% \begin{definition}[The parameterized State.Probability monad]\label{def:state_prob}
+%   \begin{align*}
+%     ℙ^{σ}_{σ^{\prime}} α\ \ &=\ \ σ → \P (α × σ^{\prime}) \\
+%     \return{v}_{σ}\ \ &=\ \ λs.\pure{⟨v, s⟩} \\
+%     \begin{array}{rl}
+%       \mathtt{do}_{σ, σ^{\prime}, σ^{\prime\prime}} & x ← m \\
+%                                     & k(x)
+%     \end{array}\ \ 
+%     &=\ \ λs.\left(\begin{array}{l}
+%       ⟨x, s^{\prime}⟩ ∼ m(s) \\
+%       k(x)(s^{\prime})
+%     \end{array}\right)
+%   \end{align*}
+% \end{definition}
+The $\mathtt{do}$-notation in the above should be read as saying, ``first bind the variable $x$ to the program $m$, and then do $k(x)$''.
+Indeed, this statement gives an intuitive summary of what the definition of State.Probability accomplishes:
+to bind $m$ to the continuation $k$, one must abstract over an input state $s$ and feed it to $m$, sample a value $x$ paired with an output state $s^{\prime}$ from the result, and finally, feed $x$, along with $s^{\prime}$, to $k$.
+
+We follow a couple of simplifying notational conventions throughout.
+First, we will generally leave the parameters on operators implicit, writing `$\return{x}$' instead of `$\return{x}_{p}$' and `$\mathtt{do}$' instead of `$\mathtt{do}_{p, q, r}$'.
+Second, we will follow Haskell's convention of representing multiple uses of bind in a row
+\begin{align*}
+  \begin{array}{rl}
+    \mathtt{do} & x ← m \\
+        & \begin{array}{rl}
+          \mathtt{do} & y ← n \\
+              & k(x, y)
+        \end{array}
+  \end{array}
+\end{align*}
+by consolidating them into a single $\mathtt{do}$-block,
+\begin{align*}
+  \begin{array}{rl}
+    \mathtt{do} & x ← m \\
+        & y ← n \\
+        & k(x, y)
+  \end{array}
+\end{align*}
+or by separating them on a single line by a semicolon to save space.
+\begin{align*}
+  \begin{array}{rl}
+    \mathtt{do} & \{\,x ← m;\,y ← n;\,k(x, y)\,\}
+  \end{array}
+\end{align*}
+The updated, *probabilistic* monadic CCG rule schemata are provided in \Cref{fig:pds_rules}.
+These schemata mimic the ones defined in \Cref{sec:combining_ccg_monads}, except that semantic values are considered to be of type $ℙ^{σ}_{σ^{\prime}} (\M α)$ (for $σ, σ^{\prime} ∈ \mathcal{S}_{σ}$) now, rather than of type $\M α$.
+Thus rather than apply the monadic CCG operations to semantic values directly, we must bind these semantic values to variables of type $\M α$ and apply the operations to *those*.
+Meanwhile, the probabilistic type associated with a given expression is related to its semantic type by allowing the parameters $σ$ and $σ^{\prime}$ to range over $\mathcal{S}_{σ}$.
+
+The upshot is that, while an expression's syntactic type continues to determine its dynamic semantic effects, its *probabilistic* dynamic effects are independent, lending them a certain amount of modularity.
+
+\begin{figure}
+  \makebox[\textwidth]{
+    \begin{tabular}{c}
+      \footnotesize
+      \AxiomC{\(\expr{e_{1}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth}
+        ]
+        \node (s) {}
+        child {node (m1) {$M_{1}$}
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+      \end{tikzpicture}
+      }{c\slash b}\)}
+      \AxiomC{\(\expr{e_{2}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s') {}
+        child {node (m2) {$M_{2}$}
+          edge from parent node[midway,above] {\scriptsize $s^{\prime}$}
+        };
+      \end{tikzpicture}
+      }{b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \RightLabel{${>}\textbf{B}_{n}$}\BinaryInfC{\(\expr{e_{1}\,e_{2}}{
+       \begin{tikzpicture}[
+        grow=right,
+        sibling distance=1cm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m1) {$M_{1}$}
+          child [level distance=25mm,yshift=7mm] {node (m2) {$M_{2}$}
+            edge from parent node[midway,above] {\scriptsize $⟨\_, s^{\prime}⟩$}
+          }
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+        \node[right=5cm of m1] (fxs'') {\(\pure{⟨f ∘_{n} x, s^{\prime\prime}⟩}\)};
+        \draw[->,>=stealth] (m1) -- node[midway,above] {\scriptsize $⟨f, \_⟩$} (fxs'');
+        \draw[->,>=stealth] (m2) -- node[midway,above] {\scriptsize $⟨x, s^{\prime\prime}⟩$} (fxs'');
+      \end{tikzpicture}
+      }{c∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \DisplayProof \\[24mm]
+      \footnotesize
+      \AxiomC{\(\expr{e_{1}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m1) {$M_{1}$}
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+      \end{tikzpicture}
+      }{b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \AxiomC{\(\expr{e_{2}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s') {}
+        child {node (m2) {$M_{2}$}
+          edge from parent node[midway,above] {\scriptsize $s^{\prime}$}
+        };
+      \end{tikzpicture}
+      }{c\backslash b}\)}
+      \RightLabel{${<}\textbf{B}_{n}$}\BinaryInfC{\(\expr{e_{1}\,e_{2}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=1cm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m1) {$M_{1}$}
+          child [level distance=25mm,yshift=7mm] {node (m2) {$M_{2}$}
+            edge from parent node[midway,above] {\scriptsize $⟨\_, s^{\prime}⟩$}
+          }
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+        \node[right=5cm of m1] (fxs'') {\(\pure{⟨f ∘_{n} x, s^{\prime\prime}⟩}\)};
+        \draw[->,>=stealth] (m1) -- node[midway,above] {\scriptsize $⟨x, \_⟩$} (fxs'');
+        \draw[->,>=stealth] (m2) -- node[midway,above] {\scriptsize $⟨f, s^{\prime\prime}⟩$} (fxs'');
+      \end{tikzpicture}
+      }{c∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \DisplayProof \\[24mm]
+      \footnotesize
+      \AxiomC{\(\expr{e_{1}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth}
+        ]
+        \node (s) {}
+        child {node (m1) {$M_{1}$}
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+      \end{tikzpicture}
+      }{c\slash b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \AxiomC{\(\expr{e_{2}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s') {}
+        child {node (m2) {$M_{2}$}
+          edge from parent node[midway,above] {\scriptsize $s^{\prime}$}
+        };
+      \end{tikzpicture}
+      }{b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \RightLabel{${>}\textbf{S}_{n}$}\BinaryInfC{\(\expr{e_{1}\,e_{2}}{
+       \begin{tikzpicture}[
+        grow=right,
+        sibling distance=1cm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m1) {$M_{1}$}
+          child [level distance=25mm,yshift=7mm] {node (m2) {$M_{2}$}
+            edge from parent node[midway,above] {\scriptsize $⟨\_, s^{\prime}⟩$}
+          }
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+        \node[right=5cm of m1] (fxs'') {\(\pure{⟨f ▹_{n} x, s^{\prime\prime}⟩}\)};
+        \draw[->,>=stealth] (m1) -- node[midway,above] {\scriptsize $⟨f, \_⟩$} (fxs'');
+        \draw[->,>=stealth] (m2) -- node[midway,above] {\scriptsize $⟨x, s^{\prime\prime}⟩$} (fxs'');
+      \end{tikzpicture}
+      }{c∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \DisplayProof \\[24mm]
+      \footnotesize
+      \AxiomC{\(\expr{e_{1}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m1) {$M_{1}$}
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+      \end{tikzpicture}
+      }{b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \AxiomC{\(\expr{e_{1}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s') {}
+        child {node (m2) {$M_{2}$}
+          edge from parent node[midway,above] {\scriptsize $s^{\prime}$}
+        };
+      \end{tikzpicture}
+      }{c\backslash b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \RightLabel{${<}\textbf{S}_{n}$}\BinaryInfC{\(\expr{e_{1}\,e_{2}}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=1cm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m1) {$M_{1}$}
+          child [level distance=25mm,yshift=7mm] {node (m2) {$M_{2}$}
+            edge from parent node[midway,above] {\scriptsize $⟨\_, s^{\prime}⟩$}
+          }
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+        \node[right=5cm of m1] (fxs'') {\(\pure{⟨f ▹_{n} x, s^{\prime\prime}⟩}\)};
+        \draw[->,>=stealth] (m1) -- node[midway,above] {\scriptsize $⟨x, \_⟩$} (fxs'');
+        \draw[->,>=stealth] (m2) -- node[midway,above] {\scriptsize $⟨f, s^{\prime\prime}⟩$} (fxs'');
+      \end{tikzpicture}
+      }{c∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      \DisplayProof \\[24mm]
+      % \footnotesize
+      % \AxiomC{\(\expr{e_{1}}{
+      % \begin{tikzpicture}[
+      %   grow=right,
+      %   sibling distance=5mm,
+      %   level distance=4mm,
+      %   every node/.style={text centered,anchor=west},
+      %   edge from parent/.style={draw,->,>=stealth},
+      %   ]
+      %   \node (s) {}
+      %   child {node (m1) {$M_{1}$}
+      %     edge from parent node[midway,above] {\scriptsize $s$}
+      %   };
+      % \end{tikzpicture}
+      % }{c\slash b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      % \AxiomC{\(\expr{e_{2}}{
+      % \begin{tikzpicture}[
+      %   grow=right,
+      %   sibling distance=5mm,
+      %   level distance=4mm,
+      %   every node/.style={text centered,anchor=west},
+      %   edge from parent/.style={draw,->,>=stealth},
+      %   ]
+      %   \node (s') {}
+      %   child {node (m2) {$M_{2}$}
+      %     edge from parent node[midway,above] {\scriptsize $s^{\prime}$}
+      %   };
+      % \end{tikzpicture}
+      % }{b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      % \RightLabel{${>}\textbf{S}_{n}$}\BinaryInfC{\(\expr{e_{1}\,e_{2}}{
+      % \begin{tikzpicture}[
+      %   grow=right,
+      %   sibling distance=1cm,
+      %   level distance=4mm,
+      %   every node/.style={text centered,anchor=west},
+      %   edge from parent/.style={draw,->,>=stealth},
+      %   ]
+      %   \node (s) {}
+      %   child {node (m1) {$M_{1}$}
+      %     child [level distance=25mm,yshift=7mm] {node (m2) {$M_{2}$}
+      %       edge from parent node[midway,above] {\scriptsize $⟨\_, s^{\prime}⟩$}
+      %     }
+      %     edge from parent node[midway,above] {\scriptsize $s$}
+      %   };
+      %   \node[right=5cm of m1] (fxs'') {\(\pure{⟨f ▹_{n} x, s^{\prime\prime}⟩}\)};
+      %   \draw[->,>=stealth] (m1) -- node[midway,above] {\scriptsize $⟨f, \_⟩$} (fxs'');
+      %   \draw[->,>=stealth] (m2) -- node[midway,above] {\scriptsize $⟨x, s^{\prime\prime}⟩$} (fxs'');
+      % \end{tikzpicture}
+      % }{c∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      % \DisplayProof \\[24mm]
+      % \footnotesize
+      % \AxiomC{\(\expr{e_{1}}{
+      % \begin{tikzpicture}[
+      %   grow=right,
+      %   sibling distance=5mm,
+      %   level distance=4mm,
+      %   every node/.style={text centered,anchor=west},
+      %   edge from parent/.style={draw,->,>=stealth},
+      %   ]
+      %   \node (s) {}
+      %   child {node (m1) {$M_{1}$}
+      %     edge from parent node[midway,above] {\scriptsize $s$}
+      %   };
+      % \end{tikzpicture}
+      % }{b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      % \AxiomC{\(\expr{e_{1}}{
+      % \begin{tikzpicture}[
+      %   grow=right,
+      %   sibling distance=5mm,
+      %   level distance=4mm,
+      %   every node/.style={text centered,anchor=west},
+      %   edge from parent/.style={draw,->,>=stealth},
+      %   ]
+      %   \node (s') {}
+      %   child {node (m2) {$M_{2}$}
+      %     edge from parent node[midway,above] {\scriptsize $s^{\prime}$}
+      %   };
+      % \end{tikzpicture}
+      % }{c\backslash b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      % \RightLabel{${<}\textbf{S}_{n}$}\BinaryInfC{\(\expr{e_{1}\,e_{2}}{
+      % \RightLabel{${>}\textbf{S}_{n}$}\BinaryInfC{\(\expr{e_{1}\,e_{2}}{
+      % \begin{tikzpicture}[
+      %   grow=right,
+      %   sibling distance=1cm,
+      %   level distance=4mm,
+      %   every node/.style={text centered,anchor=west},
+      %   edge from parent/.style={draw,->,>=stealth},
+      %   ]
+      %   \node (s) {}
+      %   child {node (m1) {$M_{1}$}
+      %     child [level distance=25mm,yshift=7mm] {node (m2) {$M_{2}$}
+      %       edge from parent node[midway,above] {\scriptsize $⟨\_, s^{\prime}⟩$}
+      %     }
+      %     edge from parent node[midway,above] {\scriptsize $s$}
+      %   };
+      %   \node[right=5cm of m1] (fxs'') {\(\pure{⟨f ▹_{n} x, s^{\prime\prime}⟩}\)};
+      %   \draw[->,>=stealth] (m1) -- node[midway,above] {\scriptsize $⟨x, \_⟩$} (fxs'');
+      %   \draw[->,>=stealth] (m2) -- node[midway,above] {\scriptsize $⟨f, s^{\prime\prime}⟩$} (fxs'');
+      % \end{tikzpicture}
+      % }{c∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
+      % \DisplayProof \\[24mm]
+      \footnotesize
+      \AxiomC{\(\expr{e}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m1) {$M$}
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+      \end{tikzpicture}
+      }{a}\)}
+      \RightLabel{${>}\textbf{T}$}\UnaryInfC{\(\expr{e}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=1cm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m) {$M$}
+          child [level distance=12mm] {node (x) {$\pure{⟨λf.f(x), s^{\prime}⟩}$}
+            edge from parent node[midway,above] {\scriptsize $⟨x, s^{\prime}⟩$}
+          }
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+        \end{tikzpicture}
+      }{b\slash(b\backslash a)}\)}
+      \DisplayProof
+      \hspace{2mm}
+      \AxiomC{\(\expr{e}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=5mm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m1) {$M$}
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+      \end{tikzpicture}
+      }{a}\)}
+      \RightLabel{${<}\textbf{T}$}\UnaryInfC{\(\expr{e}{
+      \begin{tikzpicture}[
+        grow=right,
+        sibling distance=1cm,
+        level distance=4mm,
+        every node/.style={text centered,anchor=west},
+        edge from parent/.style={draw,->,>=stealth},
+        ]
+        \node (s) {}
+        child {node (m) {$M$}
+          child [level distance=12mm] {node (x) {$\pure{⟨λf.f(x), s^{\prime}⟩}$}
+            edge from parent node[midway,above] {\scriptsize $⟨x, s^{\prime}⟩$}
+          }
+          edge from parent node[midway,above] {\scriptsize $s$}
+        };
+        \end{tikzpicture}
+      }{b\backslash(b\slash a)}\)}
+      \DisplayProof \\[1cm]
+      \mbox{}
+    \end{tabular}
+  }
+  \caption{Probabilistic CCG rule schemata.}\label{fig:pds_rules}
+\end{figure}
+
+\subsubsection{Lexical knowledge}
+\label{sec:lexical_knowledge}
+
+The introduction of the parameterized State.Probability monad allows us to model different forms of uncertainty as arising from the probabilistic knowledge we have about particular lexical items.
+
+Consider again the sentence in (\ref{ex:run_sketch}).
+\pex[exno=\ref{ex:run_sketch}] Jo ran a race.
+\xe
+We may analyze \textit{Jo} as having the lexical entry in \exref{ex:jo_prob}, where $\ct{j}$ is a constant of type $e$.
+\pex\label{ex:jo_prob}
+\(\expr{\textit{Jo}}{
+  \begin{array}{rl}
+    \mathtt{do} & \abbr{background}_{\textit{Jo}} \\
+        & \return{\ct{j}^{η▹}}
+  \end{array}
+}{np}\)
+\xe
+A couple of important pieces of notation are used here.
+First, \(\abbr{background}_{\textit{Jo}}\) is a program of type $ℙ^{σ}_{σ^{\prime}} ⋄$ which encodes our background knowledge about the lexical item \textit{Jo}.
+This knowledge may be quite wide ranging.
+For instance, it might update an aspect of the state which encodes a phonetic representation of the utterances made in a discourse so far;
+or, it might add information to the common ground useful for later anaphora, i.e., that Jo is animate.
+
+To flesh these ideas out, it will be useful to have operations that allow us to (probabilisticaly) read and write the values of stateful parameters.
+Given a state which is a tuple with a $j\textsuperscript{th}$ component, we may wish to view this component in the course of defining a program.
+% \begin{definition}[$\abbr{view}_{π_{j}}$]\label{def:view}
+%   \begin{align*}
+%     \abbr{view}_{π_{|u|+1}}\ \ &:\ \ ℙ^{u\,α\,v}_{u\,α\,v} α \\
+%     \abbr{view}_{π_{|u|+1}}\ \ &=\ \ λs.\pure{⟨π_{|u|+1}(s), s⟩}
+%   \end{align*}
+% \end{definition}
+For example, if we wish to view the current common ground, we should bind this construct to a variable.
+\begin{align*}
+  \begin{array}{rl}
+    \mathtt{do} & ⋯ \\
+        & cg ← \abbr{view}_{\ct{CG}} \\
+        & ⋯
+  \end{array}
+\end{align*}
+As noted, $\ct{CG}(s)$ is the projection of the state $s$ corresponding to its common ground parameter (whichever projection that may be).
+
+In turn, we may wish to set a *new* common ground which modifies the old one in some way.
+% \begin{definition}[$\abbr{set}_{π_{j}}$]\label{def:set}
+%   \begin{align*}
+%     \abbr{set}_{π_{|u|+1}}\ \ &:\ \ β → ℙ^{u\,α\,v}_{u\,β\,v} ⋄ \\
+%     \abbr{set}_{π_{|u|+1}}(b)\ \ &=\ \ λ⟨..., \_, ...⟩.\pure{⟨⋄, ⟨..., b, ...⟩⟩}
+%   \end{align*}
+% \end{definition}
+Thus a program which updates the current common ground using some function $f : \P ι → \P ι$ can be defined by having it set the common ground after viewing it.
+\begin{align*}
+  \begin{array}{rl}
+    \mathtt{do} & ⋯ \\
+        & cg ← \abbr{view}_{\ct{CG}} \\
+        & \abbr{set}_{\ct{CG}}(f(cg)) \\
+        & ⋯
+  \end{array}
+\end{align*}
+For example, if \(\abbr{background}_{\textit{Jo}}\) updates the common ground to record that \textit{Jo} is animate, then it has the form in \exref{ex:background_jo}.\footnote{
+  In order to save space, we will henceforth write `$\abbr{background}$' once and concatenate the strings that name each program separately, in case we sequence more than one ``background'' program in a row;
+  i.e., `\(\abbr{background}_{s_{1} s_{2}}\)' is shorthand for \(\abbr{background}_{s_{1}}; \abbr{background}_{s_{2}}\).
+}
+\pex\label{ex:background_jo}
+\(\abbr{background}_{\textit{Jo}}\ \ =\ \begin{array}[t]{rl}
+  \mathtt{do} & ⋯ \\
+      & cg ← \abbr{view}_{\ct{CG}} \\
+      & \abbr{set}_{\ct{CG}}\left(
+        \begin{array}{l}
+          i ∼ cg \\
+          \abbr{observe}(\ct{animate}(w_{i})(\ct{j})) \\
+          \pure{i}
+        \end{array}\right) \\
+      & ⋯
+\end{array}\)
+\xe
+The second piece of new notation used in \exref{ex:jo_prob} is the operator $▹$.
+% \begin{definition}[$▹$]
+%   \begin{align*}
+%     (·)^{▹}\ \ &:\ \ \M e → \M e \\
+%     m^{▹}\ \ &=\ \ m ⋆ λx, i, g.\{⟨x, x{∷}g⟩\}
+%   \end{align*}
+% \end{definition}
+% This operator takes a dynamic semantic value of type $\M e$ and gives back a value of the same type, but which has appended the (non-deterministic) entity it returns to the outgoing list of DRs.\footnote{
+%   Both the notation and definition are adopted directly from \cite[§2.5.2]{charlow_semantics_2014}, who encodes dynamic non-determinism via a State.Set monad;
+%   the difference here is that we also have an index to pass along.
+% }
+% Thus in the end, \exref{ex:jo_prob} encodes relevant probabilistic background knowledge and then returns a dynamic semantic value of type $\M e$ (consistent with its syntactic category), which adds $\ct{j}$ to the running list of DRs.
+
+% The indefinite determiner and the noun \textit{race} can be treated similarly---in the former case, by adapting its lexical entry in \exref{ex:indef_det} to the one in \exref{ex:indef_det_prob}.
+% \pex\label{ex:indef_det_prob} \(\expr{\textit{a}}{
+%   \begin{array}{rl}
+%     \mathtt{do} & \abbr{background}_{\textit{indef.}} \\
+%         & \return{(λp.p ⋆ λf, i, g.\{⟨x, x{∷}g⟩ ∣ f(x)(i)\})^{η}}
+%   \end{array}
+% }{np\slash n}\)
+% \xe
+% \pex\label{ex:race_prob} \(\expr{\textit{race}}{
+%   \begin{array}{rl}
+%     \mathtt{do} & \abbr{background}_{\textit{race}} \\
+%         & \return{\ct{race}^{η}}
+%   \end{array}
+% }{n}\)
+% \xe
+% Meanwhile, the lexical entry for \textit{ran} may now be analyzed as introducing an *ambiguity*;
+% e.g., between its locomotion sense and its management sense.
+% \pex\label{ex:run_prob} \(\expr{\textit{ran}}{
+%   \begin{array}{rl}
+%     \mathtt{do} & \abbr{background}_{\textit{ran}} \\
+%         & run ← \abbr{view}_{\ct{run}} \\
+%         & \return{(λx.(λy.y ⋆ λv_{1}.x ⋆ λv_{2}.run(v_{2})(v_{1})^{η})^{η})^{η}}
+%   \end{array}
+% }{s\backslash np\slash np}\)
+% \xe
+% Given a state $s$, $\abbr{view}_{\ct{run}}$ returns its projection $\ct{run}(s) : e → e → ι → t$.
+% Since we are now trafficking in probability distributions over such states, we have an account of this ambiguity---both its probabilistic nature and its dependence on the state of the discourse.
+
+% Following our rule schemata, we can derive (\ref{ex:run_sketch}), in order to obtain a semantic value of type $ℙ^{σ}_{σ^{\prime}} (\M (ι → t))$ (see \Cref{fig:run_sketch}).
+% To save space, we use the abbreviations `$\abbr{jo}$', `$\abbr{ran}$', etc., for the probabilistic semantic values provided above.
+% Note that if we unpack these, we obtain the following result.
+% \pex\label{ex:run_sketch_unpacked}
+% \(\expr{\textit{Jo ran a race}}{
+%   \begin{array}{rl}
+%     \mathtt{do} & \abbr{background}_{\textit{Jo ran}} \\
+%         & run ← \abbr{view}_{\ct{run}} \\
+%         & \abbr{background}_{\textit{indef. race}} \\
+%         & \return{λi, g.\{⟨run(x)(\ct{j}), x{∷}\ct{j}{∷}g⟩ ∣ \ct{race}(x)(i)\}}
+%   \end{array}
+% }{s}\)
+% \xe
+
+% These sorts of lexical entries exemplify our strategy for representing lexical knowledge in PDS.
+% It is important to note that not all lexical knowledge, as we define it here, need pertain to linguistic properties per se;
+% lexical background knowledge may contain whatever information about a lexical item might be relevant to the trajectory of an interpretation as it unfolds.
+% Further, lexical knowledge may modify any aspect of the discourse state.
+% We will demonstrate cases where it may modify the common ground, but it could just as well modify the QUD, as might be necessary under certain approaches to projective inferences \citep[][i.a.]{simons_observations_2007,simons_what_2010,simons_best_2017,tonhauser_how_2018}.
+
+% \begin{figure}
+%   \makebox[\textwidth]{\footnotesize
+%     \AxiomC{\(\expr{\textit{Jo}}{\abbr{jo}}{np}\)}
+%     \AxiomC{\(\expr{\textit{ran}}{\abbr{ran}}{s\backslash np\slash np}\)}
+%     \AxiomC{\(\expr{\textit{a}}{\abbr{indef}}{np\slash n}\)}
+%     \AxiomC{\(\expr{\textit{race}}{\abbr{race}}{n}\)}
+%     \RightLabel{$>$}\BinaryInfC{\(\expr{\textit{a race}}{
+%         \begin{array}{rl}
+%           \mathtt{do} & \{\,det ← \abbr{indef};\,race ← \abbr{race}; \\
+%               & \return{det ⋆ λk_{2}.k_{2}(race)}\,\}
+%         \end{array}
+%       }{np}\)}
+%     \RightLabel{$>$}\BinaryInfC{\(\expr{\textit{ran a race}}{
+%         \begin{array}{rl}
+%           \mathtt{do} & \{\,ran ← \abbr{ran};\,det ← \abbr{indef};\,race ← \abbr{race}; \\
+%               & \return{ran ⋆ λk_{1}.k_{1}(det ⋆ λk_{2}.k_{2}(race))}\,\}
+%         \end{array}
+%       }{s\backslash np}\)}
+%     \RightLabel{$<$}\BinaryInfC{\(\expr{\textit{Jo ran a race}}{
+%         \begin{array}{rl}
+%           \mathtt{do} & \{\,jo ← \abbr{jo};\,ran ← \abbr{ran};\,det ← \abbr{indef};\,race ← \abbr{race}; \\
+%               & \return{ran ⋆ λk_{1}.k_{1}(det ⋆ λk_{2}.k_{2}(race)) ⋆ λk_{3}.k_{3}(jo)}\,\}
+%         \end{array}
+%       }{s}\)}
+%     \DisplayProof
+%   }
+%   \caption{Deriving \exref{ex:run_sketch}.}
+%  \label{fig:run_sketch}
+% \end{figure}
+
+% \subsubsection{Building discourses}
+% \label{sec:building_discourses}
+
+% Having illustrated our basic interpretation scheme, we turn to the question of how to integrate sentence interpretations into full discourses.
+% Here, we define illocutionary operators that map expressions' semantic values onto discourses consisting of various utterance acts.
+% We consider two such operators:
+% $\abbr{assert}$ and $\abbr{ask}$.
+
+% \paragraph{Making assertions}
+% \label{sec:assertions}
+
+% Given a sentence whose semantic value is $m: ℙ^{σ}_{σ^{\prime}}(\M (ι → t))$, $\abbr{assert}$ maps $m$ to a discourse of type $ℙ^{σ}_{σ^{\prime}}⋄$.
+% \begin{definition}[$\abbr{assert}$]\label{def:assert}
+% \begin{align*}
+%   \abbr{assert}\ \ &:\ \ ℙ^{σ}_{σ^{\prime}}(\M (ι → t)) → ℙ^{σ}_{σ^{\prime}}⋄ \\
+%   \abbr{assert}(m)\ \ &=\ \ \begin{array}[t]{rl}
+%     \mathtt{do} & φ ← m \\
+%         & drs ← \abbr{view}_{\ct{DRs}} \\
+%         & cg ← \abbr{view}_{\ct{CG}} \\
+%         & \abbr{set}_{\ct{CG}}\left(
+%           \begin{array}{l}
+%             i ∼ cg \\
+%             \abbr{observe}((drs ≫ φ)^{∃, ϵ}(i)) \\
+%             \pure{i}
+%           \end{array}
+%           \right) \\
+%         & \abbr{set}_{\ct{DRs}}(λi, g.\{⟨⋄, g^{\prime\prime}⟩ ∣ ∃g^{\prime}, p.\begin{array}[t]{l}
+%           ⟨⋄, g^{\prime}⟩ ∈ drs(i)(g) \\
+%           ∧\,⟨p, g^{\prime\prime}⟩ ∈ φ(i)(g^{\prime}) \\
+%           ∧\,p(i)\})
+%         \end{array}
+%   \end{array}
+% \end{align*}
+% \end{definition}
+% This definition has a few notable components and features some new notation, which we spell out.
+% First, note the update to the projection of the discourse state, $\ct{DRs}$.
+% Given a state $s$, $\ct{DRs}(s) : \M ⋄$ is an index-sensitive relation on lists of DRs which we use to encode the current discourse's live anaphoric possibilities, including, e.g., those introduced by indefinite noun phrases.
+% After retrieving this relation, an assertion of the dynamic proposition $φ: \M (ι → t)$ *modifies* it by sequencing it with the dynamic updates introduced by $φ$, also taking into account the constraints imposed by the propositions it returns.
+% Thus \Cref{def:assert} updates DRs by sequencing them with the monadic effects of the relevant semantic value, meanwhile continuing to return $⋄$.
+
+% Second, the common ground of the current discourse state is updated so that the proposition $(drs ≫ φ)^{∃} : ι → t$ is observed to hold of its indices.
+% The operator $≫$ here is defined in \Cref{def:sequencer}.
+% \begin{definition}[$≫$] \label{def:sequencer}
+%   \begin{align*}
+%     (≫)\ \ &:\ \ \M α → \M β → \M β \\
+%     m ≫ n\ \ &=\ \ m ⋆ λ\_.n
+%   \end{align*}
+% \end{definition}
+% Given two monadic values, $≫$ sequences their effects while keeping the returned value of only the second.
+% Additionally, an existential closure operation is invoked, which we define in its general form.
+% \begin{definition}[Generalized existential closure]
+%   \begin{align*}
+%     (·_{1})^{∃, ·_{2}}\ \ &:\ \ \M (α_{1} → ⋯ → α_{n} → ι → t) → γ → α_{1} → ⋯ → α_{n} → ι → t \\
+%     m^{∃, g}\ \ &=\ \ λx_{1}, ⋯, x_{n}, i.∃⟨p, g^{\prime}⟩ ∈ m(i)(g) : p(x_{1})⋯(x_{n})(i)
+%   \end{align*}
+% \end{definition}
+% Note that $ϵ$---the empty list of DRs---is featured in the use of this operator in \Cref{def:assert}.
+% Thus fixed to the case of a dynamic proposition of the relevant form, generalized existential closure acts as in \exref{ex:ex_clo}.
+% \pex\label{ex:ex_clo}
+% \((drs ≫ φ)^{∃, ϵ} = λi.∃p, g, g^{\prime}.⟨⋄, g⟩ ∈ drs(i)(ϵ) ∧ ⟨p, g^{\prime}⟩ ∈ φ(i)(g) ∧ p(i)\)
+% \xe
+% That is, we feed to the dynamic proposition $φ$ the current state's index-sensitive relation on lists of DRs, applying it to the empty list $ϵ$, and then abstract over the index argument of the first projection of the members of the resulting set of proposition-list pairs, before existentially quantifying this set (while effectively constraining the relevant propositional witness so that it gives back $\True$).
+
+% For illustration, consider the sentence in \exref{ex:someone_ran}, which modifies \exref{ex:run_sketch} by adding yet another indefinite.
+% \pex Someone ran a race.\label{ex:someone_ran}
+% \xe
+% To \textit{someone}, we assign the lexical entry in \exref{ex:someone}, which reflects the entry for the indefinite determiner in \exref{ex:indef_det_prob} (modulo the difference in type and the additional constraint that the relevant entities be animate).
+% \pex\label{ex:someone}
+% \(\expr{\textit{someone}}{
+%   \begin{array}{rl}
+%     \mathtt{do} & \abbr{background}_{\textit{s.o.}} \\
+%     & \return{λi, g.\{⟨x, x{∷}g⟩ ∣ \ct{animate}(w_{i})(x)\}}
+%   \end{array}
+% }{np}\)
+% \xe
+% A full derivation for \exref{ex:someone_ran} is given in \Cref{fig:someone_ran} (we again use mnemonic abbreviations for the full probabilistic semantic values).
+% Note that this derivation departs minimally from the one given in \Cref{fig:run_sketch}, the difference being the presence of the indefinite subject noun phrase.
+
+% \begin{figure}
+%   \makebox[\textwidth]{\footnotesize
+%     \AxiomC{\(\expr{\textit{someone}}{\abbr{someone}}{np}\)}
+%     \AxiomC{\(\expr{\textit{ran}}{\abbr{ran}}{s\backslash np\slash np}\)}
+%     \AxiomC{\(\expr{\textit{a}}{\abbr{indef}}{np\slash n}\)}
+%     \AxiomC{\(\expr{\textit{race}}{\abbr{race}}{n}\)}
+%     \RightLabel{$>$}\BinaryInfC{\(\expr{\textit{a race}}{
+%         \begin{array}{rl}
+%           \mathtt{do} & \{\,det ← \abbr{indef};\,race ← \abbr{race}; \\
+%               & \return{det ⋆ λk_{2}.k_{2}(race)}\,\}
+%         \end{array}
+%       }{np}\)}
+%     \RightLabel{$>$}\BinaryInfC{\(\expr{\textit{ran a race}}{
+%         \begin{array}{rl}
+%           \mathtt{do} & \{\,ran ← \abbr{ran};\,det ← \abbr{indef};\,race ← \abbr{race}; \\
+%               & \return{ran ⋆ λk_{1}.k_{1}(det ⋆ λk_{2}.k_{2}(race))}\,\}
+%         \end{array}
+%       }{s\backslash np}\)}
+%     \RightLabel{$<$}\BinaryInfC{\(\expr{\textit{someone ran a race}}{
+%         \begin{array}{rl}
+%           \mathtt{do} & \{\,so ← \abbr{someone};\,ran ← \abbr{ran};\,det ← \abbr{indef};\,race ← \abbr{race}; \\
+%               & \return{ran ⋆ λk_{1}.k_{1}(det ⋆ λk_{2}.k_{2}(race)) ⋆ λk_{3}.k_{3}(so)}\,\}
+%         \end{array}
+%       }{s}\)}
+%     \DisplayProof
+%   }
+%   \caption{Deriving \exref{ex:someone_ran}.}
+%  \label{fig:someone_ran}
+% \end{figure}
+
+% We can follow \Cref{def:assert} in order to render the minimal discourse consisting of an assertion of this sentence's content in \exref{ex:assert_someone_ran}.
+% \pex\label{ex:assert_someone_ran}
+% \(\begin{array}[t]{rl}
+%   \mathtt{do} & \abbr{background}_{\textit{s.o. ran}} \\
+%       & run ← \abbr{view}_{\ct{run}} \\
+%       & \abbr{background}_{\textit{indef. race}} \\
+%       & drs ← \abbr{view}_{\ct{DRs}} \\
+%       & cg ← \abbr{view}_{\ct{CG}} \\
+%       & \abbr{set}_{\ct{CG}}\left(
+%         \begin{array}{l}
+%           i ∼ cg \\
+%           \abbr{observe}(∃y, x : \ct{animate}(w_{i})(y) ∧ \ct{race}(w_{i})(x) ∧ run(x)(y)(i)) \\
+%           \pure{i}
+%         \end{array}
+%         \right) \\
+%       & \abbr{set}_{\ct{DRs}}(λi, g.\{⟨⋄, x{∷}y{∷}g^{\prime}⟩ ∣ \begin{array}[t]{l}
+%         ⟨⋄, g^{\prime}⟩ ∈ drs(i)(g) \\
+%         ∧\,\ct{animate}(w_{i})(y) \\
+%         ∧\,\ct{race}(w_{i})(x) \\
+%         ∧\,run(x)(y)(i)\})
+%       \end{array}
+% \end{array}\)
+% \xe
+% In sum, this discourse---after applying background information related to \textit{someone} and \textit{ran}---reads the semantic value of the latter from the current discourse state, whether that be, e.g., a management or a locomotion sense of the verb.
+% Following this, it updates the common ground in order to filter out indices at which no person runs a race, otherwise keeping the probability distribution it encodes intact before introducing to the running index-sensitive relation on DRs the non-deterministic values $x$ and $y$---a person and a race at the relevant index, respectively.
+
+% Note that the result of sequencing the dynamic proposition denoted by (\ref{ex:someone_ran}) with $drs$ is negligble, in that the value to which this result is evaluated as the argument of the observe statement is not importantly affected.
+% This holds because the semantic value of (\ref{ex:someone_ran}), once it is existentially closed, does not depend on the incoming list.
+% If we instead considered the semantic value of a sentence with *pronouns* (e.g., \textit{he ran a race}), the situation should turn out differently;
+% i.e., the DRs of the discourse state which is updated would matter for how anaphora are resolved.
+
+% \paragraph{Asking questions}
+% \label{sec:questions}
+
+% To model asking a question, we follow a categorial tradition that analyzes questions as denoting (what amount to) sets of true short answer meanings (\cite{hausser_questions_1978,hausser_syntax_1983,xiang_hybrid_2021}; cf. \cite{hamblin_questions_1973,karttunen_syntax_1977,groenendijk_studies_1984}).
+% Questions are thus of type $α → ι → t$, for some type $α$ of short answers.
+% Recall that in addition to $np\), \(n$, and $s$, we have among our atomic categories ones for questions which represent what type of short answer they require;
+% e.g., $q_{\textit{ind.}}$ for individual questions, and $q_{\textit{deg.}}$ for degree questions.
+% The semantic types we assign to these categories reflect these semantic distinctions.
+% \pex\label{ex:q_types}
+% \(⟦q_{\textit{ind.}}⟧_{\M} = e → ι → t\) \\
+% \(⟦q_{\textit{deg.}}⟧_{\M} = r → ι → t\)
+% \xe
+% Thus degree questions require short answers that have degree (i.e., real number) answers, while individual questions require entity answers.
+
+% Given an expression whose semantic value is a probabilistic dynamic question
+% \begin{align*}
+%   m &: ℙ^{σ}_{u\,δ\,v}(\M (α → ι → t))
+% \end{align*}
+% where $δ$ is the type of the (heterogeneous) QUD stack, the function $\abbr{ask}$ maps $m$ onto a discourse of type \(ℙ^{σ}_{u\,((α → ι → t)×δ)\,v}⋄\), i.e., which has the effect of pushing the question onto the stack \citep{roberts_information_2012,farkas_reacting_2010}.
+% \begin{definition}[$\abbr{ask}$]\label{def:ask}
+%   \begin{align*}
+%     \abbr{ask}\ \ &:\ \ ℙ^{σ}_{u\,δ\,v} (\M (α → ι → t)) → ℙ^{σ}_{u\,((α → ι → t)×δ)\,v}⋄ \\
+%     \abbr{ask}(m)\ \ &=\ \ \begin{array}[t]{rl}
+%       \mathtt{do} & q ← m \\
+%           & drs ← \abbr{view}_{\ct{DRs}} \\
+%           & qs ← \abbr{view}_{\ct{QUD}} \\
+%           & \abbr{set}_{\ct{QUD}}(⟨(drs ≫ q)^{∃, ϵ}, qs⟩)
+%     \end{array}
+%   \end{align*}
+% \end{definition}
+% Here, $qs : δ$ (where $δ$ is some $n$-ary product of question types) is the QUD stack associated with the current state.
+% The effect of asking a question is to push a new semantic value of type $α → ι → t$---fashioned out of the dynamic semantic value returned by $m$---onto the stack.
+% This semantic value is obtained by sequencing the dynamic semantic value returned by $m$ with the current index-sensitive relation on DRs and then existentially closing, analogous to what is done for assertions.
+% We assume that in general, asking a question does not update the state with new DRs;
+% thus $\abbr{ask}$ and $\abbr{assert}$ are not completely analogous.
+
+% \begin{figure}
+%   \makebox[\textwidth]{\footnotesize
+%     \AxiomC{\(\expr{\textit{who}}{\abbr{who}}{q_{\textit{ind.}}\slash(s\backslash np)}\)}
+%     \AxiomC{\(\expr{\textit{saw}}{\abbr{saw}}{s\backslash np\slash np}\)}
+%     \AxiomC{\(\expr{\textit{someone}}{\abbr{someone}}{np}\)}
+%     \RightLabel{$>$}\BinaryInfC{\(\expr{\textit{saw someone}}{
+%         \begin{array}{rl}
+%           \mathtt{do} & \{\,saw ← \abbr{saw};\,so ← \abbr{someone}; \\
+%               & \return{saw ⋆ λk_{2}.k_{2}(so)}\,\}
+%         \end{array}
+%       }{s\backslash np}\)}
+%     \RightLabel{$>$}\BinaryInfC{\(\expr{\textit{who saw someone}}{
+%         \begin{array}{rl}
+%           \mathtt{do} & \{\,wh ← \abbr{who};\,saw ← \abbr{saw};\,so ← \abbr{someone}; \\
+%               & \return{wh ⋆ λk_{1}.k_{1}(saw ⋆ λk_{2}.k_{2}(so))}\,\}
+%         \end{array}
+%       }{q_{\textit{ind.}}}\)}
+%     \DisplayProof
+%   }
+%   \caption{Deriving \exref{ex:who_saw_someone}.}
+%  \label{fig:who_saw_someone}
+% \end{figure}
+
+% For illustration, consider the question in (\ref{ex:who_saw_someone}).
+% \pex Who saw someone?\label{ex:who_saw_someone}
+% \xe
+% A derivation of this question is given in \Cref{fig:who_saw_someone}, using the lexical entries for \textit{who} and \textit{saw} in \exref{ex:who} and \exref{ex:saw}, respectively.
+% \pex\label{ex:who}
+% \(\expr{\textit{who}}{
+%   \begin{array}{rl}
+%     \mathtt{do} & \abbr{background}_{\textit{who}} \\
+%         & \return{(λk, \_, g.\{⟨λx, i.\ct{animate}(w_{i})(x) ∧ k(x^{η})^{∃, x{∷}g}(i), g⟩\})}
+%   \end{array}
+% }{q_{\textit{ind.}}\slash(s\backslash np)}\)
+% \xe
+% \pex\label{ex:saw}
+% \(\expr{\textit{saw}}{
+%   \begin{array}{rl}
+%     \mathtt{do} & \abbr{background}_{\textit{saw}} \\
+%         & \return{(λx.(λy.y ⋆ λv_{1}.x ⋆ λv_{2}(λi.\ct{see}(w_{i})(v_{2})(v_{1}))^{η})^{η})^{η}}
+%   \end{array}
+% }{s\backslash np\slash np}\)
+% \xe
+% Two things are worth noting about the interpretation of \textit{who}.
+% First, that it imposes an animacy constraint on the entities of which the question it forms may be predicated at a given index.
+% Second, that it has a certain (internal) dynamic effect, analogous to that of \textit{everyone} (see \Cref{fig:dyn_sem_ex} of \Cref{sec:combining_ccg_monads}):
+% it feeds to its scope a list of DRs which has been updated with whichever entity it is predicated of at a given index.
+
+% Unpacking the final interpretation gives back the result in \exref{ex:q_interp}.
+% \pex\label{ex:q_interp}
+% \(\begin{array}[t]{rl}
+%   \mathtt{do} & \abbr{background}_{\textit{who saw s.o.}} \\
+%       & \return{λi, g.\{⟨λy, i^{\prime}.\ct{animate}(w_{i^{\prime}})(y) ∧ \ct{see}(w_{i^{\prime}})(x)(y), x{∷}g⟩ ∣ \ct{animate}(w_{i})(x)\}}
+% \end{array}\)
+% \xe
+% Finally, asking this question produces the discourse in \exref{ex:q_ask}.
+% \pex\label{ex:q_ask}
+% \(\begin{array}[t]{rl}
+%   \mathtt{do} & \abbr{background}_{\textit{who saw s.o.}} \\
+%       & qs ← \abbr{view}_{\ct{QUD}} \\
+%       & \abbr{set}_{\ct{QUD}}(⟨λy, i.∃x.\ct{animate}(w_{i})(x) ∧ \ct{animate}(w_{i})(y) ∧ \ct{see}(w_{i})(x)(y), qs⟩)
+% \end{array}\)
+% \xe
+% Note that, because the starting state's list of DRs does not ultimately affect the interpretation of the question, the corresponding view statement is eliminated.
+
+% \paragraph{Responding to questions}
+% \label{sec:response_dist}
+
+% Given an ongoing discourse, an interlocutor may respond to the QUD at the top of the stack based on their prior knowledge.
+% We may assume that a given responder has some background knowledge $bg : \P σ$ over *starting* discourse states, which they use---in conjuction with the interim updates to the discourse---to derive a probability distribution over answers to the current QUD.
+% Given this prior, $bg$, and an ongoing discourse $m$, we aim to produce an answer distribution, of type $\P α$ (for a QUD of type $α → ι → t$), which has the shape in \exref{ex:answer_dist}.
+% \pex\label{ex:answer_dist}
+% \(\begin{array}[t]{l}
+%   s ∼ bg \\
+%   ⟨⋄, s^{\prime}⟩ ∼ m(s) \\
+%   i ∼ \ct{CG}(s^{\prime}) \\
+%   \pure{\ct{max}(λx.π_{1}(\ct{QUD}(s^{\prime}))(x)(i))}
+% \end{array}\)
+% \xe
+% Here, $π_{1}(\ct{QUD}(s^{\prime}))$ is the QUD at the top of $s^{\prime}$'s QUD stack.
+% Meanwhile, the returned value
+% \begin{align*}
+%   \ct{max}(λx.π_{1}(\ct{QUD}(s^{\prime}))(x)(i))
+% \end{align*}
+% takes the maximum value of which this QUD is true, given the index $i$.
+% Thus answers to the QUD are fundamentally based on the common ground:
+% to compute their probability distribution, an index is sampled from the common ground, and the QUD is evaluated at that index.
+% We assume, in general, that the type $α$ of short answers to the QUD is associated with a join-semilattice and that the property denoted by the QUD is cumulative---\(q(x)(i) ∧ q(y)(i) → q(x{∨}y)(i)\)---so that $\ct{max}$ is defined.
+% One type of question whose answer we might wish to model, for example, is a degree question;
+% e.g., \textit{how likely is it that S} (see \Cref{sec:explaining_sources}).
+% If we model degrees of likelihood as real numbers, we obtain the usual maximum operator under the semi-lattice where $x{∨}y = \ct{max}(\{x, y\})$.
+
+% \subsubsection{Linking models}
+% \label{sec:linking_models}
+
+% As discussed in \Cref{sec:introduction}, a core feature of PDS is the support it provides for formal evaluability---i.e. the ability to explicitly quantitatively compare models.
+% This support is implemented by explicitly modeling the relationship between a discourse and a particular data collection instrument whose values correspond to answers to the QUD at the top of the discourse's QUD stack.
+% This approach, in turn, allows us to derive explicit probabilistic models (i) that differ either in the assumptions they make about the underlying probabilistic semantics or in the way that semantics is related to the response instrument; 
+% (ii) whose parameters may be fit to data collected using that instrument;
+% and (iii) whose relative fit can be compared using standard statistical model comparison metrics.
+
+% We assume that a given instrument may be modeled as a family $f$ of distributions representing the *likelihood*, which is then fixed by a collection $Φ$ of nuisance parameters unrelated to the discourse(s) of interest.
+% Thus we may define a family of *response functions*, parametric in the particular data collection instrument---i.e., a likelihood function.
+% Each such function takes a distribution representing one's background knowledge $bg$, along with an ongoing discourse $m$, to produce a distribution over answers to the current QUD, given the data collection instrument.
+% \begin{definition}[Response function]\label{def:respond}
+% \begin{align*}
+%   \abbr{respond}^{f_{Φ} : α → \P β}\ \ &:\ \ \P σ → ℙ^{σ}_{u\,(α → ι → t)×δ\,v} ⋄ → \P β \\
+%   \abbr{respond}^{f_{Φ}}(bg)(m)\ \ &=\ \ \begin{array}[t]{l}
+%     s ∼ bg \\
+%     ⟨⋄, s^{\prime}⟩ ∼ m(s) \\
+%     i ∼ \ct{CG}(s^{\prime}) \\
+%     f(\ct{max}(λx.π_{1}(\ct{QUD}(s^{\prime}))(x)(i)), Φ)
+%   \end{array}
+% \end{align*}
+% \end{definition}
+% For example, suppose we present an experimental participant with \exref{ex:example_trial} and provided them with two radio buttons labeled `\textit{Jo}' and `\textit{Mo}', respectively---i.e., having the constraint that exactly one button must be selected before proceeding.
+% \pex\label{ex:example_trial}
+% \a Jo left.
+% \a Mo stayed.
+% \a Which person left?
+% \xe
+% Viewing \exref{ex:example_trial} as a *discourse*, we can assign it an interpretation like \exref{ex:example_trial_meaning} (where we abbreviate the probabilistic semantic values of individual sentences).
+% \pex\label{ex:example_trial_meaning}
+% \(\begin{array}[t]{rl}
+%   \mathtt{do} & \abbr{assert}(\abbr{jo\_left}) \\
+%       & \abbr{assert}(\abbr{mo\_stayed}) \\
+%       & \abbr{ask}(\abbr{which\_person\_left})
+% \end{array}\)
+% \xe
+% Because the data collection instrument consists of two radio buttons, the response function should produce a probability distribution over strings of one bit---i.e., a Bernoulli distribution.
+% \begin{definition}[Bernoulli distribution]\label{def:bernoulli}
+%   \begin{align*}
+%     \abbr{Bern}\ \ &:\ \ r → \P t
+%   \end{align*}
+% \end{definition}
+% Given a real number $p ∈ [0, 1]$, $\abbr{Bern}(p)$ returns $\True$ with probability $p$ and $\False$ with probability $1 - p$.
+% Thus a suitable definition of the response function would be the one in \exref{ex:bern_response}.
+% \pex\label{ex:bern_response}
+% \begin{align*}
+%   \abbr{respond}^{λx.\abbr{Bern}(𝟙(x ∈ \{\ct{j}\}))}(bg)(m)\ \ &=\ \ \begin{array}[t]{l}
+%     s ∼ bg \\
+%     ⟨⋄, s^{\prime}⟩ ∼ m(s) \\
+%     i ∼ \ct{CG}(s^{\prime}) \\
+%     \abbr{Bern}(𝟙(\ct{max}(λx.π_{1}(\ct{QUD}(s^{\prime}))(x)(i)) ∈ \{\ct{j}\}))
+%   \end{array}
+% \end{align*}
+% \xe
+% Here, the response distribution is Bernoulli with parameter either $1\) or \(0$, depending on whether or not the maximal answer to the QUD is an element of the singleton set containing the (static) semantic value of \textit{Jo}.
+% Thus if this maximal answer is $\ct{j}$, then the response is predicted to take a degenerate distribution all of whose mass is assigned to $\True$---i.e., such that the `\textit{Jo}' button is active;
+% whereas if the maximal answer is something else (e.g., $\ct{m}$), then the response is predicted to take a degenerate distribution all of whose mass is assigned to $\False$---i.e., such that the other, `\textit{Mo}' button is active.
+
+% For an example featuring somewhat more uncertainty, consider the discourse in \exref{ex:example_trial_sophisticated}.
+% \pex\label{ex:example_trial_sophisticated}
+% \a Jo, Mo, and Bo left.
+% \a Two of them returned.
+% \a Who returned?
+% \xe
+% Now imagine that the data collection instrument consists of three check boxes, labeled `\textit{Jo}', `\textit{Mo}', and `\textit{Bo}'.
+% Here, we relax the constraint that the choices are mutually exclusive and that one box need be selected in order to proceed.
+% In this case, the response function should produce a probability distribution over strings of three bits;
+% i.e., a trivariate Bernoulli distribution, which is defined as taking $2^{3} - 1 = 7$ parameters.
+% \begin{definition}[Trivariate Bernoulli distribution]\label{def:trivariate_bernoulli}
+%   \begin{align*}
+%     \abbr{TriBern}\ \ &:\ \ r^{7} → \P t^{3}
+%   \end{align*}
+% \end{definition}
+% As with the (univariate) Bernoulli distribution, each parameter $p_{i} ∈ [0, 1]$, but now with the additional constraint that $∑_{i=1}^{7}p_{i} ≤ 1$.
+% Meanwhile, the resulting distribution is over a triple of truth values, each $\True$ or $\False$ as according to whether or not the box labeled `\textit{Jo}', `\textit{Mo}', or `\textit{Bo}' is checked, respectively.
+% Under these assumptions, a suitable definition of the response function would be the one in \exref{ex:tribern_response}.
+% \pex\label{ex:tribern_response}
+% \begin{align*}
+%   &\abbr{respond}^{λx.\abbr{TriBern}(...)}(bg)(m) \\
+%   =\ \ &\begin{array}[t]{l}
+%     s ∼ bg \\
+%     ⟨⋄, s^{\prime}⟩ ∼ m(s) \\
+%     i ∼ \ct{CG}(s^{\prime}) \\
+%     \abbr{TriBern}(𝟙(\ct{max}(λx.π_{1}(\ct{QUD}(s^{\prime}))(x)(i)) = \ct{j}), ..., 𝟙(\ct{max}(λx.π_{1}(\ct{QUD}(s^{\prime}))(x)(i)) = \ct{j}{∨}\ct{m}{∨}\ct{b}))
+%   \end{array}
+% \end{align*}
+% \xe
+% Thus the response distribution is again degenerate---all of the mass is assigned to one of the eight possible combinations of three truth values---but the exact nature of its degeneracy is now determined by seven parameters, each reflecting an element of the join-semilattice generated by Jo, Mo, and Bo.
+
+% Crucially, the discourse in \exref{ex:example_trial_sophisticated}---as opposed to the one in \exref{ex:example_trial}---is associated with significant uncertainty about the answer to its question, \textit{Who returned?}.
+% Unless one has strong priors about Jo, Mo, and Bo, any two-person answer seems about as good as any other.
+% One might wonder if this uncertainty is actually modeled by the response distribution schematized in \exref{ex:tribern_response};
+% after all, the likelihood itself is degenerate and thus not much of a probability distribution!
+
+% In fact, the full model represented by \exref{ex:tribern_response} may nonetheless encode a significant amount of uncertainty, resulting in any number of distributions over $t^{3}$.
+% This uncertainty stems not from the trivariate Bernoulli likelihood, however, but from the index $i$ which is sampled from the common ground:
+% different indices will provide different maximal answers to the QUD;
+% meanwhile, the total uncertainty will be reflected in the relative flatness of the distribution over these answers.
+
+% Thus besides providing dynamic semantic analyses of the linguistic expressions which may constitute some set of experimental materials---together with the structure of the relevant linking model---PDS recognizes the importance of the assumptions one makes about general background knowledge.
+% All three of these kinds of assumptions are crucial, and they must be specified formally before one evaluates a PDS model to a statistical model that can be fit to data.
+% We return to this point in \Cref{sec:outlook}, where we introduce the final piece of technology needed to perform this evaluation:
+% the notion of a density function.
+% Before taking this final step, however, we explore the explanatory capabilities of the technology we have already introduced a bit further in the next section---focusing in particular on its ability to capture fine-grained distinctions among different forms of uncertainty. 
+
 
 # Enriching the interface
 
