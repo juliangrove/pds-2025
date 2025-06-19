@@ -8,246 +8,345 @@ The translation from abstract semantic theory to concrete statistical models req
 
 Stan is a probabilistic programming language designed for statistical inference. Unlike general-purpose programming languages, Stan is specialized for defining probability distributions and performing Bayesian inference. When we write a Stan program, we're not writing procedures to execute but rather declaring the structure of a probability model. Stan then uses sophisticated algorithms (Hamiltonian Monte Carlo) to sample from the posterior distribution of our model parameters given the observed data.
 
-## Structure of a Stan program
+## Case study: Modeling gradable adjectives
 
-Stan programs follow a particular architecture that enforces clear thinking about statistical modeling. This architecture isn't arbitrary—it reflects deep principles about how Bayesian inference works and what information flows where during the inference process. Each block in a Stan program serves a specific purpose, and understanding these purposes is key to writing models that correctly implement our theories.
+To understand how Stan works and how we can use it to test semantic theories, let's work through three models of increasing complexity. We'll start with a baseline norming model that will serve as our introduction to Stan's structure and syntax.
 
-### The flow of information
+### Model 1: Baseline norming
 
-At the highest level, a Stan program defines a joint probability distribution over data and parameters. The data are fixed—they're the observations we've collected. The parameters are unknown—they're what we want to learn about. Stan's job is to characterize the posterior distribution of the parameters given the data, and it does this using sophisticated Markov Chain Monte Carlo algorithms.
+Let's start with the simplest possible model for understanding how participants judge items on gradable scales. This model will serve as our foundation for understanding Stan's structure and syntax. We'll build it up block by block, explaining every line.
 
-But Stan needs to know what's what. It needs to know which quantities are data (fixed) and which are parameters (to be inferred). It needs to know what constraints these quantities must satisfy. It needs to know how the parameters relate to each other and to the data. The block structure of Stan programs organizes this information in a way that's both clear to the modeler and efficient for the inference algorithms.
+#### Understanding the experimental setup
 
-### The basic blocks
+Before diving into the Stan code, let's understand what data we're modeling. In a norming experiment, participants see items paired with adjectives and conditions, then provide slider responses from 0 to 1. Here's a sample of the data:
 
-Every Stan program is organized into blocks that appear in a specific order:
+```csv
+"participant","item","item_number","adjective","adjective_number","condition","condition_number","scale_type","scale_type_number","response"
+1,"closed_mid",6,"closed",2,"mid",3,"absolute",1,0.66
+1,"old_mid",24,"old",8,"mid",3,"relative",2,0.51
+1,"expensive_mid",15,"expensive",5,"mid",3,"relative",2,0.62
+1,"full_high",16,"full",6,"high",1,"absolute",1,1
+1,"deep_low",8,"deep",3,"low",2,"relative",2,0.22
+```
 
-1. **data block**: Declares the observed data that will be provided from outside
-2. **parameters block**: Declares the unknown quantities we want to learn about
-3. **transformed parameters block**: Computes derived quantities from the parameters
-4. **model block**: Specifies priors and the likelihood of the data
-5. **generated quantities block**: Computes quantities of interest after inference
+Each row represents one judgment:
+- `participant`: Which person made this judgment (participant 1, 2, etc.)
+- `item`: A unique identifier combining adjective and condition (e.g., "tall_high")
+- `item_number`: Numeric ID for the item (used in Stan)
+- `adjective`: The gradable adjective being tested
+- `condition`: Whether this is a high/mid/low standard context
+- `response`: The participant's slider response (0 = "definitely not X", 1 = "definitely X")
 
-Let's see what each block does with a simple example before diving into our adjective models:
+Our simplest model asks: What degree does each item have on its scale, and how do participants map these degrees to slider responses?
+
+#### The structure of a Stan program
+
+Every Stan program follows a particular architecture with blocks that appear in a specific order. Each block serves a specific purpose in defining our statistical model. Let's build up our norming model block by block to understand how Stan works.
+
+#### The data block: Declaring what we observe
+
+Every Stan program begins with a `data` block that tells Stan what information will be provided from the outside world—our experimental observations. Let's build this up piece by piece:
 
 ```stan
-// A minimal Stan program
 data {
-  int<lower=0> N;           // number of observations
-  vector[N] y;              // observed responses
-}
+  int<lower=1> N_item;        // number of items
+  int<lower=1> N_participant; // number of participants  
+  int<lower=1> N_data;        // number of data points
+```
 
+These first lines declare basic counts. The syntax breaks down as:
+- `int`: This will be an integer (whole number)
+- `<lower=1>`: This integer must be at least 1 (no negative counts!)
+- `N_item`: The variable name (we'll use this throughout our program)
+- `// number of items`: A comment explaining what this represents
+
+Why do we need these constraints? Stan uses them to:
+1. Catch data errors early (if we accidentally pass 0 items, Stan will complain)
+2. Optimize its algorithms (knowing bounds helps the sampler work efficiently)
+
+Next, we handle a subtle but important issue—boundary responses:
+
+```stan
+  int<lower=1> N_0;           // number of 0s
+  int<lower=1> N_1;           // number of 1s
+```
+
+Why separate these out? Slider responses of exactly 0 or 1 are "censored"—they might represent even more extreme judgments that the scale can't capture. We'll handle these specially.
+
+Now for the actual response data:
+
+```stan
+  vector<lower=0, upper=1>[N_data] y; // response in (0, 1)
+```
+
+This declares a vector (like an array) of length `N_data`, where each element must be between 0 and 1. Notice this is for responses *between* 0 and 1, not including the boundaries.
+
+Finally, we need to map responses to items and participants:
+
+```stan
+  array[N_data] int<lower=1, upper=N_item> item;        // which item for each response
+  array[N_0] int<lower=1, upper=N_item> item_0;         // which item for each 0
+  array[N_1] int<lower=1, upper=N_item> item_1;         // which item for each 1
+  array[N_data] int<lower=1, upper=N_participant> participant;     
+  array[N_0] int<lower=1, upper=N_participant> participant_0;
+  array[N_1] int<lower=1, upper=N_participant> participant_1;
+}
+```
+
+These arrays work like lookup tables. If `item[5] = 3`, then the 5th response in our data was about item #3. This indexing structure connects our flat data file to the hierarchical structure of our experiment.
+
+Looking back at our CSV data, when Stan reads it, it will:
+1. Count unique items → `N_item` (e.g., 36 if we have 12 adjectives × 3 conditions)
+2. Count unique participants → `N_participant` 
+3. Extract all responses between 0 and 1 → `y` vector
+4. Build index arrays mapping each response to its item and participant
+
+#### The parameters block: What we want to learn
+
+After declaring our data, we declare the parameters—the unknown quantities we want to infer:
+
+```stan
 parameters {
-  real mu;                  // population mean
-  real<lower=0> sigma;      // population standard deviation
-}
+  // Fixed effects
+  vector[N_item] mu_guess;
+```
 
+This declares a vector of "guesses" (degrees) for each item. Why `mu_guess`? In statistics, μ (mu) traditionally denotes a mean or central tendency. These represent our best guess about each item's true degree on its scale.
+
+But people differ! We need random effects to capture individual variation:
+
+```stan
+  // Random effects
+  real<lower=0> sigma_epsilon_guess;     // how much people vary
+  vector[N_participant] z_epsilon_guess; // each person's deviation
+```
+
+This uses a clever trick called "non-centered parameterization":
+- `sigma_epsilon_guess`: The overall amount of person-to-person variation
+- `z_epsilon_guess`: Standardized (z-score) deviations for each person
+
+We'll combine these later to get each person's actual adjustment. Why not just use `vector[N_participant] epsilon_guess` directly? This separation often helps Stan's algorithms converge much faster.
+
+Next, measurement noise:
+
+```stan
+  real<lower=0,upper=1> sigma_e;  // response variability
+```
+
+Even if two people agree on an item's degree, their slider responses might differ slightly. This parameter captures that noise.
+
+Finally, those boundary responses:
+
+```stan
+  // Censored data
+  array[N_0] real<upper=0> y_0;  // true values for observed 0s
+  array[N_1] real<lower=1> y_1;  // true values for observed 1s
+}
+```
+
+This is subtle but important. When someone gives a 0 response, their "true" judgment might be -0.1 or -0.5—we just can't see below 0. These parameters let Stan infer what those true values might have been @stevens_psychophysics_1975.
+
+#### The transformed parameters block: Building predictions
+
+Now we combine our basic parameters to build what we actually need:
+
+```stan
+transformed parameters {
+  vector[N_participant] epsilon_guess;
+  vector[N_data] guess;
+  vector[N_0] guess_0;
+  vector[N_1] guess_1;
+```
+
+First, we convert those z-scores to actual participant adjustments:
+
+```stan
+  // Non-centered parameterization
+  epsilon_guess = sigma_epsilon_guess * z_epsilon_guess;
+```
+
+If `sigma_epsilon_guess = 0.2` and participant 3 has `z_epsilon_guess[3] = 1.5`, then participant 3 tends to give responses 0.3 units higher than average.
+
+Now we can compute predicted responses:
+
+```stan
+  for (i in 1:N_data) {
+    guess[i] = mu_guess[item[i]] + epsilon_guess[participant[i]];
+  }
+```
+
+Let's trace through one prediction:
+- Response i is about item 5 by participant 3
+- `item[i] = 5`, so we look up `mu_guess[5]` (say it's 0.7)
+- `participant[i] = 3`, so we add `epsilon_guess[3]` (say it's 0.1)
+- `guess[i] = 0.7 + 0.1 = 0.8`
+
+We repeat this for the boundary responses:
+
+```stan
+  for (i in 1:N_0) {
+    guess_0[i] = mu_guess[item_0[i]] + epsilon_guess[participant_0[i]];
+  }
+  
+  for (i in 1:N_1) {
+    guess_1[i] = mu_guess[item_1[i]] + epsilon_guess[participant_1[i]];
+  }
+}
+```
+
+#### The model block: Putting it all together
+
+The model block is where we specify our statistical assumptions—both our prior beliefs and how the data was generated:
+
+```stan
 model {
-  // Prior
-  mu ~ normal(0, 1);
-  sigma ~ exponential(1);
-  
+  // Priors on random effects
+  sigma_epsilon_guess ~ exponential(1);
+  z_epsilon_guess ~ std_normal();
+```
+
+These priors encode mild assumptions:
+- `exponential(1)`: We expect person-to-person variation to be moderate (not huge)
+- `std_normal()`: By construction, z-scores have a standard normal distribution
+
+Notice we don't specify priors for `mu_guess`—Stan treats this as an implicit uniform prior over the real numbers. Since our responses are bounded, the data will naturally constrain these values.
+
+Now the likelihood—how data relates to parameters:
+
+```stan
   // Likelihood
-  y ~ normal(mu, sigma);
+  for (i in 1:N_data) {
+    y[i] ~ normal(guess[i], sigma_e);
+  }
+```
+
+This says: each response is drawn from a normal distribution centered at our prediction with standard deviation `sigma_e`. The `~` symbol means "is distributed as."
+
+For boundary responses, we use the latent values:
+
+```stan
+  for (i in 1:N_0) {
+    y_0[i] ~ normal(guess_0[i], sigma_e);
+  }
+  
+  for (i in 1:N_1) {
+    y_1[i] ~ normal(guess_1[i], sigma_e);
+  } 
 }
 ```
 
-This simple program infers the mean and standard deviation of normally-distributed data. The data block declares what we observe, the parameters block declares what we want to learn, and the model block connects them through a likelihood function.
+Remember, we're inferring `y_0` and `y_1` as parameters! Stan will sample plausible values that are consistent with both the model and the fact that we observed 0s and 1s.
 
-## Mapping lambda-terms to Stan code
+#### The generated quantities block: After-the-fact calculations
 
-Now that we understand Stan's structure, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. This translation is non-trivial because λ-calculus and Stan operate at different levels of abstraction and with different computational paradigms.
+Finally, we compute quantities that help us understand and evaluate our model:
 
-### The semantic starting point
-
-In Probabilistic Dynamic Semantics, we express meanings as typed λ-terms that can include probabilistic effects. Consider the semantics of "tall" from the PDS codebase:
-
-```haskell
--- From Grammar.Lexica.SynSem.Adjectives
-"tall" -> SynSem {
-  syn = AP,
-  sem = ty tau (lam s (purePP (lam x (lam i 
-    (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-     (sCon "d_tall" @@ s))))) @@ s))
+```stan
+generated quantities {
+  vector[N_data] ll; // log-likelihoods
+  
+  for (i in 1:N_data) {
+    if (y[i] >= 0 && y[i] <= 1)
+      ll[i] = normal_lpdf(y[i] | guess[i], sigma_e);
+    else
+      ll[i] = negative_infinity();
+  }
 }
 ```
 
-This says "tall" denotes a function that:
-1. Takes a discourse state `s`
-2. Returns a function from entities `x` to propositions
-3. The proposition is true when the entity's height exceeds the threshold `d_tall`
-4. The threshold depends on the discourse state, capturing context-sensitivity
+The log-likelihood tells us how probable each observation is under our model. We'll use these for model comparison—models that assign higher probability to the actual data are better.
 
-We can also write this more intuitively:
+#### The complete norming model
 
-```haskell
--- The meaning of "tall" with uncertain threshold
-tall :: Entity -> P Bool
-tall x = do
-  threshold <- normal 175 10  -- Sample threshold (in cm)
-  height <- getHeight x       -- Retrieve x's height
-  return (height >= threshold)
-```
-
-This captures both the context-sensitivity of gradable adjectives (different contexts might have different threshold distributions) and the gradience in judgments (borderline cases have intermediate probabilities) @kennedy_vagueness_2007.
-
-### The representational challenge
-
-Stan, however, doesn't directly support higher-order functions, monadic binding, or many other features we rely on in λ-calculus. Stan is fundamentally about defining probability distributions over fixed-dimensional parameter spaces. So how do we bridge this gap?
-
-The key insight is that we need to "compile" our λ-terms into Stan's more restricted language. This compilation involves several systematic transformations:
-
-1. **Monadic binding becomes sampling**: When we write `threshold <- normal 175 10` in our semantic metalanguage, this becomes `threshold ~ normal(175, 10)` in Stan.
-
-2. **Function application becomes indexing**: Where λ-calculus uses function application, Stan typically uses array indexing. A function from entities to heights becomes an array of heights indexed by entity identifiers.
-
-3. **Composition becomes sequential computation**: Complex semantic derivations involving multiple function applications become sequences of assignments in Stan's transformed parameters block.
-
-4. **Higher-order functions become expanded first-order code**: We can't pass functions as arguments in Stan, so higher-order operations must be expanded at compile time.
-
-### A concrete example: "very tall"
-
-Let's see how this works for a more complex example. Suppose we want to model the semantics of "very tall," which we might analyze as an intensifier that raises the threshold:
-
-```haskell
--- Intensifier semantics
-very :: (Entity -> P Bool) -> (Entity -> P Bool)
-very adj x = do
-  -- Extract and modify the threshold from the adjective meaning
-  threshold <- getThreshold adj
-  let raisedThreshold = threshold + 20  -- "very" adds 20cm
-  height <- getHeight x
-  return (height >= raisedThreshold)
-
--- Composed meaning
-veryTall :: Entity -> P Bool
-veryTall = very tall
-```
-
-This compositional analysis can't be directly translated to Stan because Stan doesn't support higher-order functions. Instead, we need to expand the composition:
+Here's our complete model with consistent naming:
 
 ```stan
 data {
-  int<lower=1> N_entities;
-  vector[N_entities] heights;  // Known heights of entities
-  int<lower=1> N_resp;         // Number of responses
-  array[N_resp] int<lower=1, upper=N_entities> entity;
-  array[N_resp] int<lower=1, upper=2> condition;  // 1=tall, 2=very tall
-  vector<lower=0, upper=1>[N_resp] response;
+  int<lower=1> N_item;              // number of items
+  int<lower=1> N_participant;       // number of participants
+  int<lower=1> N_data;              // number of data points in (0, 1)
+  int<lower=1> N_0;                 // number of 0s
+  int<lower=1> N_1;                 // number of 1s
+  vector<lower=0, upper=1>[N_data] y; // response in (0, 1)
+  array[N_data] int<lower=1, upper=N_item> item;
+  array[N_0] int<lower=1, upper=N_item> item_0;
+  array[N_1] int<lower=1, upper=N_item> item_1;
+  array[N_data] int<lower=1, upper=N_participant> participant;
+  array[N_0] int<lower=1, upper=N_participant> participant_0;
+  array[N_1] int<lower=1, upper=N_participant> participant_1;
 }
 
 parameters {
-  // Basic threshold for "tall"
-  real tall_threshold;
-  
-  // Modifier effect for "very"
-  real very_effect;
+  vector[N_item] mu_guess;
+  real<lower=0> sigma_epsilon_guess;
+  vector[N_participant] z_epsilon_guess;
+  real<lower=0,upper=1> sigma_e;
+  array[N_0] real<upper=0> y_0;
+  array[N_1] real<lower=1> y_1;
 }
 
 transformed parameters {
-  // Derived threshold for "very tall"
-  real very_tall_threshold = tall_threshold + very_effect;
-  
-  // Predictions for each entity and condition
-  vector[N_entities] prob_tall;
-  vector[N_entities] prob_very_tall;
-  
-  for (i in 1:N_entities) {
-    prob_tall[i] = heights[i] >= tall_threshold ? 0.9 : 0.1;
-    prob_very_tall[i] = heights[i] >= very_tall_threshold ? 0.9 : 0.1;
+  vector[N_participant] epsilon_guess = sigma_epsilon_guess * z_epsilon_guess;
+  vector[N_data] guess;
+  vector[N_0] guess_0;
+  vector[N_1] guess_1;
+
+  for (i in 1:N_data) {
+    guess[i] = mu_guess[item[i]] + epsilon_guess[participant[i]];
+  }
+  for (i in 1:N_0) {
+    guess_0[i] = mu_guess[item_0[i]] + epsilon_guess[participant_0[i]];
+  }
+  for (i in 1:N_1) {
+    guess_1[i] = mu_guess[item_1[i]] + epsilon_guess[participant_1[i]];
   }
 }
 
 model {
-  // Priors
-  tall_threshold ~ normal(175, 10);
-  very_effect ~ normal(20, 5);
-  
-  // Likelihood
-  for (n in 1:N_resp) {
-    if (condition[n] == 1) {  // "tall" condition
-      response[n] ~ normal(prob_tall[entity[n]], 0.1);
-    } else {  // "very tall" condition
-      response[n] ~ normal(prob_very_tall[entity[n]], 0.1);
-    }
+  sigma_epsilon_guess ~ exponential(1);
+  z_epsilon_guess ~ std_normal();
+
+  for (i in 1:N_data) {
+    y[i] ~ normal(guess[i], sigma_e);
+  }
+  for (i in 1:N_0) {
+    y_0[i] ~ normal(guess_0[i], sigma_e);
+  }
+  for (i in 1:N_1) {
+    y_1[i] ~ normal(guess_1[i], sigma_e);
+  } 
+}
+
+generated quantities {
+  vector[N_data] ll;
+  for (i in 1:N_data) {
+    if (y[i] >= 0 && y[i] <= 1)
+      ll[i] = normal_lpdf(y[i] | guess[i], sigma_e);
+    else
+      ll[i] = negative_infinity();
   }
 }
 ```
 
-Notice how the compositional structure is still present but has been "compiled out." Instead of a higher-order function `very` that modifies adjective meanings, we have separate thresholds related by addition. The semantic insight—that "very" systematically raises thresholds—is preserved, but expressed in Stan's first-order language @lassiter_adjectival_2017.
+This baseline model treats each item as having an inherent degree along the relevant scale, with participants providing noisy measurements of these degrees. The censoring approach handles the common issue of responses at the boundaries (0 and 1) of the slider scale—implementing @lassiter_measurement_2013's approach to gradable adjective semantics.
 
-### Delta rules and optimization
+#### What we've learned about Stan
 
-Before translating λ-terms to Stan, we typically apply delta rules—algebraic simplifications that make the resulting code cleaner and more efficient. These rules embody semantic equivalences that hold in our theory.
+Through building this model, we've seen that Stan programs have a specific structure:
+1. **data block**: Declares observed quantities with constraints
+2. **parameters block**: Declares unknown quantities to infer
+3. **transformed parameters block**: Builds derived quantities
+4. **model block**: Specifies priors and likelihood
+5. **generated quantities block**: Computes post-inference quantities
 
-From the PDS codebase (`Lambda.Delta`), we have rules like:
+We've also learned key Stan concepts:
+- **Constraints**: `<lower=0>` ensures valid parameter ranges
+- **Indexing**: Arrays like `item[i]` connect responses to structure
+- **Sampling notation**: `y ~ normal(mu, sigma)` specifies distributions
+- **Non-centered parameterization**: Improves sampling efficiency
+- **Censoring**: Handles boundary responses theoretically
 
-```haskell
--- Eliminate vacuous binding
-cleanUp :: DeltaRule
-cleanUp = \case
-  Let v m k | sampleOnly m && v `notElem` freeVars k -> Just k
-  _ -> Nothing
-
--- Arithmetic simplifications  
-arithmetic :: DeltaRule
-arithmetic = \case
-  Add t u -> case t of
-    Zero -> Just u
-    x@(DCon _) -> case u of
-      Zero -> Just x
-      y@(DCon _) -> Just (x + y)
-  Mult t u -> case t of
-    Zero -> Just Zero
-    One -> Just u
-```
-
-These simplifications matter because Stan code can become complex quickly. Consider what happens without delta reduction:
-
-```haskell
--- Before reduction
-do x <- return 5
-   y <- normal x 1
-   observe (y > 0)
-   return y
-
--- After reduction  
-do y <- normal 5 1
-   observe (y > 0)
-   return y
-```
-
-The simplified version translates to cleaner Stan code with one fewer parameter to sample. Over a complex semantic derivation, such simplifications can dramatically improve both code clarity and sampling efficiency.
-
-### The challenge of dynamic effects
-
-Perhaps the greatest challenge in translating to Stan comes from dynamic semantic effects—phenomena like anaphora resolution, presupposition accommodation, and discourse update. Our semantic metalanguage handles these naturally with stateful computations:
-
-```haskell
--- From the PDS codebase: updating discourse state
-ask κ = κ >>>= Lam "q" (getPP >>>= Lam "s" ((putPP (upd_QUD (Var "q") (Var "s")))))
-```
-
-But Stan has no notion of discourse state or dynamic update. We must either:
-
-1. **Marginalize out dynamic effects**: Sum/integrate over all possible resolutions
-2. **Fix resolution as data**: Treat anaphora resolution as observed data
-3. **Expand the parameter space**: Include discrete parameters for each resolution possibility
-
-Each approach has trade-offs. Marginalization can be computationally intractable. Fixing resolution as data requires separate annotation. Expanding the parameter space can lead to combinatorial explosion @grove_probabilistic_2024.
-
-### From semantics to psychosemantics
-
-Ultimately, the translation from λ-terms to Stan forces us to be explicit about the relationship between semantic competence and performance. Our λ-terms express speakers' semantic knowledge—what they know about meaning. Our Stan models express how this knowledge generates behavioral data. The translation between them embodies our linking hypotheses @jasbi_linking_2019.
-
-This perspective suggests that the compilation process itself is theoretically significant. Different compilation strategies correspond to different psychological assumptions:
-
-- **Eager evaluation**: Compute all semantic values before response generation
-- **Lazy evaluation**: Compute only values needed for the response  
-- **Noisy evaluation**: Semantic computations sometimes fail or give wrong results
-- **Resource-bounded evaluation**: Complex computations are approximated
-
-By making these choices explicit in our Stan models, we commit to testable hypotheses about semantic processing.
+With this foundation in Stan, we can now understand how to translate semantic theories into Stan code.
 
 ## Mapping lambda-terms to Stan code
 
@@ -447,342 +546,9 @@ By making these choices explicit in our Stan models, we commit to testable hypot
 
 With this understanding of how PDS translates to Stan, we can now examine more sophisticated models that capture the theoretical distinctions between vagueness and imprecision.
 
-### Model 1: Baseline norming
-
-Let's start with the simplest possible model for understanding how participants judge items on gradable scales. This model will serve as our foundation for understanding Stan's structure and syntax. We'll build it up block by block, explaining every line.
-
-#### Understanding the experimental setup
-
-Before diving into the Stan code, let's understand what data we're modeling. In a norming experiment, participants see items paired with adjectives and conditions, then provide slider responses from 0 to 1. Here's a sample of the data:
-
-```csv
-"participant","item","item_number","adjective","adjective_number","condition","condition_number","scale_type","scale_type_number","response"
-1,"closed_mid",6,"closed",2,"mid",3,"absolute",1,0.66
-1,"old_mid",24,"old",8,"mid",3,"relative",2,0.51
-1,"expensive_mid",15,"expensive",5,"mid",3,"relative",2,0.62
-1,"full_high",16,"full",6,"high",1,"absolute",1,1
-1,"deep_low",8,"deep",3,"low",2,"relative",2,0.22
-```
-
-Each row represents one judgment:
-- `participant`: Which person made this judgment (participant 1, 2, etc.)
-- `item`: A unique identifier combining adjective and condition (e.g., "tall_high")
-- `item_number`: Numeric ID for the item (used in Stan)
-- `adjective`: The gradable adjective being tested
-- `condition`: Whether this is a high/mid/low standard context
-- `response`: The participant's slider response (0 = "definitely not X", 1 = "definitely X")
-
-Our simplest model asks: What degree does each item have on its scale, and how do participants map these degrees to slider responses?
-
-#### The data block: Declaring what we observe
-
-Every Stan program begins with a `data` block that tells Stan what information will be provided from the outside world—our experimental observations. Let's build this up piece by piece:
-
-```stan
-data {
-  int<lower=1> N_item;        // number of items
-  int<lower=1> N_participant; // number of participants  
-  int<lower=1> N_data;        // number of data points
-```
-
-These first lines declare basic counts. The syntax breaks down as:
-- `int`: This will be an integer (whole number)
-- `<lower=1>`: This integer must be at least 1 (no negative counts!)
-- `N_item`: The variable name (we'll use this throughout our program)
-- `// number of items`: A comment explaining what this represents
-
-Why do we need these constraints? Stan uses them to:
-1. Catch data errors early (if we accidentally pass 0 items, Stan will complain)
-2. Optimize its algorithms (knowing bounds helps the sampler work efficiently)
-
-Next, we handle a subtle but important issue—boundary responses:
-
-```stan
-  int<lower=1> N_0;           // number of 0s
-  int<lower=1> N_1;           // number of 1s
-```
-
-Why separate these out? Slider responses of exactly 0 or 1 are "censored"—they might represent even more extreme judgments that the scale can't capture. We'll handle these specially.
-
-Now for the actual response data:
-
-```stan
-  vector<lower=0, upper=1>[N_data] y; // response in (0, 1)
-```
-
-This declares a vector (like an array) of length `N_data`, where each element must be between 0 and 1. Notice this is for responses *between* 0 and 1, not including the boundaries.
-
-Finally, we need to map responses to items and participants:
-
-```stan
-  array[N_data] int<lower=1, upper=N_item> item;        // which item for each response
-  array[N_0] int<lower=1, upper=N_item> item_0;         // which item for each 0
-  array[N_1] int<lower=1, upper=N_item> item_1;         // which item for each 1
-  array[N_data] int<lower=1, upper=N_participant> participant;     
-  array[N_0] int<lower=1, upper=N_participant> participant_0;
-  array[N_1] int<lower=1, upper=N_participant> participant_1;
-}
-```
-
-These arrays work like lookup tables. If `item[5] = 3`, then the 5th response in our data was about item #3. This indexing structure connects our flat data file to the hierarchical structure of our experiment.
-
-Looking back at our CSV data, when Stan reads it, it will:
-1. Count unique items → `N_item` (e.g., 36 if we have 12 adjectives × 3 conditions)
-2. Count unique participants → `N_participant` 
-3. Extract all responses between 0 and 1 → `y` vector
-4. Build index arrays mapping each response to its item and participant
-
-#### The parameters block: What we want to learn
-
-After declaring our data, we declare the parameters—the unknown quantities we want to infer:
-
-```stan
-parameters {
-  // Fixed effects
-  vector[N_item] mu_guess;
-```
-
-This declares a vector of "guesses" (degrees) for each item. Why `mu_guess`? In statistics, μ (mu) traditionally denotes a mean or central tendency. These represent our best guess about each item's true degree on its scale.
-
-But people differ! We need random effects to capture individual variation:
-
-```stan
-  // Random effects
-  real<lower=0> sigma_epsilon_guess;     // how much people vary
-  vector[N_participant] z_epsilon_guess; // each person's deviation
-```
-
-This uses a clever trick called "non-centered parameterization":
-- `sigma_epsilon_guess`: The overall amount of person-to-person variation
-- `z_epsilon_guess`: Standardized (z-score) deviations for each person
-
-We'll combine these later to get each person's actual adjustment. Why not just use `vector[N_participant] epsilon_guess` directly? This separation often helps Stan's algorithms converge much faster.
-
-Next, measurement noise:
-
-```stan
-  real<lower=0,upper=1> sigma_e;  // response variability
-```
-
-Even if two people agree on an item's degree, their slider responses might differ slightly. This parameter captures that noise.
-
-Finally, those boundary responses:
-
-```stan
-  // Censored data
-  array[N_0] real<upper=0> y_0;  // true values for observed 0s
-  array[N_1] real<lower=1> y_1;  // true values for observed 1s
-}
-```
-
-This is subtle but important. When someone gives a 0 response, their "true" judgment might be -0.1 or -0.5—we just can't see below 0. These parameters let Stan infer what those true values might have been @stevens_psychophysics_1975.
-
-#### The transformed parameters block: Building predictions
-
-Now we combine our basic parameters to build what we actually need:
-
-```stan
-transformed parameters {
-  vector[N_participant] epsilon_guess;
-  vector[N_data] guess;
-  vector[N_0] guess_0;
-  vector[N_1] guess_1;
-```
-
-First, we convert those z-scores to actual participant adjustments:
-
-```stan
-  // Non-centered parameterization
-  epsilon_guess = sigma_epsilon_guess * z_epsilon_guess;
-```
-
-If `sigma_epsilon_guess = 0.2` and participant 3 has `z_epsilon_guess[3] = 1.5`, then participant 3 tends to give responses 0.3 units higher than average.
-
-Now we can compute predicted responses:
-
-```stan
-  for (i in 1:N_data) {
-    guess[i] = mu_guess[item[i]] + epsilon_guess[participant[i]];
-  }
-```
-
-Let's trace through one prediction:
-- Response i is about item 5 by participant 3
-- `item[i] = 5`, so we look up `mu_guess[5]` (say it's 0.7)
-- `participant[i] = 3`, so we add `epsilon_guess[3]` (say it's 0.1)
-- `guess[i] = 0.7 + 0.1 = 0.8`
-
-We repeat this for the boundary responses:
-
-```stan
-  for (i in 1:N_0) {
-    guess_0[i] = mu_guess[item_0[i]] + epsilon_guess[participant_0[i]];
-  }
-  
-  for (i in 1:N_1) {
-    guess_1[i] = mu_guess[item_1[i]] + epsilon_guess[participant_1[i]];
-  }
-}
-```
-
-#### The model block: Putting it all together
-
-The model block is where we specify our statistical assumptions—both our prior beliefs and how the data was generated:
-
-```stan
-model {
-  // Priors on random effects
-  sigma_epsilon_guess ~ exponential(1);
-  z_epsilon_guess ~ std_normal();
-```
-
-These priors encode mild assumptions:
-- `exponential(1)`: We expect person-to-person variation to be moderate (not huge)
-- `std_normal()`: By construction, z-scores have a standard normal distribution
-
-Notice we don't specify priors for `mu_guess`—Stan treats this as an implicit uniform prior over the real numbers. Since our responses are bounded, the data will naturally constrain these values.
-
-Now the likelihood—how data relates to parameters:
-
-```stan
-  // Likelihood
-  for (i in 1:N_data) {
-    y[i] ~ normal(guess[i], sigma_e);
-  }
-```
-
-This says: each response is drawn from a normal distribution centered at our prediction with standard deviation `sigma_e`. The `~` symbol means "is distributed as."
-
-For boundary responses, we use the latent values:
-
-```stan
-  for (i in 1:N_0) {
-    y_0[i] ~ normal(guess_0[i], sigma_e);
-  }
-  
-  for (i in 1:N_1) {
-    y_1[i] ~ normal(guess_1[i], sigma_e);
-  } 
-}
-
-```
-
-Remember, we're inferring `y_0` and `y_1` as parameters! Stan will sample plausible values that are consistent with both the model and the fact that we observed 0s and 1s.
-
-#### The generated quantities block: After-the-fact calculations
-
-Finally, we compute quantities that help us understand and evaluate our model:
-
-```stan
-generated quantities {
-  vector[N_data] ll; // log-likelihoods
-  
-  for (i in 1:N_data) {
-    if (y[i] >= 0 && y[i] <= 1)
-      ll[i] = normal_lpdf(y[i] | guess[i], sigma_e);
-    else
-      ll[i] = negative_infinity();
-  }
-}
-```
-
-The log-likelihood tells us how probable each observation is under our model. We'll use these for model comparison—models that assign higher probability to the actual data are better.
-
-#### The complete norming model
-
-Here's our complete model with consistent naming:
-
-```stan
-data {
-  int<lower=1> N_item;              // number of items
-  int<lower=1> N_participant;       // number of participants
-  int<lower=1> N_data;              // number of data points in (0, 1)
-  int<lower=1> N_0;                 // number of 0s
-  int<lower=1> N_1;                 // number of 1s
-  vector<lower=0, upper=1>[N_data] y; // response in (0, 1)
-  array[N_data] int<lower=1, upper=N_item> item;
-  array[N_0] int<lower=1, upper=N_item> item_0;
-  array[N_1] int<lower=1, upper=N_item> item_1;
-  array[N_data] int<lower=1, upper=N_participant> participant;
-  array[N_0] int<lower=1, upper=N_participant> participant_0;
-  array[N_1] int<lower=1, upper=N_participant> participant_1;
-}
-
-parameters {
-  vector[N_item] mu_guess;
-  real<lower=0> sigma_epsilon_guess;
-  vector[N_participant] z_epsilon_guess;
-  real<lower=0,upper=1> sigma_e;
-  array[N_0] real<upper=0> y_0;
-  array[N_1] real<lower=1> y_1;
-}
-
-transformed parameters {
-  vector[N_participant] epsilon_guess = sigma_epsilon_guess * z_epsilon_guess;
-  vector[N_data] guess;
-  vector[N_0] guess_0;
-  vector[N_1] guess_1;
-
-  for (i in 1:N_data) {
-    guess[i] = mu_guess[item[i]] + epsilon_guess[participant[i]];
-  }
-  for (i in 1:N_0) {
-    guess_0[i] = mu_guess[item_0[i]] + epsilon_guess[participant_0[i]];
-  }
-  for (i in 1:N_1) {
-    guess_1[i] = mu_guess[item_1[i]] + epsilon_guess[participant_1[i]];
-  }
-}
-
-model {
-  sigma_epsilon_guess ~ exponential(1);
-  z_epsilon_guess ~ std_normal();
-
-  for (i in 1:N_data) {
-    y[i] ~ normal(guess[i], sigma_e);
-  }
-  for (i in 1:N_0) {
-    y_0[i] ~ normal(guess_0[i], sigma_e);
-  }
-  for (i in 1:N_1) {
-    y_1[i] ~ normal(guess_1[i], sigma_e);
-  } 
-}
-
-generated quantities {
-  vector[N_data] ll;
-  for (i in 1:N_data) {
-    if (y[i] >= 0 && y[i] <= 1)
-      ll[i] = normal_lpdf(y[i] | guess[i], sigma_e);
-    else
-      ll[i] = negative_infinity();
-  }
-}
-```
-
-This baseline model treats each item as having an inherent degree along the relevant scale, with participants providing noisy measurements of these degrees. The censoring approach handles the common issue of responses at the boundaries (0 and 1) of the slider scale—implementing @lassiter_measurement_2013's approach to gradable adjective semantics.
-
-#### What we've learned about Stan
-
-Through building this model, we've seen that Stan programs have a specific structure:
-1. **data block**: Declares observed quantities with constraints
-2. **parameters block**: Declares unknown quantities to infer
-3. **transformed parameters block**: Builds derived quantities
-4. **model block**: Specifies priors and likelihood
-5. **generated quantities block**: Computes post-inference quantities
-
-We've also learned key Stan concepts:
-- **Constraints**: `<lower=0>` ensures valid parameter ranges
-- **Indexing**: Arrays like `item[i]` connect responses to structure
-- **Sampling notation**: `y ~ normal(mu, sigma)` specifies distributions
-- **Non-centered parameterization**: Improves sampling efficiency
-- **Censoring**: Handles boundary responses theoretically
-
-With this foundation, we can now understand how to translate semantic theories into Stan code.
-
 ### Model 2: Vagueness and imprecision
 
-Now that we understand Stan's structure, let's implement a more sophisticated model that captures the theoretical distinction between vagueness (uncertainty about standards) and imprecision (tolerance around thresholds).
+Now that we understand Stan's structure and how to translate from PDS, let's implement a more sophisticated model that captures the theoretical distinction between vagueness (uncertainty about standards) and imprecision (tolerance around thresholds).
 
 #### Theoretical motivation
 
