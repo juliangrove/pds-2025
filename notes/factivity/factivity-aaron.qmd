@@ -1,281 +1,482 @@
-# Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments
+# Factivity and presupposition projection: From PDS to Stan
 
-The phenomenon of factivity has served as a crucial testing ground for theories of presupposition since @kiparsky_fact_1970 introduced the term. At its core, factivity concerns a seemingly simple observation: certain predicates appear to take for granted the truth of their complements. When someone asserts "John knows that it's raining," they seem to presuppose—rather than assert—that it is indeed raining. This presupposition persists even when the sentence is embedded under negation ("John doesn't know that it's raining"), in questions ("Does John know that it's raining?"), or in conditionals ("If John knows that it's raining, he'll bring an umbrella"). The inference that it's raining projects through these operators in a way that ordinary entailments do not.
+Now that we've explored how PDS handles expected gradience in vagueness, we turn to a phenomenon where gradience is unexpected: factivity. This case study demonstrates how discrete semantic knowledge—expressed as branching computations in PDS—translates into mixture models in Stan. The translation process reveals both the power and challenges of compiling high-level semantic theories into statistical models.
 
-## The problem of gradience in veridicality judgments
+## The phenomenon and the data
 
-For decades, theoretical work on factivity proceeded under the assumption that predicates could be neatly classified into discrete categories. Some predicates—know, realize, discover, regret—were factive, triggering presuppositions about the truth of their complements. Others—think, believe, say, claim—were non-factive, carrying no such presuppositions. This categorical view aligned well with the dominant frameworks in formal semantics, where meanings are modeled as functions, propositions as sets of possible worlds, and presuppositions as definedness conditions.
+A predicate is said to be *factive* if it triggers inferences about the truth of its complement that persist even under entailment-canceling operators. When someone asserts "Jo knows that Mo left," they seem to presuppose—rather than assert—that Mo did indeed leave. This inference projects through various operators:
 
-But as researchers began to investigate factivity empirically, measuring actual speaker judgments at scale, a more complex picture emerged. Instead of finding clear categorical distinctions, they discovered pervasive gradience. Different predicates triggered inferences of different strengths, and these strengths varied continuously rather than clustering into discrete groups. This gradience posed a fundamental challenge to traditional theories: if factivity is a binary property, why do we observe continuous variation in judgment data?
+```
+(1) a. Jo knows that Mo left.          ⇒ Mo left
+    b. Jo doesn't know that Mo left.    ⇒ Mo left  
+    c. Does Jo know that Mo left?       ⇒ Mo left
+```
 
-### Datasets
+### The Degen & Tonhauser (2021) paradigm
 
-The MegaVeridicality dataset, developed by @white_lexicosyntactic_2018, provided the first comprehensive empirical map of veridicality inferences across the English clause-embedding lexicon. Their project was ambitious in scope, examining essentially all clause-embedding predicates in English—over 500 in total—and collecting inference judgments from thousands of participants.
+To investigate how world knowledge influences these inferences, Degen and Tonhauser developed a two-stage experimental paradigm:
 
-Their methodology was elegantly simple. Participants were presented with sentences containing clause-embedding predicates and asked to judge whether certain inferences followed. The basic paradigm looked like this:
+**Stage 1: Norming experiment** - Measure prior beliefs about propositions in context:
+```
+Context: Zoe is a kindergartener
+How likely is it that Zoe can tie her shoes?
+[slider: "very unlikely" to "very likely"]
+```
 
-**Stimulus**: Someone {knew/thought/discovered/...} that a particular thing happened.  
-**Question**: Did that thing happen?  
-**Response options**: yes / maybe or maybe not / no
+**Stage 2: Projection experiment** - Measure inference strength with clause-embedding predicates:
+```
+Context: Zoe is a kindergartener
+Edward discovered that Zoe can tie her shoes.
+How certain is Edward that Zoe can tie her shoes?
+[slider: "not certain" to "certain"]
+```
 
-They also tested projection by embedding the predicates under negation:
+They tested 20 predicates across theoretical categories (canonically factive, non-factive, optionally factive) with 20 complement clauses in high/low probability contexts. The results showed systematic gradience: mean certainty ratings varied continuously from 0.2 (pretend) to 0.85 (be annoyed), with paradigmatically factive "know" at 0.75.
 
-**Stimulus**: Someone {didn't know/didn't think/didn't discover/...} that a particular thing happened.  
-**Question**: Did that thing happen?  
-**Response options**: yes / maybe or maybe not / no
+## Two hypotheses in PDS
 
-The logic was straightforward. If a predicate is factive, it should trigger strong positive inferences in both the positive and negative frames. If it's non-factive, it should trigger weak or negative inferences, especially under negation. By mapping responses (yes = 1, maybe = 0, no = -1) to numerical values and averaging across participants, they could locate each predicate in a two-dimensional space defined by its inference strength in positive and negative contexts.
-
-What they found challenged the received wisdom. Rather than observing distinct clusters corresponding to factive and non-factive predicates, they found a continuous distribution. Predicates were strewn across the space with no clear boundaries between categories. Some patterns emerged—cognitive factives like "know" and "realize" occupied a different region from emotive factives like "love" and "hate"—but the overall picture was one of continuity rather than discreteness.
-
-This wasn't entirely surprising to White and Rawlins. As they noted, inference judgments in natural language are influenced by many factors beyond the semantics of individual predicates. World knowledge, contextual information, and pragmatic reasoning all play roles. A sentence like "John discovered that the keys were in the drawer" strongly suggests the keys were indeed in the drawer, but this inference can be defeated in appropriate contexts: "John discovered that the keys were in the drawer, but he was hallucinating at the time."
-
-Still, the sheer pervasiveness of the gradience was striking. It wasn't just a few borderline cases blurring otherwise clear categories. The entire landscape of veridicality inferences appeared to be organized along continuous dimensions. White and Rawlins suggested that this gradience likely reflected the fine-grained semantics of particular verbs—subtle differences in meaning that traditional categorical approaches overlooked.
-
-### Degen & Tonhauser 2022: Gradience as a theoretical challenge
-
-Where White and Rawlins documented gradience as an empirical phenomenon, @degen_are_2022 weaponized it as a theoretical challenge. Their paper "Are there factive predicates?" used the persistence of gradient patterns across multiple experimental paradigms to argue against the traditional view of factivity as a discrete lexical property.
-
-Their experimental campaign was comprehensive, involving six experiments that varied both the task (projection judgments, veridicality judgments, contradiction detection) and the response mode (slider scales, binary forced choice). They focused on twenty predicates that represented the range of categories proposed in the literature:
-
-**Canonically factive**: be annoyed, discover, know, reveal, see  
-**Non-factive (non-veridical)**: pretend, say, suggest, think  
-**Non-factive (veridical)**: be right, demonstrate  
-**Optionally factive**: acknowledge, admit, announce, confess, confirm, establish, hear, inform, prove
-
-If the traditional categorical view were correct, Degen and Tonhauser argued, we should see clear breaks in the data corresponding to these category boundaries. Canonically factive predicates should pattern together, triggering consistently strong inferences. Non-factive predicates should pattern together, triggering weak inferences. The boundaries between categories should be sharp and consistent across tasks.
-
-But that's not what they found. Across all six experiments, predicates arranged themselves along a continuum. In their projection experiment, mean ratings varied continuously from about 0.2 (on a 0-1 scale) for "pretend" to about 0.85 for "be annoyed," with no clear gaps or clusters. The same gradient patterns appeared whether participants made binary judgments or used continuous scales, whether they evaluated projection or veridicality, whether they judged entailment or contradiction.
-
-Particularly striking was the behavior of predicates traditionally classified as factive. Even "know"—the paradigm case of a factive predicate—didn't trigger categorical judgments. Its mean projection rating was around 0.75, well below what we'd expect if participants consistently treated it as presupposing its complement. Meanwhile, predicates like "demonstrate" and "be right," traditionally classified as non-factive, triggered surprisingly strong inferences, with ratings around 0.6.
-
-Degen and Tonhauser drew a strong conclusion from these patterns: "The results of our experiments provide evidence against the hypothesis that there exists a class of factive predicates that is distinguished from non-factive predicates by properties of projection and veridicality" (p. 589). The gradience, they argued, was incompatible with theories that posit a binary semantic property of factivity. Instead, they suggested that projection and veridicality inferences arise from general pragmatic reasoning, with different predicates providing more or less support for such inferences based on their meaning and use.
-
-### The methodological sophistication
-
-What made Degen and Tonhauser's challenge particularly forceful was their methodological sophistication. They anticipated and addressed many potential objections to their gradient findings:
-
-**Maybe gradience is just noise?** They showed that the gradience was highly systematic, with predicates maintaining their relative positions across different experiments. The correlation between mean ratings in their projection and veridicality experiments was 0.94—hardly what we'd expect from random noise.
-
-**Maybe the tasks are flawed?** They used multiple tasks based on different theoretical diagnostics for factivity. The gradient patterns persisted across all of them. If the gradience were a task artifact, it's unlikely it would appear so consistently.
-
-**Maybe participants are confused?** They included clear control items that participants judged as expected. Participants had no trouble giving categorical judgments when the stimuli warranted them. The gradience appeared specifically for the critical items.
-
-**Maybe it's just a few bad items?** They tested multiple items per predicate and found consistent patterns. The gradience wasn't driven by outliers but reflected the central tendency for each predicate.
-
-**Maybe written stimuli are unnatural?** They noted that similar gradient patterns appeared in corpus data from natural speech and writing. The gradience wasn't an artifact of experimental materials.
-
-Through this systematic approach, Degen and Tonhauser built a compelling case that the gradience in factivity judgments is a robust empirical phenomenon demanding theoretical explanation.
-
-## Two hypotheses
-
-The gradience documented by White and Rawlins, and weaponized by Degen and Tonhauser, admits of at least two interpretations. These interpretations differ fundamentally in how they conceive the relationship between semantic knowledge and behavioral judgments.
-
-### The Fundamental Gradience Hypothesis
-
-According to the Fundamental Gradience Hypothesis, the gradience observed in behavioral data directly reflects gradience in the underlying semantic representations. On this view, there is no discrete property of "being factive." Instead, predicates lexically encode continuous degrees of speaker commitment to the truth of their complements.
-
-This hypothesis represents a radical departure from traditional semantic theory. Instead of modeling presupposition as a binary phenomenon—either a predicate presupposes its complement or it doesn't—we would need to develop gradient notions of presupposition. Perhaps predicates are associated with probability distributions over their complements, or perhaps they encode degrees of speaker certainty.
-
-The appeal of this hypothesis is its directness. If we observe gradient behavioral patterns, and if these patterns are systematic and robust, the simplest explanation might be that they reflect gradient semantic knowledge. Why posit discrete categories that are never directly observed when we can model the gradience directly?
-
-Moreover, the Fundamental Gradience Hypothesis aligns with broader trends in cognitive science toward probabilistic and gradient representations. If phonological categories are gradient, if syntactic acceptability is gradient, if conceptual categories are gradient, why should semantic categories be any different? The mind might simply not traffic in the discrete, categorical representations beloved by formal semanticists.
-
-Under this hypothesis, a predicate like "know" doesn't categorically presuppose its complement. Instead, it encodes a strong but not absolute commitment—perhaps around 0.8 on a 0-1 scale. "Think" encodes a weaker commitment, perhaps around 0.3. "Be annoyed" encodes a very strong commitment, perhaps 0.95. These lexically specified commitment strengths would directly drive the gradient behavioral patterns.
+This gradience admits two interpretations that PDS can precisely formalize:
 
 ### The Fundamental Discreteness Hypothesis
 
-The Fundamental Discreteness Hypothesis maintains that semantic knowledge is fundamentally discrete—predicates either do or don't presuppose their complements—but various factors conspire to produce gradient behavioral patterns. This hypothesis preserves the insights of traditional semantic theory while acknowledging the empirical reality of gradience.
-
-On this view, the gradience emerges from the interaction of discrete semantic knowledge with various sources of uncertainty and variability:
-
-**Lexical uncertainty**: Speakers might be uncertain whether a particular predicate is factive. Perhaps "discover" is factive in some speakers' grammars but not others. Perhaps individual speakers are uncertain and must guess based on contextual cues.
-
-**Pragmatic intrusion**: Even if speakers know that "know" is factive, they might accommodate non-factive uses in appropriate contexts. Conversely, non-factive predicates might trigger factive-like inferences through pragmatic strengthening.
-
-**World knowledge effects**: The plausibility of the embedded proposition affects inference strength. "John discovered that water is wet" triggers stronger inferences than "John discovered that water is dry," even though "discover" has the same semantic properties in both cases.
-
-**Task-related factors**: Mapping from categorical semantic knowledge to continuous behavioral responses introduces noise. Response strategies, attention, and decision criteria all contribute variability.
-
-The Fundamental Discreteness Hypothesis thus treats gradience as a performance phenomenon rather than a competence phenomenon. The underlying semantic knowledge is discrete and categorical, but its expression in behavior is modulated by numerous factors that introduce variability and gradience.
-
-This hypothesis preserves the theoretical elegance of traditional approaches while acknowledging empirical reality. It suggests that the gradient patterns, while real and systematic, don't directly reflect the structure of semantic knowledge. Instead, they reflect the complex process by which discrete knowledge is deployed in context and mapped onto behavioral responses.
-
-### Empirical predictions
-
-These hypotheses make different predictions about the fine structure of the data:
-
-**Distribution shapes**: The Fundamental Gradience Hypothesis predicts unimodal distributions of judgments for each predicate, centered around the lexically encoded commitment strength. The Fundamental Discreteness Hypothesis predicts multimodal distributions reflecting mixture of discrete interpretations, though these might be obscured by response noise.
-
-**Individual differences**: Under gradience, different speakers might have slightly different commitment strengths for the same predicate, leading to continuous individual variation. Under discreteness, speakers should cluster into groups—those who treat a predicate as factive and those who don't.
-
-**Contextual effects**: Gradience predicts that context should shift the mean commitment strength continuously. Discreteness predicts that context should affect the probability of factive vs. non-factive interpretations, changing the mixture proportions rather than shifting a single distribution.
-
-**Cross-linguistic patterns**: If gradience is fundamental, related predicates in different languages might have different commitment strengths. If discreteness is fundamental, we should find similar categorical distinctions across languages, even if the gradient behavioral patterns differ.
-
-**Priming and adaptation**: Under discreteness, it should be possible to prime factive or non-factive interpretations of ambiguous predicates. Under gradience, priming should cause continuous shifts in commitment strength.
-
-**Development**: Children acquiring language should show different patterns under the two hypotheses. Discreteness predicts stage-like transitions as children acquire categorical distinctions. Gradience predicts continuous refinement of commitment strengths.
-
-## Lexica under each hypothesis
-
-To make these abstract considerations concrete, let's examine how the lexicon would be structured under each hypothesis. The details matter here, because they determine what kinds of compositional semantic analyses are possible and how these analyses connect to behavioral predictions.
-
-### Lexica under the Fundamental Discreteness Hypothesis
-
-Under the Fundamental Discreteness Hypothesis, factivity remains a binary property, but its expression is probabilistic. We can formalize this using the tools of PDS:
+Under this hypothesis, factivity is a discrete property—predicates have distinct factive and non-factive uses. Here's the actual PDS implementation for "know":
 
 ```haskell
--- Core factive entry for "know"
-knowFactive :: Prop -> Agent -> P Prop
-knowFactive p x = do
-  observe p  -- Presuppose p is true
-  return (Know x p)
-
--- Non-factive variant  
-knowNonFactive :: Prop -> Agent -> P Prop
-knowNonFactive p x = return (Know x p)  -- No presupposition
-
--- Lexical entry with uncertainty
-know :: Prop -> Agent -> P Prop
-know p x = do
-  factive <- bernoulli 0.9  -- 90% chance of factive interpretation
-  if factive
-    then knowFactive p x
-    else knowNonFactive p x
+-- From Grammar.Lexica.SynSem.Factivity
+"knows" -> [ SynSem {
+  syn = S :\: NP :/: S,
+  sem = ty tau (lam s (purePP (lam p (lam x (lam i 
+    (ITE (TauKnow s) 
+         (And (epi i @@ x @@ p) (p @@ i))  -- Factive branch
+         (epi i @@ x @@ p))))))            -- Non-factive branch
+    @@ s))
+} ]
 ```
 
-This analysis says that "know" is ambiguous between a factive and non-factive interpretation, with a strong bias (90%) toward the factive interpretation. The `observe` operation in the factive variant implements presupposition as a hard constraint—if p is false, the derivation crashes.
+Let's trace through this computation step by step:
 
-Different predicates would have different probabilities of receiving factive interpretations:
+1. **Input state**: The meaning takes a discourse state `s` containing factivity information
+2. **Branching point**: `ITE (TauKnow s) ...` checks whether this use is factive
+3. **Factive branch**: `And (epi i @@ x @@ p) (p @@ i)` - both epistemic state AND truth
+4. **Non-factive branch**: `epi i @@ x @@ p` - only the epistemic state
+5. **Result**: A proposition whose content depends on the discourse state
+
+The prior distribution controls the branching probability:
 
 ```haskell
-discover p x = do
-  factive <- bernoulli 0.95  -- Almost always factive
-  if factive then discoverFactive p x else discoverNonFactive p x
-
-think p x = do  
-  factive <- bernoulli 0.1   -- Rarely factive
-  if factive then thinkFactive p x else thinkNonFactive p x
-
-hear p x = do
-  factive <- bernoulli 0.6   -- Genuinely ambiguous  
-  if factive then hearFactive p x else hearNonFactive p x
+factivityPrior :: Term
+factivityPrior = 
+  let' x (LogitNormal 0 1)  -- Sample base rate
+  (let' b (Bern x)           -- Sample factivity parameter
+  (Return (... UpdTauKnow b ...)))  -- Update state
 ```
 
-This approach preserves the insight that factivity is a discrete property—on any given occasion of use, a predicate either does or doesn't presuppose its complement. But it allows for gradient behavioral patterns through probabilistic variation in which interpretation is accessed.
+### The Fundamental Gradience Hypothesis
 
-The probability of factive interpretation might itself be context-dependent:
+Under this hypothesis, predicates encode continuous degrees of commitment. While not implemented in the current PDS code, it would look like:
 
 ```haskell
-knowInContext p x context = do
-  baseProbability <- return 0.9
-  adjustment <- contextualAdjustment context
-  let probability = baseProbability + adjustment
-  factive <- bernoulli probability
-  if factive then knowFactive p x else knowNonFactive p x
+-- Hypothetical gradient implementation
+"knows" -> [ SynSem {
+  sem = ty tau (lam s (
+    let' strength (Beta 0.8 0.1) (    -- Sample commitment
+      let' i (CG s) (                  -- Get common ground
+        factor (strength * (p @@ i)) >>>  -- Soft presupposition
+        purePP (epi i @@ x @@ p)))))
+} ]
 ```
 
-This allows the model to capture how contextual factors modulate factivity without abandoning the discrete underlying representation.
+Instead of discrete branching, this uses continuous weighting through the `factor` operation.
 
-### Lexica under the Fundamental Gradience Hypothesis
+## The compilation challenge: From branching to mixtures
 
-Under the Fundamental Gradience Hypothesis, predicates directly encode degrees of commitment rather than triggering discrete presuppositions. We might model this using graded notions of observation:
+The key challenge in translating factivity to Stan is that Stan doesn't support discrete parameters. We can't directly translate:
 
 ```haskell
--- Graded observation
-softObserve :: Double -> Prop -> P ()
-softObserve strength p = do
-  truth <- evaluate p
-  if truth
-    then return ()  -- No effect if true
-    else factor (negate strength)  -- Reduce probability if false
-
--- Gradient "know"  
-know :: Prop -> Agent -> P Prop
-know p x = do
-  softObserve 0.8 p  -- Strong but not absolute commitment
-  return (Know x p)
-
--- Gradient "think"
-think :: Prop -> Agent -> P Prop  
-think p x = do
-  softObserve 0.3 p  -- Weak commitment
-  return (Think x p)
-
--- Gradient "be annoyed"
-beAnnoyed :: Prop -> Agent -> P Prop
-beAnnoyed p x = do
-  softObserve 0.95 p  -- Very strong commitment
-  return (Annoyed x p)
+ITE (TauKnow s) factive_meaning non_factive_meaning
 ```
 
-Instead of presupposition as a hard constraint, we have degrees of soft commitment. These commitments directly determine inference strength—the stronger the commitment, the more likely participants are to infer the truth of the complement.
+Into:
+```stan
+if (tau_know[s]) {
+  // Factive computation
+} else {
+  // Non-factive computation  
+}
+```
 
-This approach naturally captures the continuous variation in inference strength across predicates. It also allows for more nuanced interactions with context:
+Because `tau_know` would need to be a discrete parameter, which Stan's HMC sampler cannot handle. Instead, we must *marginalize* over the discrete choice, transforming the branching computation into a mixture model.
+
+### The marginalization transformation
+
+Consider the response distribution for a single judgment. In PDS, we have:
 
 ```haskell
-knowWithPrior :: Prop -> Agent -> Double -> P Prop
-knowWithPrior p x prior = do
-  let commitment = 0.8
-  let posteriorStrength = commitment * prior / 
-                         (commitment * prior + (1 - commitment) * (1 - prior))
-  softObserve posteriorStrength p
-  return (Know x p)
+respond :: Term -> Term -> Term
+respond bg update = 
+  let' s bg (                          -- Sample initial state
+    let' s' (update @@ s) (            -- Update with utterance
+      let' answer (computeAnswer s') ( -- Compute answer
+        sampleResponse answer)))       -- Generate response
 ```
 
-Here, the effective commitment strength results from combining the lexical commitment with prior beliefs about the proposition. This captures how world knowledge modulates inference strength without requiring discrete category changes.
+For "know" with discrete factivity, `computeAnswer` branches:
 
-### Compositional consequences
-
-The choice between discrete and gradient representations has consequences that ripple through the compositional semantics. Consider how factivity interacts with negation:
-
-Under discreteness:
 ```haskell
--- Negation preserves presupposition
-not (knowFactive p x) = do
-  observe p  -- Presupposition projects
-  k <- return (Know x p)
-  return (Not k)
+computeAnswer s = 
+  if (TauKnow s) 
+    then 1.0                    -- Factive: certain
+    else prior_probability       -- Non-factive: follows prior
 ```
 
-Under gradience:
+To marginalize, we weight each branch by its probability:
+
+```
+P(response | verb, context) = 
+  P(factive | verb) × P(response | factive, context) +
+  P(non-factive | verb) × P(response | non-factive, context)
+```
+
+This is exactly what `log_mix` implements in Stan:
+
+```stan
+real log_lik_lpdf(real resp, real verb_prob, real context_prob, real sigma) {
+  return log_mix(
+    verb_prob,                                         // P(factive)
+    truncated_normal_lpdf(resp | 1, sigma, 0, 1),     // Factive response
+    truncated_normal_lpdf(resp | context_prob, sigma, 0, 1)  // Non-factive response
+  );
+}
+```
+
+### Compiling the discrete-factivity model
+
+Let's trace through the complete compilation from PDS to Stan:
+
+#### Step 1: Identify the probabilistic structure
+
+From the PDS lexical entry and prior, we extract:
+- **Discrete choice**: Factive vs non-factive (per verb)
+- **Continuous parameters**: Prior probability (per context), response noise
+- **Hierarchical structure**: Verb-level, context-level, participant-level variation
+
+#### Step 2: Transform to first-order parameters
+
+PDS higher-order functions become arrays indexed by integers:
+
 ```haskell
--- Negation interacts with commitment
-not (know p x) = do
-  softObserve 0.7 p  -- Slightly weaker under negation?
-  k <- return (Know x p)  
-  return (Not k)
+-- PDS: Functions from verbs to probabilities
+TauKnow :: State -> Verb -> Bool
+
+-- Stan: Arrays indexed by verb number
+vector[N_verb] verb_intercept;  // Log-odds of factivity
 ```
 
-Or consider embedding under attitude verbs:
+#### Step 3: Implement the likelihood
 
-Under discreteness:
+The key insight is that the PDS branching:
+
 ```haskell
--- Clear projection or plugging
-believe (knowFactive p x) y = do
-  observe p  -- Does presupposition project?
-  -- This depends on whether "believe" is a plug
+ITE (TauKnow s) 
+  (observe True >>> return 1.0)      -- Factive
+  (return context_prob)               -- Non-factive
 ```
 
-Under gradience:
+Becomes a mixture in Stan:
+
+```stan
+// In transformed parameters
+verb_prob_by_resp[n] = inv_logit(
+  verb_intercept[verb[n]] + subj_intercept_verb[subj[n]]
+);
+
+// In model block via log_lik function
+target += log_mix(
+  verb_prob_by_resp[n],
+  truncated_normal_lpdf(resp[n] | 1, sigma, 0, 1),
+  truncated_normal_lpdf(resp[n] | context_prob_by_resp[n], sigma, 0, 1)
+);
+```
+
+#### Step 4: Add hierarchical structure
+
+The PDS prior samples parameters hierarchically. This translates to Stan's non-centered parameterization:
+
+```stan
+parameters {
+  // Population-level
+  vector[N_verb] verb_intercept_z;      // Standardized
+  
+  // Participant-level variation
+  real<lower=0> subj_intercept_verb_std;
+  vector[N_subj] subj_intercept_verb_z;
+  
+  // Response noise
+  real<lower=0,upper=1> sigma;
+}
+
+transformed parameters {
+  // Convert from standardized
+  vector[N_verb] verb_intercept = verb_std .* verb_intercept_z + verb_mean;
+  vector[N_subj] subj_intercept_verb = subj_intercept_verb_std * subj_intercept_verb_z;
+}
+```
+
+### Compiling the wholly-gradient model
+
+The gradient hypothesis requires a different compilation strategy. Instead of marginalizing over discrete choices, we directly implement continuous combination:
+
 ```haskell
--- Continuous modulation
-believe (know p x) y = do
-  softObserve 0.5 p  -- Commitment weakened by embedding
-  -- Strength depends on properties of "believe"
+-- PDS gradient computation
+let' verb_strength (sampleVerbStrength verb) (
+  let' context_strength (sampleContextStrength context) (
+    return (1 - (1 - verb_strength) * (1 - context_strength))))
 ```
 
-These compositional differences provide ways to empirically distinguish the hypotheses. If factivity is discrete, we expect categorical projection behavior—presuppositions either project or they don't. If factivity is gradient, we expect continuous modulation of commitment strength through different embeddings.
+This naturally translates to Stan without mixtures:
 
-### The road forward
+```stan
+real log_lik_lpdf(real resp, real verb_prob, real context_prob, real sigma) {
+  real prob_or = 1.0 - (1.0 - verb_prob) * (1.0 - context_prob);
+  return truncated_normal_lpdf(resp | prob_or, sigma, 0, 1);
+}
+```
 
-The debate between fundamental discreteness and fundamental gradience isn't merely technical—it touches on foundational questions about the nature of semantic knowledge. Are meanings discrete symbolic structures that get probabilistically deployed? Or are they inherently probabilistic from the ground up?
+The formula implements probabilistic disjunction: the complement is likely true if either the verb suggests it OR world knowledge suggests it.
 
-The answer matters for how we build theories of meaning. If discreteness is correct, we can maintain the elegant mathematical frameworks of formal semantics while adding a probabilistic layer to handle performance factors. If gradience is correct, we need new mathematical tools—perhaps drawing on probability theory, information theory, or machine learning—to model inherently gradient meanings.
+## Complete Stan implementation
 
-But perhaps most importantly, the answer matters for how we understand the relationship between linguistic competence and performance. The traditional view maintains a sharp distinction: competence consists of discrete, categorical knowledge, while performance involves the probabilistic deployment of this knowledge. The gradient view blurs this distinction: if meanings are inherently probabilistic, then competence itself is gradient.
+Here's the full discrete-factivity model, annotated to show its connection to PDS:
 
-Resolving this debate requires careful empirical work that goes beyond documenting gradient patterns. We need to examine the fine structure of the gradience, test for predicted differences in distribution shapes, explore individual differences, and trace developmental trajectories. And we need formal models that can precisely specify what each hypothesis predicts.
+```stan
+functions {
+  // Truncated normal for bounded responses (like adjectives Day 3)
+  real truncated_normal_lpdf(real x, real mu, real sigma, real a, real b) {
+    return normal_lpdf(x | mu, sigma) - 
+           log_diff_exp(normal_lcdf(b | mu, sigma), 
+                        normal_lcdf(a | mu, sigma));
+  }
+  
+  // Mixture likelihood implementing PDS branching
+  real log_lik_lpdf(real resp, real verb_prob, real context_prob, real sigma) {
+    return log_mix(
+      verb_prob,                                          // P(TauKnow = true)
+      truncated_normal_lpdf(resp | 1, sigma, 0, 1),      // Factive branch
+      truncated_normal_lpdf(resp | context_prob, sigma, 0, 1)  // Non-factive branch
+    );
+  }
+}
 
-This is where frameworks like Probabilistic Dynamic Semantics prove invaluable. By providing tools to implement both discrete and gradient theories within a common framework, PDS allows us to move beyond verbal arguments to precise, testable predictions. The models we build aren't just statistical descriptions of the data—they're theories of how semantic knowledge is represented and deployed. And by comparing these theories quantitatively, we can make progress on one of the fundamental questions in the study of meaning.
+data {
+  // Experimental structure
+  int<lower=0> N_resp;      // Total responses
+  int<lower=0> N_verb;      // Number of verbs (20)
+  int<lower=0> N_context;   // Number of contexts (40)
+  int<lower=0> N_subj;      // Number of participants
+  
+  // Prior information from norming (implements world knowledge)
+  vector[N_verb] verb_mean;         // From previous model or uniform
+  vector[N_verb] verb_std;          // Uncertainty about verb factivity
+  vector[N_context] context_mean;   // From norming experiment
+  vector[N_context] context_std;    // Uncertainty about context
+  
+  // Indexing (implements function application via arrays)
+  int<lower=1,upper=N_verb> verb[N_resp];
+  int<lower=1,upper=N_context> context[N_resp];
+  int<lower=1,upper=N_subj> subj[N_resp];
+  
+  // Responses
+  vector<lower=0,upper=1>[N_resp] resp;
+}
+
+parameters {
+  // Verb factivity (implements TauKnow per verb)
+  vector[N_verb] verb_intercept_z;
+  
+  // Context effects (implements world knowledge)
+  real<lower=0> context_intercept_std;
+  vector[N_context] context_intercept_z;
+  
+  // Participant variation (implements individual differences)
+  real<lower=0> subj_intercept_verb_std;
+  vector[N_subj] subj_intercept_verb_z;
+  real<lower=0> subj_intercept_context_std;
+  vector[N_subj] subj_intercept_context_z;
+  
+  // Response noise (implements imperfect measurement)
+  real<lower=0,upper=1> sigma;
+}
+
+transformed parameters {
+  // Transform standardized parameters (non-centered parameterization)
+  vector[N_verb] verb_intercept = verb_std .* verb_intercept_z + verb_mean;
+  vector[N_context] context_intercept = context_intercept_std * context_intercept_z;
+  vector[N_subj] subj_intercept_verb = subj_intercept_verb_std * subj_intercept_verb_z;
+  vector[N_subj] subj_intercept_context = subj_intercept_context_std * subj_intercept_context_z;
+  
+  // Compute response-level probabilities
+  vector[N_resp] log_lik;
+  vector[N_resp] verb_prob_by_resp;
+  vector[N_resp] context_prob_by_resp;
+  
+  for (n in 1:N_resp) {
+    // Verb probability: P(TauKnow = true | verb, participant)
+    verb_prob_by_resp[n] = inv_logit(
+      verb_intercept[verb[n]] + subj_intercept_verb[subj[n]]
+    );
+    
+    // Context probability: P(complement true | context, participant)
+    context_prob_by_resp[n] = inv_logit(
+      context_intercept[context[n]] + subj_intercept_context[subj[n]]
+    );
+    
+    // Likelihood: implements marginalized PDS computation
+    log_lik[n] = log_lik_lpdf(
+      resp[n] | verb_prob_by_resp[n], context_prob_by_resp[n], sigma
+    );
+  }
+}
+
+model {
+  // Priors (implement PDS prior distributions)
+  verb_intercept_z ~ std_normal();
+  context_intercept_std ~ exponential(1);
+  context_intercept_z ~ std_normal();
+  subj_intercept_verb_std ~ exponential(1);
+  subj_intercept_verb_z ~ std_normal();
+  subj_intercept_context_std ~ exponential(1);
+  subj_intercept_context_z ~ std_normal();
+  
+  // Likelihood
+  for (n in 1:N_resp)
+    target += log_lik[n];
+}
+
+generated quantities {
+  // Extract interpretable parameters
+  vector[N_verb] verb_prob = inv_logit(verb_intercept);
+  vector[N_context] context_prob = inv_logit(context_intercept);
+}
+```
+
+## Compilation patterns and challenges
+
+Several patterns emerge when compiling factivity models:
+
+### Pattern 1: Discrete choices become mixtures
+
+Every PDS branching on discrete parameters:
+```haskell
+ITE discrete_param option1 option2
+```
+
+Becomes a mixture in Stan:
+```stan
+log_mix(prob_param, likelihood1, likelihood2)
+```
+
+This transformation is systematic but changes the model's interpretation—from sampling discrete values to marginalizing over them.
+
+### Pattern 2: State dependencies become array indexing
+
+PDS tracks factivity in discourse state:
+```haskell
+TauKnow :: State -> Bool
+```
+
+Stan implements this as arrays:
+```stan
+vector[N_verb] tau_know_logit;  // Per-verb factivity
+```
+
+The state threading in PDS becomes implicit in Stan's array structure.
+
+### Pattern 3: Hierarchical sampling becomes non-centered parameterization
+
+PDS samples hierarchically:
+```haskell
+let' verb_base (Normal 0 1) (
+  let' participant_offset (Normal 0 sigma_participant) (
+    return (verb_base + participant_offset)))
+```
+
+Stan uses non-centered parameterization for efficiency:
+```stan
+// Sample standardized
+verb_z ~ std_normal();
+participant_z ~ std_normal();
+
+// Transform with scales
+verb = verb_std * verb_z;
+participant = participant_std * participant_z;
+```
+
+### Pattern 4: Response functions become truncated distributions
+
+PDS response function:
+```haskell
+respond (lam x (Truncate (Normal x sigma) 0 1))
+```
+
+Becomes Stan likelihood:
+```stan
+resp ~ normal(predicted, sigma) T[0, 1];
+// Or equivalently:
+target += truncated_normal_lpdf(resp | predicted, sigma, 0, 1);
+```
+
+## Model comparison results
+
+The four models make different predictions about response distributions:
+
+- **Discrete-factivity**: Bimodal mixtures (factive mode at 1, non-factive follows context)
+- **Wholly-gradient**: Smooth unimodal distributions
+- **Wholly-discrete**: Mixtures with modes only at 0 and 1
+- **Discrete-world**: Gradient factivity with discrete world knowledge
+
+Comparing via ELPD on Degen & Tonhauser's data:
+
+```
+Model               ELPD (SE)    Interpretation
+Discrete-factivity   2917 (44)   Factivity discrete, world knowledge gradient
+Wholly-discrete      2739 (42)   Both discrete
+Wholly-gradient      2698 (41)   Both gradient
+Discrete-world       2689 (41)   Factivity gradient, world knowledge discrete
+```
+
+The discrete-factivity model's superior fit suggests that the PDS branching structure—rather than continuous combination—better captures how people process factive inferences.
+
+## Theoretical implications for compilation
+
+This case study reveals several important aspects of the PDS-to-Stan pipeline:
+
+1. **Branching vs. weighting**: Discrete semantic choices in PDS become probability weightings in Stan. This preserves the intuition while enabling inference.
+
+2. **Marginalization is key**: We can't sample discrete parameters in Stan, but we can marginalize over them. This transformation is systematic and preserves the model's predictions.
+
+3. **Mixture emergence**: The bimodal response patterns that support discrete factivity emerge naturally from compiling branching PDS programs to mixture models.
+
+4. **Hierarchical structure preserved**: The compositional structure in PDS (predicates → contexts → participants) maps cleanly to Stan's hierarchical models.
+
+## Looking ahead: Questions and discourse dynamics
+
+Our treatment of factivity has abstracted away from a crucial component: the role of questions in inference tasks. Recall that participants judge "How certain is Edward that Zoe can tie her shoes?" This implicitly involves:
+
+1. **Question semantics**: What does "how certain" mean?
+2. **QUD structure**: How do questions under discussion affect interpretation?
+3. **Response pragmatics**: How do participants map internal certainty to slider positions?
+
+In the next session, we'll see how PDS handles these discourse-dynamic phenomena. As shown in the PDS code, questions can be explicitly modeled:
+
+```haskell
+ask κ = κ >>>= Lam "q" (getPP >>>= Lam "s" (putPP (upd_QUD q s)))
+```
+
+This machinery will prove essential for modeling:
+- How question type affects inference judgments
+- The role of QUDs in projection phenomena
+- Conventional implicatures and parentheticals
+- Evidential markers across languages
+- Socio-semantic inferences
+
+By integrating question semantics into our models, we can move beyond simple assertion-based tasks to capture the full richness of discourse-based reasoning that underlies linguistic inference.
