@@ -2,15 +2,68 @@
 
 Building on the theoretical foundations and compositional semantics introduced in the previous sections, we now turn to the practical challenge of implementing models of vagueness and imprecision. The translation from abstract semantic theory to concrete statistical models requires careful attention to how theoretical commitments manifest as computational procedures. This section demonstrates this translation through three increasingly sophisticated models of gradable adjectives.
 
+## Stan: A language for statistical modeling
+
+The translation from abstract semantic theory to concrete statistical models requires a computational intermediary—a language that can express both the probabilistic structures we theorize and the inference procedures we need to learn from data. Stan has emerged as the de facto standard for this role in computational semantics and psycholinguistics @burkner_brms_2017, @stan_development_team_stan_2024.
+
+Stan is a probabilistic programming language designed for statistical inference. Unlike general-purpose programming languages, Stan is specialized for defining probability distributions and performing Bayesian inference. When we write a Stan program, we're not writing procedures to execute but rather declaring the structure of a probability model. Stan then uses sophisticated algorithms (Hamiltonian Monte Carlo) to sample from the posterior distribution of our model parameters given the observed data.
+
+## Structure of a Stan program
+
+Stan programs follow a particular architecture that enforces clear thinking about statistical modeling. This architecture isn't arbitrary—it reflects deep principles about how Bayesian inference works and what information flows where during the inference process. Each block in a Stan program serves a specific purpose, and understanding these purposes is key to writing models that correctly implement our theories.
+
+### The flow of information
+
+At the highest level, a Stan program defines a joint probability distribution over data and parameters. The data are fixed—they're the observations we've collected. The parameters are unknown—they're what we want to learn about. Stan's job is to characterize the posterior distribution of the parameters given the data, and it does this using sophisticated Markov Chain Monte Carlo algorithms.
+
+But Stan needs to know what's what. It needs to know which quantities are data (fixed) and which are parameters (to be inferred). It needs to know what constraints these quantities must satisfy. It needs to know how the parameters relate to each other and to the data. The block structure of Stan programs organizes this information in a way that's both clear to the modeler and efficient for the inference algorithms.
+
+### The basic blocks
+
+Every Stan program is organized into blocks that appear in a specific order:
+
+1. **data block**: Declares the observed data that will be provided from outside
+2. **parameters block**: Declares the unknown quantities we want to learn about
+3. **transformed parameters block**: Computes derived quantities from the parameters
+4. **model block**: Specifies priors and the likelihood of the data
+5. **generated quantities block**: Computes quantities of interest after inference
+
+Let's see what each block does with a simple example before diving into our adjective models:
+
+```stan
+// A minimal Stan program
+data {
+  int<lower=0> N;           // number of observations
+  vector[N] y;              // observed responses
+}
+
+parameters {
+  real mu;                  // population mean
+  real<lower=0> sigma;      // population standard deviation
+}
+
+model {
+  // Prior
+  mu ~ normal(0, 1);
+  sigma ~ exponential(1);
+  
+  // Likelihood
+  y ~ normal(mu, sigma);
+}
+```
+
+This simple program infers the mean and standard deviation of normally-distributed data. The data block declares what we observe, the parameters block declares what we want to learn, and the model block connects them through a likelihood function.
+
 ## Mapping lambda-terms to Stan code
 
-The heart of our enterprise is translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. This translation is non-trivial because λ-calculus and Stan operate at different levels of abstraction and with different computational paradigms. Understanding how to bridge these paradigms is essential for testing compositional theories against behavioral data.
+Now that we understand Stan's structure, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. This translation is non-trivial because λ-calculus and Stan operate at different levels of abstraction and with different computational paradigms.
 
 ### The semantic starting point
 
-In Probabilistic Dynamic Semantics, we express meanings as typed λ-terms that can include probabilistic effects. Consider the semantics of *tall*:
+In Probabilistic Dynamic Semantics, we express meanings as typed λ-terms that can include probabilistic effects. Consider the semantics of "tall" from the PDS codebase:
 
 ```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
 "tall" -> SynSem {
   syn = AP,
   sem = ty tau (lam s (purePP (lam x (lam i 
@@ -19,7 +72,7 @@ In Probabilistic Dynamic Semantics, we express meanings as typed λ-terms that c
 }
 ```
 
-This says *tall* denotes a function that:
+This says "tall" denotes a function that:
 1. Takes a discourse state `s`
 2. Returns a function from entities `x` to propositions
 3. The proposition is true when the entity's height exceeds the threshold `d_tall`
@@ -36,13 +89,13 @@ tall x = do
   return (height >= threshold)
 ```
 
-This captures both the context-sensitivity of gradable adjectives (different contexts might have different threshold distributions) and the gradience in judgments (borderline cases have intermediate probabilities) [@kennedy_vagueness_2007].
+This captures both the context-sensitivity of gradable adjectives (different contexts might have different threshold distributions) and the gradience in judgments (borderline cases have intermediate probabilities) @kennedy_vagueness_2007.
 
 ### The representational challenge
 
 Stan, however, doesn't directly support higher-order functions, monadic binding, or many other features we rely on in λ-calculus. Stan is fundamentally about defining probability distributions over fixed-dimensional parameter spaces. So how do we bridge this gap?
 
-The key idea is that we need to "compile" our λ-terms into Stan's more restricted language. This compilation involves several systematic transformations:
+The key insight is that we need to "compile" our λ-terms into Stan's more restricted language. This compilation involves several systematic transformations:
 
 1. **Monadic binding becomes sampling**: When we write `threshold <- normal 175 10` in our semantic metalanguage, this becomes `threshold ~ normal(175, 10)` in Stan.
 
@@ -52,9 +105,9 @@ The key idea is that we need to "compile" our λ-terms into Stan's more restrict
 
 4. **Higher-order functions become expanded first-order code**: We can't pass functions as arguments in Stan, so higher-order operations must be expanded at compile time.
 
-### A concrete example: *very tall*
+### A concrete example: "very tall"
 
-Let's see how this works for a more complex example. Suppose we want to model the semantics of *very tall*, which we might analyze as an intensifier that raises the threshold:
+Let's see how this works for a more complex example. Suppose we want to model the semantics of "very tall," which we might analyze as an intensifier that raises the threshold:
 
 ```haskell
 -- Intensifier semantics
@@ -74,13 +127,24 @@ veryTall = very tall
 This compositional analysis can't be directly translated to Stan because Stan doesn't support higher-order functions. Instead, we need to expand the composition:
 
 ```stan
-transformed parameters {
+data {
+  int<lower=1> N_entities;
+  vector[N_entities] heights;  // Known heights of entities
+  int<lower=1> N_resp;         // Number of responses
+  array[N_resp] int<lower=1, upper=N_entities> entity;
+  array[N_resp] int<lower=1, upper=2> condition;  // 1=tall, 2=very tall
+  vector<lower=0, upper=1>[N_resp] response;
+}
+
+parameters {
   // Basic threshold for "tall"
   real tall_threshold;
   
   // Modifier effect for "very"
   real very_effect;
-  
+}
+
+transformed parameters {
   // Derived threshold for "very tall"
   real very_tall_threshold = tall_threshold + very_effect;
   
@@ -185,9 +249,203 @@ This perspective suggests that the compilation process itself is theoretically s
 
 By making these choices explicit in our Stan models, we commit to testable hypotheses about semantic processing.
 
-## Case study: Modeling gradable adjectives
+## Mapping lambda-terms to Stan code
 
-To make these abstract considerations concrete, let's examine how to model gradable adjectives in Stan. We'll work through three models of increasing complexity, each capturing different aspects of how speakers use adjectives like "tall," "expensive," and "full."
+Now that we understand Stan's structure through a concrete example, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. This translation is non-trivial because λ-calculus and Stan operate at different levels of abstraction and with different computational paradigms.
+
+### The semantic starting point
+
+In Probabilistic Dynamic Semantics, we express meanings as typed λ-terms that can include probabilistic effects. Consider the semantics of "tall" from the PDS codebase:
+
+```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
+"tall" -> SynSem {
+  syn = AP,
+  sem = ty tau (lam s (purePP (lam x (lam i 
+    (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+     (sCon "d_tall" @@ s))))) @@ s))
+}
+```
+
+This says "tall" denotes a function that:
+1. Takes a discourse state `s`
+2. Returns a function from entities `x` to propositions
+3. The proposition is true when the entity's height exceeds the threshold `d_tall`
+4. The threshold depends on the discourse state, capturing context-sensitivity
+
+We can also write this more intuitively:
+
+```haskell
+-- The meaning of "tall" with uncertain threshold
+tall :: Entity -> P Bool
+tall x = do
+  threshold <- normal 175 10  -- Sample threshold (in cm)
+  height <- getHeight x       -- Retrieve x's height
+  return (height >= threshold)
+```
+
+This captures both the context-sensitivity of gradable adjectives (different contexts might have different threshold distributions) and the gradience in judgments (borderline cases have intermediate probabilities) @kennedy_vagueness_2007.
+
+### The representational challenge
+
+Stan, however, doesn't directly support higher-order functions, monadic binding, or many other features we rely on in λ-calculus. Stan is fundamentally about defining probability distributions over fixed-dimensional parameter spaces. So how do we bridge this gap?
+
+The key insight is that we need to "compile" our λ-terms into Stan's more restricted language. This compilation involves several systematic transformations:
+
+1. **Monadic binding becomes sampling**: When we write `threshold <- normal 175 10` in our semantic metalanguage, this becomes `threshold ~ normal(175, 10)` in Stan.
+
+2. **Function application becomes indexing**: Where λ-calculus uses function application, Stan typically uses array indexing. A function from entities to heights becomes an array of heights indexed by entity identifiers.
+
+3. **Composition becomes sequential computation**: Complex semantic derivations involving multiple function applications become sequences of assignments in Stan's transformed parameters block.
+
+4. **Higher-order functions become expanded first-order code**: We can't pass functions as arguments in Stan, so higher-order operations must be expanded at compile time.
+
+### A concrete example: "very tall"
+
+Let's see how this works for a more complex example. Suppose we want to model the semantics of "very tall," which we might analyze as an intensifier that raises the threshold:
+
+```haskell
+-- Intensifier semantics
+very :: (Entity -> P Bool) -> (Entity -> P Bool)
+very adj x = do
+  -- Extract and modify the threshold from the adjective meaning
+  threshold <- getThreshold adj
+  let raisedThreshold = threshold + 20  -- "very" adds 20cm
+  height <- getHeight x
+  return (height >= raisedThreshold)
+
+-- Composed meaning
+veryTall :: Entity -> P Bool
+veryTall = very tall
+```
+
+This compositional analysis can't be directly translated to Stan because Stan doesn't support higher-order functions. Instead, we need to expand the composition into Stan's first-order language. Building on what we learned from Model 1:
+
+```stan
+data {
+  // Same structure as our norming model
+  int<lower=1> N_entities;
+  vector[N_entities] heights;  // Known heights of entities
+  int<lower=1> N_resp;         // Number of responses
+  array[N_resp] int<lower=1, upper=N_entities> entity;
+  array[N_resp] int<lower=1, upper=2> condition;  // 1=tall, 2=very tall
+  vector<lower=0, upper=1>[N_resp] response;
+}
+
+parameters {
+  // Basic threshold for "tall"
+  real tall_threshold;
+  
+  // Modifier effect for "very"  
+  real very_effect;
+  
+  // Response noise (as in Model 1)
+  real<lower=0> sigma_e;
+}
+
+transformed parameters {
+  // Derived threshold for "very tall"
+  real very_tall_threshold = tall_threshold + very_effect;
+  
+  // Predictions for each response
+  vector[N_resp] predicted_response;
+  
+  for (n in 1:N_resp) {
+    if (condition[n] == 1) {  // "tall"
+      predicted_response[n] = heights[entity[n]] >= tall_threshold ? 0.9 : 0.1;
+    } else {  // "very tall"
+      predicted_response[n] = heights[entity[n]] >= very_tall_threshold ? 0.9 : 0.1;
+    }
+  }
+}
+
+model {
+  // Priors
+  tall_threshold ~ normal(175, 10);
+  very_effect ~ normal(20, 5);
+  sigma_e ~ beta(2, 10);
+  
+  // Likelihood (as in Model 1)
+  response ~ normal(predicted_response, sigma_e);
+}
+```
+
+Notice how the compositional structure is still present but has been "compiled out." Instead of a higher-order function `very` that modifies adjective meanings, we have separate thresholds related by addition. The semantic insight—that "very" systematically raises thresholds—is preserved, but expressed in Stan's first-order language @lassiter_adjectival_2017.
+
+### Delta rules and optimization
+
+Before translating λ-terms to Stan, we typically apply delta rules—algebraic simplifications that make the resulting code cleaner and more efficient. These rules embody semantic equivalences that hold in our theory.
+
+From the PDS codebase (`Lambda.Delta`), we have rules like:
+
+```haskell
+-- Eliminate vacuous binding
+cleanUp :: DeltaRule
+cleanUp = \case
+  Let v m k | sampleOnly m && v `notElem` freeVars k -> Just k
+  _ -> Nothing
+
+-- Arithmetic simplifications  
+arithmetic :: DeltaRule
+arithmetic = \case
+  Add t u -> case t of
+    Zero -> Just u
+    x@(DCon _) -> case u of
+      Zero -> Just x
+      y@(DCon _) -> Just (x + y)
+  Mult t u -> case t of
+    Zero -> Just Zero
+    One -> Just u
+```
+
+These simplifications matter because Stan code can become complex quickly. Consider what happens without delta reduction:
+
+```haskell
+-- Before reduction
+do x <- return 5
+   y <- normal x 1
+   observe (y > 0)
+   return y
+
+-- After reduction  
+do y <- normal 5 1
+   observe (y > 0)
+   return y
+```
+
+The simplified version translates to cleaner Stan code with one fewer parameter to sample. Over a complex semantic derivation, such simplifications can dramatically improve both code clarity and sampling efficiency.
+
+### The challenge of dynamic effects
+
+Perhaps the greatest challenge in translating to Stan comes from dynamic semantic effects—phenomena like anaphora resolution, presupposition accommodation, and discourse update. Our semantic metalanguage handles these naturally with stateful computations:
+
+```haskell
+-- From the PDS codebase: updating discourse state
+ask κ = κ >>>= Lam "q" (getPP >>>= Lam "s" ((putPP (upd_QUD (Var "q") (Var "s")))))
+```
+
+But Stan has no notion of discourse state or dynamic update. We must either:
+
+1. **Marginalize out dynamic effects**: Sum/integrate over all possible resolutions
+2. **Fix resolution as data**: Treat anaphora resolution as observed data
+3. **Expand the parameter space**: Include discrete parameters for each resolution possibility
+
+Each approach has trade-offs. Marginalization can be computationally intractable. Fixing resolution as data requires separate annotation. Expanding the parameter space can lead to combinatorial explosion @grove_probabilistic_2024.
+
+### From semantics to psychosemantics
+
+Ultimately, the translation from λ-terms to Stan forces us to be explicit about the relationship between semantic competence and performance. Our λ-terms express speakers' semantic knowledge—what they know about meaning. Our Stan models express how this knowledge generates behavioral data. The translation between them embodies our linking hypotheses @jasbi_linking_2019.
+
+This perspective suggests that the compilation process itself is theoretically significant. Different compilation strategies correspond to different psychological assumptions:
+
+- **Eager evaluation**: Compute all semantic values before response generation
+- **Lazy evaluation**: Compute only values needed for the response  
+- **Noisy evaluation**: Semantic computations sometimes fail or give wrong results
+- **Resource-bounded evaluation**: Complex computations are approximated
+
+By making these choices explicit in our Stan models, we commit to testable hypotheses about semantic processing.
+
+With this understanding of how PDS translates to Stan, we can now examine more sophisticated models that capture the theoretical distinctions between vagueness and imprecision.
 
 ### Model 1: Baseline norming
 
@@ -503,6 +761,24 @@ generated quantities {
 ```
 
 This baseline model treats each item as having an inherent degree along the relevant scale, with participants providing noisy measurements of these degrees. The censoring approach handles the common issue of responses at the boundaries (0 and 1) of the slider scale—implementing @lassiter_measurement_2013's approach to gradable adjective semantics.
+
+#### What we've learned about Stan
+
+Through building this model, we've seen that Stan programs have a specific structure:
+1. **data block**: Declares observed quantities with constraints
+2. **parameters block**: Declares unknown quantities to infer
+3. **transformed parameters block**: Builds derived quantities
+4. **model block**: Specifies priors and likelihood
+5. **generated quantities block**: Computes post-inference quantities
+
+We've also learned key Stan concepts:
+- **Constraints**: `<lower=0>` ensures valid parameter ranges
+- **Indexing**: Arrays like `item[i]` connect responses to structure
+- **Sampling notation**: `y ~ normal(mu, sigma)` specifies distributions
+- **Non-centered parameterization**: Improves sampling efficiency
+- **Censoring**: Handles boundary responses theoretically
+
+With this foundation, we can now understand how to translate semantic theories into Stan code.
 
 ### Model 2: Vagueness and imprecision
 
