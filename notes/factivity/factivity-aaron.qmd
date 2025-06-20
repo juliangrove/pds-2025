@@ -96,7 +96,7 @@ The gradience in factivity judgments admits (at least) two theoretical interpret
 
 Under this hypothesis, factivity remains a discrete property of predicates, but various factors conspire to produce gradient behavioral patterns:
 
-1. **Lexical ambiguity**: Predicates have both factive and non-factive senses [@patel-grosz_dislocated_2014]
+1. **Lexical ambiguity**: Predicates have both factive and non-factive senses
 2. **Structural ambiguity**: Different syntactic structures trigger different readings. Cross-linguistic evidence supports this view, with languages showing morphological marking (Korean, Turkish), syntactic selection (Greek, Romanian), and mood selection (Spanish, French) for factivity [@varlokosta_issues_1994; @giannakidou_polarity_1998; @giannakidou_affective_1999; @giannakidou_dependency_2009; @roussou_selecting_2010; @farudi_antisymmetric_2007; @abrusan_predicting_2011; @kastner_factivity_2015; @ozyildiz_attitude_2017; @ozyildiz_factivity_2021]
 3. **Pragmatic enrichment**: Context coerces interpretations [@qing_rational_2016; @simons_best_2017; @roberts_preconditions_2024]
 4. **Noisy measurement**: Response generation introduces continuous noise
@@ -635,7 +635,7 @@ Our models reveal that world knowledge and semantic knowledge interact different
 - World knowledge effects appear gradient and continuous
 - The interaction is multiplicative in mixtures, not additive
 
-This suggests a cognitive architecture where semantic and world knowledge remain distinct [@lewis_pragmatic_2014].
+This suggests a cognitive architecture where semantic and world knowledge remain distinct.
 
 ## Compilation patterns: From branching to mixtures
 
