@@ -1,280 +1,194 @@
-# Adequacy in linguistic theory
+# The Bridge from Theory to Data: Understanding Adequacy in Linguistic Theory
 
-At their core, syntactic and semantic theories are explanations of judgments about strings—elements of the set $\Sigma^* = \bigcup_{i=0}^\infty \Sigma^i$ for some vocabulary $\Sigma$. These theories aim to explain two fundamental types of judgments that speakers make: *acceptability judgments* and *inference judgments*.
+Semantic theory has achieved remarkable success in characterizing the compositional structure of natural language meaning. Through decades of careful theoretical work, semanticists have developed elegant formal systems that capture how complex meanings arise from the systematic combination of simpler parts. These theories explain two fundamental types of judgments that speakers make: *acceptability judgments* about whether strings are well-formed, and *inference judgments* about what follows from what speakers say.
 
-Acceptability judgments are introspective assessments of strings' well-formedness relative to a language and context of use [@schütze_gramaticality_2016]. []{@exm-comitative-good} []{@exm-coordination-bad} For example, in a context where a host is asking a guest what they would like in addition to coffee, (@exm-comitative-good) is clearly well-formed (or *acceptable*), while (@exm-coordination-bad) is clearly not [@ross_constraints_1967; @sprouse_island_2021].
+The field now stands at an exciting juncture. The rise of large-scale experimental methods and computational modeling opens new opportunities to test and refine these theoretical insights against rich behavioral data. The challenge—and opportunity—is to connect our elegant formal theories to the messy, gradient patterns we observe when hundreds of speakers make thousands of judgments. How can we maintain the theoretical insights that formal semantics has achieved while extending them to account for this new empirical richness?
+
+Probabilistic Dynamic Semantics (PDS) aims to provide a systematic bridge between these theoretical insights and behavioral data. It takes the compositional analyses developed using traditional Montagovian methods and maps them to probabilistic models that can be quantitatively evaluated against experimental results. The goal is not to replace traditional semantics but to extend its reach, allowing us to test theoretical predictions at unprecedented scale while maintaining formal rigor.
+
+## Traditional Semantic Methodology: Foundations of Success
+
+Semanticists study the systematic relationships between linguistic expressions and the inferences they support. The field's methodology centers on two types of judgments:
+
+**Acceptability judgments** assess whether strings are well-formed relative to a language and context [@schütze_gramaticality_2016]. []{#exm-comitative-good} []{#exm-coordination-bad} In a context where a host asks what a guest wants with coffee, (@exm-comitative-good) is clearly acceptable, while (@exm-coordination-bad) is not [@ross_constraints_1967; @sprouse_island_2021]:
 
 (@exm-comitative-good) What would you like with your coffee?
-(@exm-coordination-bad) What would you like and your coffee?
+(@exm-coordination-bad) #What would you like and your coffee?
 
-Inference judgments are judgments about inferential relationships between strings [@davis_semantics_2004]. []{@exm-love-antecedent-2} []{@exm-veridicality-inference-2} For example, when someone utters (@exm-love-antecedent-2) and their addressee both trusts the speaker and doesn't know that (@exm-veridicality-inference-2), the addressee will tend to infer that (@exm-veridicality-inference-2)–i.e. the content of the subordinate clause in (@exm-love-antecedent-2) (see @white_lexically_2019).
+**Inference judgments** assess relationships between strings [@davis_semantics_2004]. []{#exm-love-antecedent} []{#exm-veridicality-inference}  When speakers hear (@exm-love-antecedent), they typically infer (@exm-veridicality-inference) [@white_lexically_2019]:
 
-(@exm-love-antecedent-2) Jo loved that Mo left.
-(@exm-veridicality-inference-2) Mo left.
+(@exm-love-antecedent) Jo loved that Mo left.
+(@exm-veridicality-inference) Mo left.
 
-## Observational adequacy
+### Observational Adequacy
 
-One important property we want our theories to have is *observational adequacy* [@chomsky_current_1964]: for any string $s \in \Sigma^*$, we should be able to predict how acceptable someone who knows the language will find $s$ relative to a particular context; and for any pair of acceptable strings $s, s'$, we should be able to predict whether that person judges $s'$ to be inferable from $s$ and vice versa—again, relative to context.
+A core desideratum for semantic theories is *observational adequacy* [@chomsky_current_1964]: for any string $s \in \Sigma^*$, we should predict how acceptable speakers find it in context, and for acceptable strings $s, s'$, we should predict whether speakers judge $s'$ inferable from $s$.
 
-In addition to observational adequacy, we want theories that are parsimonious in that they explain a wide variety of both acceptability and inference judgments using a small number of theoretical constructs. 
-A common way forward is to posit methods for mapping vocabulary elements and strings to a constrained set of abstractions that help predict judgments. 
-These abstractions may take various forms:
+Achieving observational adequacy requires mapping vocabulary elements to abstractions that predict judgments parsimoniously. These abstractions may be discrete or continuous, simple or richly structured. Through careful analysis of consistent inference patterns, semanticists have identified powerful generalizations.
 
-i. They may be discrete, continuous, or hybrid
-ii. They may be interrelated—e.g., by some type of ordering
-iii. They may be richly structured—e.g., strings, trees, etc. constructed from more basic abstractions
+For instance, examining predicates like *love*, *hate*, *be surprised*, and *know*, theorists observed they all give rise to inferences about their complement clauses that survive under negation and questioning. This led to positing the abstraction FACTIVE—a property that predicts systematic inferential behavior across diverse predicates [@kiparsky_fact_1970; @karttunen_observations_1971].
 
-We will not prefer any one kind of abstract to any other in this course; but we will take it as an interesting question what kinds of abstractions are to be used for explaining particular kinds of phenomena.
+### Descriptive Adequacy and Theoretical Depth
 
-To achieve parsimony, we try to align these abstractions with consistent patterns of inference. For example, a semanticist might consider examples like (@exm-love-positive)-(@exm-love-question) and observe that they all give rise to the inference in (@exm-mo-left).
+Beyond observational adequacy lies *descriptive adequacy*: capturing data "in terms of significant generalizations that express underlying regularities in the language" [@chomsky_current_1964, p. 63]. This drive for deeper explanation motivates the field's emphasis on parsimony and formal precision.
 
-(@exm-love-positive) Jo loves that Mo left.
-(@exm-love-negative) Jo doesn't love that Mo left.
-(@exm-love-question) Does Jo love that Mo left?
-(@exm-mo-left) Mo left.
+The history of generative syntax illustrates two approaches to achieving descriptive adequacy:
 
-They might further note that when we replace *love* with similar predicates–such as *hate*, *be surprised*, etc.–the inferential patterns remains the same.
-This observation might in turn lead one to posit, as a means of explaining the pattern of inference, an abstraction–call it FACTIVE [@kiparsky_fact_1970; @karttunen_observations_1971]–that (i) all of these predicates are associated with; and that (ii) when a predicate is associated with FACTIVE, it participants in the pattern observed above.
+1. **Analysis-driven**: Start with observationally adequate analyses in expressive formalisms, then extract generalizations as constraints
+2. **Hypothesis-driven**: Begin with constrained formalisms (like CCG or minimalist grammars) and test their empirical coverage
 
+The hypothesis-driven approach, which PDS adopts for semantics, aims to delineate phenomena through representational constraints. This becomes crucial when developing models that both accord with theoretical assumptions and can be evaluated quantitatively [@baroni_proper_2022; @pavlick_symbols_2023].
 
-### Limitations of the traditional methodology
+### The Power and Natural Boundaries of Traditional Methods
 
-While this methodology has yielded profound insights, it faces serious challenges when we try to scale up our empirical coverage. 
-It's important to be clear: the problem is *not* with introspective judgments per se—even formal experiments rely on participants' introspections about acceptability and inference. 
-The challenges are a mix of practical and theoretical:
+This methodology has yielded profound insights into semantic composition, scope phenomena, discourse dynamics, and the semantics-pragmatics interface. By focusing on carefully constructed examples and native speaker intuitions, theorists have uncovered deep regularities in how meaning is constructed and interpreted.
 
-1. **Scale limitations**: Our semantic theories aim to capture broad generalizations about languages with thousands of morphemes. Continuing the example above: English (and many other languages) has thousands of clause-embedding predicates (broadly construed). Traditional methodology, which relies on a handful of carefully constructed examples, cannot realistically examine patterns across entire lexicons. Can we trust generalizations based on examining 5-10 predicates to hold across hundreds?
+Yet every methodology has natural boundaries. Traditional semantic methods excel at identifying patterns and building theories but face practical constraints when we ask: How well do our generalizations, based on examining 5-10 predicates, extend to the thousands of predicates in the lexicon? What factors beyond semantic knowledge influence the judgments we observe? And how exactly does abstract semantic knowledge produce concrete behavioral responses?
 
-2. **Multiple causal factors**: When a linguist judges that (@exm-mo-left) follows from (@exm-love-positive), this judgment reflects many factors beyond semantic knowledge:
-- Prior beliefs about how likely it is that Mo actually left [@degen_prior_2021]
-- Potential ambiguities in the expressions (lexical, syntactic, semantic)  
-- The particular context imagined for the utterance
-- Individual differences in how people understand expressions
-- Strategies for making binary judgments about gradient phenomena
+## The Experimental Turn: New Opportunities for Semantic Theory
 
-3. **Implicit linking assumptions**: Perhaps most critically, traditional approaches leave implicit the connection between semantic knowledge and behavioral judgments. When we say a predicate "triggers" an inference, what exactly do we mean? How does abstract semantic knowledge produce concrete judgments? Without explicit theories of this link, we cannot rigorously test our semantic theories against behavioral data [@jasbi_linking_2019; @waldon_modeling_2020].
+The traditional methodology's success has created a foundation solid enough to support exciting new extensions. Experimental semantics brings the tools of behavioral experimentation to bear on questions about meaning, allowing us to test and refine theoretical insights at unprecedented scale.
 
-Traditional methodology provides no systematic way to tease apart these factors.
+### Scaling Semantic Investigation
 
-These limitations become acute when we consider the scale of semantic phenomena and the complexity of factors influencing judgments. This recognition has motivated a turn toward experimental methods that can address these challenges systematically.
+Where traditional methods might examine a handful of predicates, experimental approaches can investigate entire lexical domains. Extending our example involving the verb *love*: English has thousands of similar clause-embedding predicates, each potentially varying in its inferential properties. We can now test whether generalizations based on canonical examples extend across these vast lexicons.
 
-### Descriptive adequacy and the need for generalizations
+The MegaAttitude datasets [@white_computational_2016; @white_role_2018; @white_lexicosyntactic_2018; @white_frequency_2020; @an_lexical_2020; @moon_source_2020; @kane_intensional_2022] exemplify this approach, collecting inference judgments for hundreds of predicates across multiple inference types. This scale reveals patterns invisible to traditional methods—subtle distinctions between near-synonyms, unexpected predicate clusters, and systematic variation across semantic domains.
 
-If we're merely interested in observational adequacy, we could use a highly expressive formalism and stipulate the behavior of each expression. 
-But linguistic theory aims higher—we want *descriptive adequacy* [@chomsky_current_1964, p. 63]: to capture "the observed data...in terms of significant generalizations that express underlying regularities in the language." 
-Indeed, this drive for descriptive adequacy is a major reason we aim for parsimony.
+### Teasing Apart Contributing Factors
 
-To illustrate, it's useful to consider the history of generative syntactic theory. 
-Transformational grammars [@chomsky_syntactic_1957] are extremely expressive—they generate the recursively enumerable languages [@peters_generative_1973]. But natural languages form a much smaller class, a subset of the mildly context-sensitive languages [@joshi_convergence_1990]. How do we constrain our theories appropriately?
+Experimental methods allow us to investigate the rich array of factors that influence inference judgments:
 
-There have been two basic approaches:
+- **Semantic knowledge**: The core meanings of expressions
+- **World knowledge**: Prior beliefs about plausibility  
+- **Contextual factors**: The discourse context and QUD
+- **Individual differences**: Variation in how speakers interpret expressions
+- **Response strategies**: How participants use rating scales
 
-1. **Analysis-driven**: Start with observationally adequate analyses in an expressive formalism, then extract generalizations that can be reified as constraints [@chomsky_conditions_1973]
-2. **Hypothesis-driven**: Start with a constrained formalism (e.g., combinatory categorial grammars [@steedman_surface_1996] or minimalist grammars [@stabler_derivational_1997]) and test how well it covers the data
+Rather than viewing these as confounds, we can see them as windows into the cognitive processes underlying semantic interpretation. For instance, @degen_prior_2021 systematically manipulated world knowledge to show how prior beliefs modulate the strength of factive inferences, revealing the interplay between semantic and pragmatic factors.
 
-The hypothesis-driven approach aims to delineate hypotheses about phenomena through the constraints they place on representations. 
-This becomes crucial when we consider how to develop models that both accord with theoretical assumptions and can be evaluated quantitatively against data [@baroni_proper_2022; @pavlick_symbols_2023].
-A major aim of the framework we'll present in this course–Probabilistic Dynamic Semantics (PDS)–is to enable hypothesis-driven approaches to semantic theorizing with quantitative data.
+### Making Linking Hypotheses Explicit
 
-# The experimental turn in semantics
+Perhaps most importantly, experimental approaches force us to make explicit what traditional methods leave implicit: the link between semantic representations and behavioral responses [@jasbi_linking_2019; @waldon_modeling_2020]. When we say speakers judge that an inference follows, what cognitive processes produce that judgment? How do abstract semantic representations map onto slider scale responses?
 
-The limitations we've identified—achieving adequate coverage across large lexicons, disentangling multiple factors affecting judgments, and making explicit the link between theory and behavior—have motivated a burgeoning set of experimental approaches to semantics and pragmatics. 
-These approaches bring the tools of behavioral experimentation to bear on questions about meaning.
+This is not merely a methodological detail—it's a substantive theoretical question. Different linking hypotheses make different predictions about response patterns, allowing us to test not just our semantic theories but our assumptions about how those theories connect to behavior.
 
-## Scaling up empirical coverage
+## Understanding Gradience: A Taxonomy of Uncertainty
 
-Instead of relying on judgments from a few speakers about a handful of examples, experimental semantics collects judgments from large numbers of participants under controlled conditions. This addresses the scale problem directly.
+One of the most striking findings from experimental semantics is the pervasiveness of gradient judgments. While semanticists have long recognized the existence of graidence in some domains–e.g. gradable adjectives–we often assume categorical distinctions in other domains–e.g. factivity. And where traditional approaches often assume categorical distinctions, experimental data reveals continuous variation. Understanding this gradience is crucial for developing theories that connect formal semantics to behavioral data.
 
-The basic paradigm largely tracks the kinds of questions semanticists ask themselves and their informants: []{@exm-acceptability} []{@exm-truth-conditions} []{@exm-inference-question}
+### Two Fundamental Types of Uncertainty
 
-(@exm-acceptability) How natural does this sentence sound?
-(@exm-truth-conditions) Is this sentence true in the described scenario?
-(@exm-inference-question) Does this conclusion follow from this premise?
+The framework we'll explore distinguishes two types of uncertainty that can produce gradient judgments:
 
-One particularly influential paradigm is the inference judgment task. []{#exm-discovered-premise} []{#exm-discovered-question} Participants see a premise like (@exm-discovered-premise) and judge whether conclusions like (@exm-discovered-question) follow.
+```
+Sources of Gradience in Inference Judgments
+├── Resolved (Type-Level) Uncertainty
+│   ├── Ambiguity
+│   │   ├── Lexical (e.g., "run" = locomote vs. manage)
+│   │   ├── Syntactic (e.g., attachment ambiguities)
+│   │   └── Semantic (e.g., scope ambiguities)
+│   └── Discourse Status
+│       └── QUD (Question Under Discussion)
+└── Unresolved (Token-Level) Uncertainty
+    ├── Vagueness (e.g., threshold for "tall")
+    ├── World knowledge (e.g., likelihood facts are true)
+    └── Task effects
+        ├── Response strategies
+        └── Response error
+```
 
-(@exm-discovered-premise) Sarah discovered that the keys were in the drawer.
-(@exm-discovered-question) How likely is it that the keys were in the drawer?
+### Resolved Uncertainty: Multiple Discrete Possibilities
 
-Participants then respond on some scale–e.g. an ordinal or slider scale with endpoints labels *extremely unlikely* and *extremely likely*.
-
-By collecting such judgments for many morphems within some class of interest, many contexts in which those morphems occur, and many types of inferences that they might give rise to, one can build detailed profiles of those morphemes' inferential properties for downstream analysis. 
-One instance of this approach can be found in the MegaAttitude datasets [@white_computational_2016; @white_role_2018; @white_lexicosyntactic_2018; @white_frequency_2020; @an_lexical_2020; @moon_source_2020; @kane_intensional_2022], which focus on English cause-embedding verbs;
-but this methodology is broadly applicable in principle.
-This massive scale allows us to see patterns invisible to traditional methods. We can identify subtle distinctions between near-synonyms, unexpected interactions between predicates and their syntactic environments, and systematic variation across semantic domains.
-
-## Gradience and its sources
-
-One challenge that the experimental turn has revealed is that gradience is pervasive in semantic judgments. 
-For at least some phenomena, this gradience is unsuprising: 
-after all, philosophers and linguists have known about vagueness since antiquity. 
-What experimental work reveals is not that gradience exists, but rather its prevalence across phenomena.
-
-Taking examples from the MegaAttitude datasets, @white_role_2018 observe gradient measures of predicates' degrees of factivity, with no clear dividing lines among predicate classes (see also @xue_correlation_2011, @smith_projection_2011, @djarv_prosodic_2017). In neg-raising, @an_lexical_2020 find similar patterns in their MegaNegRaising dataset. And among belief and desire inferences, @kane_intensional_2022 observe gradient patterns in their MegaIntensionality dataset.
-
-The real question is: **What must linguistic knowledge be like to produce the observed patterns of gradience?**
-
-When *know* triggers inference ratings of 0.8 on average (on a 0-1 scale) while *think* triggers ratings of 0.3, what should we conclude? Are these gradient semantic representations or categorical knowledge plus performance factors?
-
-# The linking problem
-
-Testing semantic theory against inference judgment data requires auxiliary assumptions about the link between theoretical constructs and behavioral responses. These linking assumptions, often left implicit in traditional work, have become pressing given the fine-grained patterns revealed by experiments [@jasbi_linking_2019; @waldon_modeling_2020].
-
-## Connecting theory to behavior
-
-When a participant moves a slider to indicate their confidence (or assessment of the likelihood) that an inference follows, what exactly are they telling us? 
-Let's unpack in detail what we briefly described earlier as the *inference judgment task*.
-The response we observe reflects not just semantic knowledge but a complex cascade of cognitive processes:
-
-1. The participant reads linguistic stimuli
-2. They access their semantic knowledge to compute possible interpretations
-3. They consider their prior beliefs about the plausibility of different interpretations
-4. They map their internal confidence onto the response scale
-5. They physically produce a response, introducing motor noise
-
-Each step introduces potential variation. Traditional semantics could remain agnostic about these factors—if the theory says *know* presupposes its complement and speakers judge that *John knows that p* implies p, the theory is confirmed. But experimental semantics cannot maintain this separation. To learn about semantics from behavioral data, we need explicit theories of how semantic knowledge is deployed in judgment tasks.
-
-## Sources of variation in judgments
-
-To understand the gradience observed in experimental data, we need a taxonomy of its potential sources. We can regiment possible sources into two broad classes:
-
-<div style="text-align: center; margin: 2em 0;">
-<strong>Sources of gradience</strong><br/>
-├── <strong>Resolved (type-level) indeterminacy</strong><br/>
-│   ├── Ambiguity<br/>
-│   │   ├── Lexical<br/>
-│   │   ├── Syntactic<br/>
-│   │   └── Semantic<br/>
-│   └── Discourse status<br/>
-│       └── QUD<br/>
-└── <strong>Unresolved (token-level) indeterminacy</strong><br/>
-    ├── Task effects<br/>
-    │   ├── Response strategy<br/>
-    │   └── Response error<br/>
-    ├── Vagueness<br/>
-    └── World knowledge
-</div>
-
-### Resolved indeterminacy: Ambiguity at the type level
-
-Resolved indeterminacy drives uncertainty about the *type* of speech act one is interpreting. Once resolved, the interpretation is determinate. []{#exm-uncle-running} Consider (@exm-uncle-running):
+Resolved uncertainty arises when speakers must choose among discrete interpretations. []{#exm-uncle-running} Consider:
 
 (@exm-uncle-running) My uncle is running the race.
 
-The verb *run* is ambiguous between locomotion and management senses. If participants are asked "How likely is it that my uncle has good managerial skills?", responses will be bimodal—low ratings for the locomotion interpretation, high for the management interpretation. The *average* might be intermediate, but this reflects a mixture of two discrete interpretations, not true gradience.
+The verb "run" is ambiguous—the uncle might be a participant (locomotion) or the organizer (management). Asked "How likely is it that my uncle has good managerial skills?", participants who interpret "run" as locomotion might respond near 0.2, while those interpreting it as management might respond near 0.8. The population average might be 0.5, but this reflects a *mixture* of discrete interpretations, not genuine gradience.
 
-Other examples of resolved indeterminacy include:
-- **Syntactic ambiguity**: "I saw the man with the telescope" (attachment ambiguity)
-- **Scope ambiguity**: "Everyone loves someone" (surface vs. inverse scope)
-- **Discourse-level properties**: The question under discussion (QUD) affects which inferences are relevant
+This uncertainty is "resolved" because once speakers fix an interpretation, the inference follows determinately. The gradience emerges from averaging across different resolutions, not from uncertainty within any single interpretation.
 
-Each source leads to distinct, all-or-nothing inferences once the ambiguity is resolved. The gradience we observe comes from averaging across different resolutions.
+### Unresolved Uncertainty: Gradient Within Interpretations
 
-### Unresolved indeterminacy: Uncertainty at the token level
-
-Unresolved indeterminacy persists even after fixing all ambiguities and determining a unique interpretation. This uncertainty appears on *individual trials* of an experiment. []{#exm-uncle-tall} Consider (@exm-uncle-tall):
+Unresolved uncertainty persists even after fixing all ambiguities. []{#exm-uncle-tall} Consider:
 
 (@exm-uncle-tall) My uncle is tall.
 
-Even with no ambiguity about the meaning of *tall*, there's uncertainty about whether the uncle exceeds any particular height threshold (e.g., six feet). This is classic vagueness—the predicate's application conditions are inherently uncertain.
+Even with no ambiguity about "tall"'s meaning, speakers remain uncertain whether the uncle exceeds any particular height threshold. This is classic vagueness—the predicate's application conditions are inherently gradient [@fine_vagueness_1975; @graff_shifting_2000; @kennedy_vagueness_2007; @van_rooij_vagueness_2011; @sorensen_vagueness_2023].
 
-**World knowledge** creates another layer of unresolved indeterminacy. Even with *run* fixed to its locomotive sense in (@exm-uncle-running), there's uncertainty about how fast the uncle runs, whether he'll finish the race, etc. Our prior beliefs about uncles, races, and running all influence our judgments.
+World knowledge creates another layer: even knowing someone runs races (locomotion sense), we remain uncertain about their speed, endurance, or likelihood of finishing. These uncertainties appear within individual trials, not just across participants.
 
-**Task effects** add yet another layer:
-- **Response strategies**: Some participants hedge, avoiding scale endpoints
-- **Response error**: Motor noise, attention lapses, misclicks
+### Why This Distinction Matters
 
-### How sources interact
+The type of uncertainty has profound implications for semantic theory:
 
-Crucially, these sources of variation can co-occur and interact. Let's revisit our "uncle running" example from a different angle. Consider asking participants whether "My uncle is running the marathon" implies "My uncle is athletic":
+- **Resolved uncertainty** suggests discrete semantic representations with probabilistic selection
+- **Unresolved uncertainty** suggests gradient representations or probabilistic reasoning within fixed meanings
 
-1. **Resolved indeterminacy**: Which sense of *run*? (locomotion vs. management)
-2. **Unresolved indeterminacy** (given locomotion sense):
-   - **Vagueness**: How athletic counts as *athletic*?
-   - **World knowledge**: How fit must one be to run marathons?
-   - **Task effects**: How to map confidence onto the slider?
+Different phenomena may involve different uncertainty types. As we'll see, vagueness clearly involves unresolved uncertainty (everyone agrees "tall" lacks sharp boundaries), while factivity's gradience is more puzzling—is it resolved uncertainty from ambiguous predicates, or unresolved uncertainty in projection itself?
 
-The observed gradience in responses reflects all these factors simultaneously. Understanding which factors dominate in different domains is crucial for building adequate theories.
+## Case Studies: Testing Semantic Theory at Scale
 
-# Two case studies for PDS
+To illustrate how PDS bridges formal semantics and experimental data, we'll examine two case studies that exemplify different aspects of the framework.
 
-Understanding these sources of variation is crucial for developing adequate semantic theories. To demonstrate how Probabilistic Dynamic Semantics addresses these challenges, we'll examine two case studies that showcase different aspects of the framework.
+### Case Study 1: Vagueness and Gradable Adjectives
 
-## Case study 1: Vagueness and imprecision in gradable adjectives
+Vague predicates provide an ideal starting point because everyone agrees they involve gradient uncertainty. Expressions like *tall*, *expensive*, and *old* lack sharp boundaries—there's no precise height at which someone becomes tall [@lakoff_hedges_1973; @sadock_truth_1977; @lasersohn_pragmatic_1999; @krifka_approximate_2007; @solt_vagueness_2015].
 
-Our first case study examines gradable adjectives like *tall*, *expensive*, and *clean*. These expressions are ideal for introducing PDS because they clearly illustrate both types of uncertainty we've discussed.
+Formal semantic theories have long recognized this gradience. Degree-based approaches [@klein_semantics_1980; @bierwisch_semantics_1989; @kamp_two_1975; @kennedy_projecting_1999; @kennedy_scale_2005; @kennedy_vagueness_2007; @barker_dynamics_2002] analyze gradable adjectives as expressing relations to contextual thresholds:
 
-Consider the adjective *tall*:
-- **Unresolved indeterminacy**: Even with a fixed meaning, there's uncertainty about the threshold—how tall is tall enough?
-- **Context dependence**: The threshold shifts with comparison classes (tall for a basketball player vs. tall for a child)
-- **Individual variation**: Different speakers may have different thresholds
+- *tall* is true of x if height(x) ≥ d<sub>tall</sub>(context)
 
-Vagueness and imprecision have been central to semantic theory because they give rise to distinct inferential profiles [@fine_vagueness_1975; @graff_shifting_2000; @kennedy_vagueness_2007; @van_rooij_vagueness_2011; @sorensen_vagueness_2023]. The phenomena evoke uncertainty about whether expressions apply in particular situations:
+The threshold d<sub>tall</sub> varies with context—what counts as tall for a basketball player differs from tall for a child. But even within a fixed context, speakers show gradient judgments about borderline cases.
 
-(@exm-tall) The vague predicate *tall*.
-(@exm-six-feet) Six feet tall.
-(@exm-height-imprecise) He is six feet tall [when actually 5'11 15/16"].
+This makes vagueness ideal for demonstrating how PDS works. The framework can:
+- Maintain the compositional degree-based analysis from formal semantics
+- Add probability distributions over thresholds to capture gradient judgments
+- Model how context shifts these distributions
+- Link threshold distributions to slider scale responses
 
-Whether *tall* applies depends on the comparison class and threshold, both uncertain. In contrast, *six feet tall* seems precise, yet it's often applied imprecisely to people who are 5'11 15/16", suggesting comprehenders understand that uses can be imprecise [@lakoff_hedges_1973; @sadock_truth_1977; @lasersohn_pragmatic_1999; @krifka_approximate_2007; @solt_vagueness_2015].
+Recent experimental work reveals additional complexity. Different adjective types show distinct patterns:
+- **Relative adjectives** (*tall*, *wide*): Maximum gradience in positive form
+- **Absolute adjectives** (*clean*, *dry*): Different threshold distributions
+- **Minimum vs. maximum standard**: Asymmetric patterns of imprecision
 
-The lexical and compositional semantics affect how uncertainty behaves:
-- (@exm-relative-adj) **Relative adjectives** (*tall*, *wide*): vague in positive form
-- (@exm-max-standard) **Maximum-standard absolute adjectives** (*clean*): display imprecision
-- (@exm-min-standard) **Minimum-standard adjectives** (*dirty*): different patterns again
+These patterns both support and refine formal theories, showing how experimental data can advance theoretical understanding. Recent years have seen partial integration into computational models [@lassiter_context_2013; @qing_gradable_2014; @kao_nonliteral_2014; @lassiter_adjectival_2017; @bumford_rationalizing_2021].
 
-(@exm-relative-adj) Relative adjectives: *tall*, *wide*.
-(@exm-max-standard) Maximum-standard absolute adjectives: *clean*.
-(@exm-min-standard) Minimum-standard adjectives: *dirty*.
+### Case Study 2: Factivity and Projection
 
-Prior work has developed comprehensive theories of these distinctions [@klein_semantics_1980; @bierwisch_semantics_1989; @kamp_two_1975; @kennedy_projecting_1999; @barker_dynamics_2002; @kennedy_vagueness_2007]. Recent years have seen partial integration into computational models [@lassiter_context_2013; @qing_gradable_2014; @kao_nonliteral_2014; @lassiter_adjectival_2017; @bumford_rationalizing_2021].
+While vagueness involves expected gradience, factivity presents a puzzle. Traditional theory treats factivity as discrete—predicates either trigger presuppositions or they don't [@kiparsky_fact_1970; @karttunen_observations_1971]. Yet experimental data reveals pervasive gradience.
 
-**Why start with this phenomenon?** Vagueness represents the clearest case of semantic uncertainty—everyone agrees that "tall" lacks sharp boundaries. This makes it ideal for demonstrating how PDS compositionally derives distributions over thresholds while maintaining connections to formal semantic insights. Moreover, the interaction between semantics (what does "tall" mean?), context (who are we comparing to?), and world knowledge (how tall are people in this context?) exemplifies the multi-factor nature of semantic judgments.
+A predicate is *factive* if it triggers inferences about its complement that project through entailment-canceling operators. []{#exm-know-positive} []{#exm-know-negative} []{#exm-know-question} *Know* appears factive because "Mo left" is inferred from all of:
 
-This case study will show how PDS:
-1. Compositionally derives distributions over thresholds
-2. Models context-dependent standard-setting
-3. Captures individual differences in threshold placement
-4. Links semantic representations to slider judgments
+(@exm-know-positive) Jo knows that Mo left.
+(@exm-know-negative) Jo doesn't know that Mo left.  
+(@exm-know-question) Does Jo know that Mo left?
 
-## Case study 2: Factivity and presupposition projection
+But when @white_role_2018 and @degen_are_2022 collected projection judgments at scale, they found continuous variation [@xue_correlation_2011; @smith_projection_2011; @djarv_prosodic_2017 also observe similar patterns]. No clear line separates factive from non-factive predicates. Mean projection ratings vary continuously from *pretend* (lowest) to *be annoyed* (highest).
 
-Our second case study examines factivity—the phenomenon where certain predicates presuppose the truth of their complements. This showcases PDS's ability to model complex projection patterns and gradient judgments.
+![Aggregate factivity measures from MegaVeridicality dataset, showing continuous variation in projection ratings across predicates under positive and negative environments](images/veridicality_factivity.pdf){width=500}
 
-Let's return to the factivity example we introduced earlier, but now armed with our understanding of different sources of gradience. Recall that a predicate is *factive* if it triggers veridicality inferences that project through entailment-canceling operators [@kiparsky_fact_1970]. The predicate *love*, for instance, triggers the inference "Mo left" throughout these variations:
+This gradience poses a theoretical challenge [@simons_observations_2007; @simons_what_2010; @simons_best_2017; @tonhauser_how_2018]. Two hypotheses compete:
 
-(@exm-love-positive-2) Jo loves that Mo left.
-(@exm-love-negative-2) Jo doesn't love that Mo left.
-(@exm-love-question-2) Does Jo love that Mo left?
+**The Fundamental Discreteness Hypothesis**: Factivity remains discrete; gradience reflects:
+- Multiple predicate senses (factive and non-factive variants)
+- Structural ambiguity affecting projection [@varlokosta_issues_1994; @giannakidou_polarity_1998; @giannakidou_affective_1999; @giannakidou_dependency_2009; @roussou_selecting_2010; @farudi_antisymmetric_2007; @abrusan_predicting_2011; @kastner_factivity_2015; @ozyildiz_attitude_2017]
+- Contextual variation in whether complements are at-issue [@simons_best_2017; @roberts_preconditions_2024; @qing_rational_2016]
 
-Diagnosing factivity is challenging because inferences are greatly influenced by context [@karttunen_observations_1971]. The experimental literature reveals gradient patterns that challenge traditional discrete categories.
+**The Fundamental Gradience Hypothesis**: No discrete factivity property exists. Gradient patterns reflect different degrees to which predicates support complement truth inferences [@tonhauser_how_2018].
 
-**Why examine factivity after vagueness?** While vagueness involves expected gradience, factivity has traditionally been viewed as discrete—predicates are either factive or not. The discovery of systematic gradience in factivity judgments thus poses a deeper challenge: Does this gradience reflect discrete categories plus noise (resolved indeterminacy) or fundamental gradience in the phenomenon itself (unresolved indeterminacy)?
+PDS allows us to implement both hypotheses formally and test their predictions against fine-grained response distributions—not just means, but entire judgment patterns including multimodality that might indicate mixture distributions. This approach has been applied to factivity data from various experimental paradigms [@tonhauser_prosodic_2016; @djarv_prosodic_2017; @djarv_cognitive_2018; @white_role_2018; @white_lexicosyntactic_2018; @white_believing_2021; @degen_prior_2021; @degen_are_2022; @jeong_prosodically-conditioned_2021; @kane_intensional_2022].
 
-Two hypotheses compete:
+## The Need for New Frameworks
 
-**The Fundamental Discreteness Hypothesis**: Factivity is discrete—predicates either trigger projective inferences or don't. Gradience reflects resolved indeterminacy from:
-- Multiple senses (factive and non-factive variants)
-- Multiple structures [@varlokosta_issues_1994; @giannakidou_polarity_1998; @giannakidou_affective_1999; @giannakidou_dependency_2009; @roussou_selecting_2010; @farudi_antisymmetric_2007; @abrusan_predicting_2011; @kastner_factivity_2015; @ozyildiz_attitude_2017]
-- Contextual factors [@simons_best_2017; @roberts_preconditions_2024; @qing_rational_2016]
+These case studies illustrate what we need from a framework connecting formal semantics to experimental data:
 
-**The Fundamental Gradience Hypothesis**: No discrete factivity property exists. Gradient distinctions reflect different contributions predicates make to inferences about complement truth [@tonhauser_how_2018].
+**Maintain Compositionality**: Theories must derive complex meanings compositionally, preserving insights from decades of formal semantic research. We cannot abandon compositionality just because judgments are gradient.
 
-This case study demonstrates how PDS can model both hypotheses within a unified framework, make testable predictions about distribution shapes, and use model comparison to evaluate which better explains the data.
+**Model Uncertainty Explicitly**: The framework must represent both types of uncertainty—resolved ambiguities and unresolved gradience—and show how they interact during interpretation.
 
-## Why these case studies matter
+**Make Linking Hypotheses Precise**: We need explicit theories of how semantic representations produce behavioral responses. What cognitive processes intervene between computing a meaning and moving a slider?
 
-These phenomena—vagueness/imprecision and factivity—exemplify the challenges facing semantic theory as the number and size of datasets grows. Both show pervasive gradience that traditional frameworks struggle to capture. Both involve complex interactions between semantic knowledge, world knowledge, and contextual factors. And both have been subjects of extensive experimental investigation, providing rich datasets against which to evaluate our theories.
+**Enable Quantitative Evaluation**: Theories must make testable predictions about response distributions, not just average ratings. Different theories should be comparable using standard statistical metrics.
 
-By showing how PDS handles these cases, we'll demonstrate its ability to:
-- Maintain compositionality while modeling uncertainty
-- Integrate insights from formal semantics with probabilistic reasoning
-- Make quantitative predictions that can be tested against experimental data
-- Provide explicit linking theories connecting semantic representations to behavioral judgments
-
-The progression from vagueness (expected gradience) to factivity (unexpected gradience) also illustrates how PDS can address increasingly subtle phenomena while maintaining theoretical coherence.
-
-# The road ahead: From adequacy to implementation
-
-The challenges we've outlined—achieving adequacy across large portions of the lexicon, explaining gradient judgment patterns, and connecting theory to behavior—call for new tools. Traditional frameworks excel at characterizing possible interpretations but struggle with probabilistic aspects of meaning.
-
-This is where computational approaches enter the picture. As we'll see in the next section, frameworks like Rational Speech Act (RSA) models attempt to bridge formal semantics with probabilistic reasoning. While these approaches offer valuable insights, they also face limitations in maintaining the modularity and compositionality that make formal semantic theories so powerful. Probabilistic Dynamic Semantics, which we'll explore in detail throughout this course, offers a synthesis: maintaining the theoretical insights of compositional semantics while providing tools to model uncertainty, gradience, and the link to behavioral data.
+As we'll see in the next section, existing computational approaches like Rational Speech Act (RSA) models attempt to bridge formal semantics with probabilistic reasoning [@frank_predicting_2012; @goodman_knowledge_2013]. While valuable, these approaches face challenges in maintaining the modularity that makes formal semantic theories powerful. This motivates the development of Probabilistic Dynamic Semantics—a framework that preserves semantic insights while adding the probabilistic tools needed to model gradient behavioral data.
