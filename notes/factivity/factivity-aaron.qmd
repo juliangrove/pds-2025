@@ -142,14 +142,14 @@ Let's unpack this step by step to understand how discrete factivity is implement
    - Returns a function from propositions `p` to functions from individuals `x` to propositional meanings
 
 3. **The crucial branching**: `ITE (TauKnow s) ...` is an if-then-else that checks the factivity parameter:
-   - `TauKnow s` extracts whether this token of "know" is factive from the discourse state
+   - \ct{TauKnow} `s` extracts whether this token of "know" is factive from the discourse state
    - If factive: `And (epi i @@ x @@ p) (p @@ i)` — both the epistemic state AND the proposition itself
    - If non-factive: `epi i @@ x @@ p` — only the epistemic state
 
 4. **Semantic components**:
-   - `epi i @@ x @@ p`: x's epistemic state regarding p at index i
+   - \ct{epi} `i @@ x @@ p`: x's epistemic state regarding p at index i
    - `p @@ i`: the truth of p at index i  
-   - `And`: logical conjunction
+   - \ct{(∧)}: logical conjunction
 
 This branching implements the core insight: factive uses presuppose complement truth (via conjunction), while non-factive uses only assert the attitude relation.
 
@@ -186,7 +186,7 @@ This beta reduction process shows how the abstract lexical entry combines with s
 
 ### Delta rules: Simplifying the computation
 
-Before compilation to Stan, PDS applies delta rules to simplify the computation. From `Lambda.Delta`, the key rules for factivity involve state updates:
+Before compilation to Stan, PDS applies delta rules to simplify the computation. From `Lambda.Delta`, the key rules for factivity involve state updates and control flow:
 
 ```haskell
 -- Extracting factivity parameters from states
@@ -209,6 +209,13 @@ disjunctions :: DeltaRule
 disjunctions = \case
   Let b (Bern x) k -> Just (Disj x (subst b Tr k) (subst b Fa k))
   -- This transforms sampling into explicit branching
+  
+-- Handling observations
+observations :: DeltaRule
+observations = \case
+  Let _ (Observe Tr) k -> Just k  -- Observing truth is trivial
+  Let _ (Observe Fa) k -> Just Undefined  -- Observing falsity yields undefined
+  _                    -> Nothing
 ```
 
 These rules ensure that:
@@ -216,6 +223,7 @@ These rules ensure that:
 - State threading preserves information through discourse updates
 - Redundant computations are eliminated
 - Discrete sampling becomes explicit branching
+- Failed observations properly propagate as undefined distributions
 
 ### The prior distribution
 
@@ -229,7 +237,7 @@ factivityPrior =
   (Return (UpdTauKnow b ...)))  -- Update state with result
 ```
 
-After delta reduction, this becomes:
+After delta reduction (via the `disjunctions` rule), this becomes:
 
 ```haskell
 -- The Bernoulli sampling gets converted to a disjunction
@@ -390,7 +398,7 @@ parameters {
 ```
 
 Each parameter group corresponds to a component of the PDS model:
-- `verb_intercept_z`: The `TauKnow` values for each verb
+- `verb_intercept_z`: The \ct{TauKnow} values for each verb
 - `context_intercept_z`: World knowledge from the norming study
 - `subj_intercept_*_z`: Individual differences in interpretation
 - `sigma`: The noise parameter from `factivityRespond`
@@ -501,7 +509,7 @@ The translation from PDS to Stan reveals several key transformations:
 
 1. **Discrete choices become mixture weights**: The branching `ITE (TauKnow s)` becomes the mixture weight `verb_prob`
 
-2. **State dependencies become array indexing**: PDS's functional `TauKnow :: State -> Bool` becomes Stan's `verb_prob[verb[n]]`
+2. **State dependencies become array indexing**: PDS's functional \ct{TauKnow} :: $\sigma \to t$ becomes Stan's `verb_prob[verb[n]]`
 
 3. **Hierarchical sampling becomes non-centered parameterization**: The nested sampling in `factivityPrior` becomes Stan's `_z` parameters with scaling
 
@@ -530,7 +538,7 @@ The wholly-gradient model requires modifying three key components of the PDS spe
 } ]
 ```
 
-2. **Modified prior**: Place TauKnow in the common ground update:
+2. **Modified prior**: Place \ct{TauKnow} in the common ground update:
 
 ```haskell
 factivityPrior = 
@@ -541,7 +549,7 @@ factivityPrior =
     ϵ)))
 ```
 
-3. **Modified delta rules**: Move TauKnow handling to indices:
+3. **Modified delta rules**: Move \ct{TauKnow} handling to indices:
 
 ```haskell
 indices :: DeltaRule

@@ -12,6 +12,34 @@ Stan is a probabilistic programming language designed for statistical inference.
 
 To understand how Stan works and how we can use it to test semantic theories, let's work through three models of increasing complexity. We'll start with a baseline norming model that will serve as our introduction to Stan's structure and syntax.
 
+## The PDS implementation: Gradable adjectives
+
+Before diving into Stan code, let's examine how gradable adjectives are represented in PDS. From the Haskell codebase (`Grammar.Lexica.SynSem.Adjectives`), here's the lexical entry for "tall":
+
+```haskell
+"tall" -> [ SynSem {
+    syn = AP,
+    sem = ty tau (lam s (purePP (lam x (lam i 
+      (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+       (sCon "d_tall" @@ s))))) @@ s))
+} ]
+```
+
+This lexical entry encodes several key theoretical insights:
+
+1. **Syntactic type**: `AP` indicates this is an adjective phrase
+2. **Semantic computation**: The meaning is a function that:
+   - Takes a discourse state `s` (containing threshold information)
+   - Returns a function from entities `x` to propositions (functions from indices `i` to truth values)
+   - The proposition is true when the entity's height exceeds the contextual threshold
+
+3. **Semantic components**:
+   - \ct{height}: A function from indices to entity-to-degree mappings (type: $\iota \to e \to r$)
+   - \ct{d\_tall}: Extracts the threshold for "tall" from the discourse state (type: $\sigma \to r$)
+   - \ct{(≥)}: Comparison operator (type: $r \to r \to t$)
+
+This implements @kennedy_vagueness_2007's degree-based semantics, where gradable adjectives denote relations between degrees and contextually determined thresholds. The use of the discourse state for threshold storage captures the context-sensitivity of standards.
+
 ### Model 1: Baseline norming
 
 Let's start with the simplest possible model for understanding how participants judge items on gradable scales. This model will serve as our foundation for understanding Stan's structure and syntax. We'll build it up block by block, explaining every line.
@@ -347,6 +375,344 @@ We've also learned key Stan concepts:
 - **Censoring**: Handles boundary responses theoretically
 
 With this foundation in Stan, we can now understand how to translate semantic theories into Stan code.
+
+## From PDS lambda terms to semantic values
+
+Now that we understand Stan's structure through a concrete example, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. Let's work through a concrete example to see how the abstract PDS representation becomes executable Stan code.
+
+### Working through "Jo is tall"
+
+Let's trace how the sentence "Jo is tall" is processed through PDS, starting with the lexical entries:
+
+```haskell
+-- Step 1: Lexical entries
+"jo" -> SynSem {
+    syn = NP,
+    sem = ty tau (purePP (sCon "j"))
+}
+
+"is" -> SynSem {
+    syn = S :\: NP :/: AP,
+    sem = ty tau (purePP (lam x x))  -- Identity function
+}
+
+"tall" -> SynSem {
+    syn = AP,
+    sem = ty tau (lam s (purePP (lam x (lam i 
+      (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+       (sCon "d_tall" @@ s))))) @@ s))
+}
+```
+
+### Step 2: Composition via CCG rules
+
+Using the PDS rules from syntax-meaning-compositionality.qmd, we first combine "is" and "tall":
+
+```haskell
+-- "is tall" via forward application
+-- Type: S :\: NP
+-- Semantic value (before reduction):
+lam s (
+  Do { m1 <- purePP (lam x x);  -- meaning of "is"
+       m2 <- lam s' (purePP (lam x (lam i 
+              (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+               (sCon "d_tall" @@ s')))) @@ s;  -- meaning of "tall"
+       return (lam x (m1 (m2 x)))
+  }
+) @@ s
+```
+
+### Step 3: Beta reduction
+
+After beta reduction and simplification:
+
+```haskell
+-- "is tall" simplified:
+lam s (purePP (lam x (lam i 
+  (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+   (sCon "d_tall" @@ s)))) @@ s)
+
+-- Applying to "jo":
+-- After further reduction:
+lam s (purePP (lam i 
+  (sCon "(≥)" @@ (sCon "height" @@ i @@ sCon "j") @@ 
+   (sCon "d_tall" @@ s))) @@ s)
+```
+
+The final semantic value is a function that:
+1. Takes a discourse state `s`
+2. Extracts the threshold for "tall" from that state
+3. Returns a proposition that's true when Jo's height exceeds that threshold
+
+### Step 4: Delta rule applications
+
+Before compilation to Stan, several delta rules apply to simplify the computation:
+
+```haskell
+-- From the indices delta rule:
+indices :: DeltaRule
+indices = \case
+  Height (UpdHeight p _) -> Just p
+  Height (UpdEpi _ i)    -> Just (Height i)
+  -- ... other cases
+
+-- From the states delta rule:  
+states :: DeltaRule
+states = \case
+  DTall (UpdDTall d _) -> Just d
+  DTall (UpdCG _ s)    -> Just (DTall s)
+  -- ... other cases
+
+-- From the arithmetic delta rule:
+arithmetic :: DeltaRule
+arithmetic = \case
+  GE (DCon x) (DCon y) -> if x >= y then Just Tr else Just Fa
+  -- ... other cases
+```
+
+## Delta rules: Simplifying adjective computations
+
+The delta rules play a crucial role in translating PDS to Stan by simplifying λ-terms before compilation. Let's trace through a concrete example to see how they work.
+
+Consider evaluating "Jo is tall" in a context where:
+- The discourse state has \ct{d\_tall} = 170 (cm)
+- The index has Jo's height as 180 (cm)
+
+The computation proceeds as follows:
+
+```haskell
+-- Original expression (simplified):
+(sCon "(≥)" @@ (sCon "height" @@ i @@ sCon "j") @@ (sCon "d_tall" @@ s))
+
+-- After extracting height from index (via indices rule):
+-- Assume Height (UpdHeight (λx. if x == j then 180 else ...) i0)
+-- Reduces to: 180
+(sCon "(≥)" @@ DCon 180 @@ (sCon "d_tall" @@ s))
+
+-- After extracting threshold from state (via states rule):
+-- Assume DTall (UpdDTall 170 s0)
+-- Reduces to: 170
+(sCon "(≥)" @@ DCon 180 @@ DCon 170)
+
+-- After arithmetic comparison (via arithmetic rule):
+-- Since 180 >= 170:
+Tr  -- True
+```
+
+This sequence of reductions transforms the abstract semantic representation into a concrete truth value. The delta rules ensure that:
+1. State-dependent values are properly extracted
+2. Index-dependent values are resolved
+3. Arithmetic operations are performed
+4. The result is a simple value suitable for further processing
+
+## The compilation pipeline: From λ-terms to Stan
+
+The translation from PDS λ-terms to Stan involves several systematic transformations. Let's examine each transformation in detail:
+
+### 1. Threshold parameters: From state to arrays
+
+In PDS, thresholds are stored in the discourse state:
+```haskell
+-- PDS: Extract threshold from state
+sCon "d_tall" @@ s  -- Type: r
+```
+
+In Stan, this becomes an indexed parameter:
+```stan
+// Stan: Threshold as array element
+mu_guess[item[i]]  // For item "tall_high", "tall_mid", etc.
+```
+
+The compilation maps the functional extraction `d_tall(s)` to array indexing `mu_guess[item[i]]`. Each item (adjective × condition combination) gets its own threshold parameter.
+
+### 2. Height access: From indices to data
+
+In PDS, heights are functions of indices:
+```haskell
+-- PDS: Height as index-dependent function
+sCon "height" @@ i @@ x  -- Type: r
+```
+
+In Stan, heights become data (if known) or parameters (if inferred):
+```stan
+// Stan: Heights as data array
+vector[N_entities] heights;  // Known heights
+// Access: heights[entity[i]]
+```
+
+### 3. Comparison: From discrete to probabilistic
+
+The crucial semantic computation—comparing degree to threshold—undergoes the most significant transformation:
+
+```haskell
+-- PDS: Discrete comparison
+sCon "(≥)" @@ degree @@ threshold  -- Returns t (truth value)
+```
+
+In Stan Model 2 (vagueness), this becomes:
+```stan
+// Stan: Probabilistic comparison via normal CDF
+response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
+```
+
+This transformation implements several theoretical insights:
+- **Vagueness as uncertainty**: The `sigma_guess` parameter captures boundary fuzziness
+- **Probabilistic truth**: Instead of True/False, we get probabilities in [0,1]
+- **Smooth transitions**: The normal CDF creates gradient membership functions
+
+### 4. State threading: From dynamic to static
+
+PDS uses monadic operations to thread state through computations:
+```haskell
+-- PDS: State threading via monad
+lam s (... computation using s ...) @@ s
+```
+
+Stan has no notion of state threading, so this compiles to static parameter structures:
+```stan
+// Stan: Static parameter declaration
+parameters {
+  vector[N_adjective] spread;      // Context sensitivity
+  vector[N_item] d;                // Degrees
+  real<lower=0> sigma_guess;       // Vagueness
+}
+```
+
+The dynamic state updates in PDS become static relationships between parameters in Stan.
+
+### 5. Uncertainty propagation: From monadic to hierarchical
+
+PDS represents uncertainty via the probability monad:
+```haskell
+-- PDS: Sampling in the monad
+Do { threshold <- normal 175 10;
+     height <- getHeight x;
+     return (height >= threshold) }
+```
+
+Stan represents this as hierarchical structure:
+```stan
+// Stan: Hierarchical parameters
+parameters {
+  // Population-level
+  real mu_threshold;
+  real<lower=0> sigma_threshold;
+  
+  // Item-level
+  vector[N_item] threshold_z;
+}
+
+transformed parameters {
+  // Non-centered parameterization
+  vector[N_item] threshold = mu_threshold + sigma_threshold * threshold_z;
+}
+```
+
+## Prior distributions from PDS
+
+The PDS codebase includes prior specifications that encode theoretical assumptions about gradable adjectives. Let's examine these in detail:
+
+### Scale norming prior
+
+```haskell
+scaleNormingPrior :: Term
+scaleNormingPrior = Return (upd_CG cg' ϵ)
+  where cg' = let' b (Bern (dCon 0.5)) 
+              (let' x (normal 0 1) 
+              (let' y (normal 0 1) j'))
+        j'  = Return (UpdHeight (lam z (ITE (SocPla i' @@ z) x y)) i')
+        i'  = UpdSocPla (lam x b) _0
+```
+
+This prior encodes several assumptions:
+
+1. **Category membership uncertainty**: 
+   ```haskell
+   let' b (Bern (dCon 0.5))  -- 50% probability of category membership
+   ```
+   This could represent uncertainty about whether someone is a "soccer player" vs "linguist"
+
+2. **Height variation**:
+   ```haskell
+   let' x (normal 0 1)  -- Height for category 1
+   let' y (normal 0 1)  -- Height for category 2
+   ```
+   Different categories have different typical heights
+
+3. **Conditional assignment**:
+   ```haskell
+   lam z (ITE (SocPla i' @@ z) x y)
+   ```
+   An entity's height depends on its category membership
+
+### Likelihood inference prior
+
+```haskell
+likelihoodPrior :: Term
+likelihoodPrior = let' x (normal 0 1) 
+                  (Return (UpdDTall x (upd_CG cg' ϵ)))
+  where cg' = let' y (normal 0 1) 
+              (let' w (LogitNormal 0 1) 
+              (let' b (Bern w) 
+              (Return (UpdHeight (lam z y) 
+                      (UpdSocPla (lam z b) _0)))))
+```
+
+This prior adds threshold uncertainty:
+
+1. **Threshold variation**:
+   ```haskell
+   let' x (normal 0 1) (Return (UpdDTall x ...))
+   ```
+   The threshold for "tall" varies (on a standardized scale)
+
+2. **Category probability on logit scale**:
+   ```haskell
+   let' w (LogitNormal 0 1) (let' b (Bern w) ...)
+   ```
+   The logit-normal ensures probabilities stay in [0,1] while allowing flexible shapes
+
+These priors translate to Stan's hierarchical structures, encoding our uncertainty about both word meanings and world knowledge.
+
+## Response function implementation
+
+The response function maps semantic values to behavioral responses:
+
+```haskell
+-- From Adjectives.hs
+adjectivesRespond :: Term -> Term -> Term
+adjectivesRespond = respond (lam x (Normal x (Var "sigma")))
+
+-- Expanding the definition of respond:
+respond f bg m = let' s bg m'
+  where m' = let' _s' (m @@ s) 
+             (let' i (cg (Pi2 _s')) 
+             (f @@ max' (lam x (qud (Pi2 _s') @@ x @@ i))))
+```
+
+This implements a complete pipeline:
+
+1. **Background knowledge**: Sample from prior beliefs (`bg`)
+2. **Discourse update**: Apply the discourse/assertion (`m`)
+3. **Extract common ground**: Get the updated beliefs
+4. **Find maximum answer**: Compute the answer to the current QUD
+5. **Generate response**: Add Gaussian noise (linking hypothesis)
+
+In Stan, this becomes:
+```stan
+model {
+  // Background knowledge (priors)
+  mu_guess ~ normal(prior_mean, prior_std);
+  
+  // Semantic computation (via transformed parameters)
+  // ... 
+  
+  // Response generation (likelihood)
+  y ~ normal(response_rel, sigma_e);
+}
+```
+
+The `sigma` parameter in the response function becomes `sigma_e` in Stan, implementing the noisy measurement assumption central to psychophysical approaches to semantics @lassiter_measurement_2013.
 
 ## Mapping lambda-terms to Stan code
 
