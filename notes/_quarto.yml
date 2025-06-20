@@ -15,7 +15,9 @@ website:
       - background/background.qmd
     - section: "Introduction to probabilistic dynamic semantics"
       contents:
-      - pds-intro/pds-intro.qmd
+      - pds-intro/overview.qmd
+      - pds-intro/syntax-meaning-compositionality.qmd
+      - pds-intro/implementation.qmd
     - section: "Vagueness and imprecision"
       contents:
       - adjectives/adjectives.qmd
