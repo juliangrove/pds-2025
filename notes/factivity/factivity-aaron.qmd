@@ -1,3 +1,35 @@
+---
+bibliography: ../../pds.bib
+format:
+  html:
+    css: ../styles.css
+    html-math-method: mathjax
+    mathjax-config:
+      loader: {load: ['[tex]/bussproofs','[tex]/bbox','[tex]/colorbox']}
+      tex:
+        packages: {'[+]': ['bussproofs','bbox','colorbox']}
+---
+
+::: {.hidden}
+$$
+\newcommand{\expr}[3]{\begin{array}{c}
+#1 \\
+\bbox[lightblue,5px]{#2}
+\end{array} ⊢ #3}
+\newcommand{\ct}[1]{\bbox[font-size: 0.8em]{\mathsf{#1}}}
+\newcommand{\updct}[1]{\ct{upd\_#1}}
+\newcommand{\abbr}[1]{\bbox[transform: scale(0.95)]{\mathtt{#1}}}
+\newcommand{\pure}[1]{\bbox[border: 1px solid orange]{\bbox[border: 4px solid transparent]{#1}}}
+\newcommand{\return}[1]{\bbox[border: 1px solid black]{\bbox[border: 4px solid transparent]{#1}}}
+\def\P{\mathtt{P}}
+\def\Q{\mathtt{Q}}
+\def\True{\ct{T}}
+\def\False{\ct{F}}
+\def\ite{\ct{if\_then\_else}}
+\def\Do{\abbr{do}}
+$$
+:::
+
 # Factivity and presupposition projection: From PDS to Stan
 
 Building on our exploration of gradable adjectives—where gradience is expected and theoretically motivated—we now turn to factivity, a phenomenon where gradience poses a deeper theoretical puzzle. While vagueness naturally involves uncertain thresholds, factivity has traditionally been viewed as a discrete property: predicates either presuppose the truth of their complements or they don't [@kiparsky_fact_1970; @karttunen_observations_1971]. The discovery of systematic gradience in factivity judgments thus challenges fundamental assumptions about the nature of presupposition and projection.
@@ -120,7 +152,7 @@ Let's examine how PDS implements the discrete factivity hypothesis. The key insi
 
 ### The lexical entry for "know"
 
-From `Grammar.Lexica.SynSem.Factivity`, here's the entry for "knows":
+From [`Grammar.Lexica.SynSem.Factivity`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Factivity.html), here's the entry for "knows":
 
 ```haskell
 "knows" -> [ SynSem {
@@ -147,7 +179,7 @@ Let's unpack this step by step to understand how discrete factivity is implement
    - If non-factive: `epi i @@ x @@ p` — only the epistemic state
 
 4. **Semantic components**:
-   - \ct{epi} `i @@ x @@ p`: x's epistemic state regarding p at index i
+   - `epi i @@ x @@ p`: x's epistemic state regarding p at index i
    - `p @@ i`: the truth of p at index i  
    - \ct{(∧)}: logical conjunction
 
@@ -178,7 +210,7 @@ lam s (purePP (lam i
        (And (epi i @@ j @@ left) (left @@ i))
        (epi i @@ j @@ left))) @@ s))
 
--- Step 4: The purePP wraps this in the probabilistic monad
+-- Step 4: The purePP injects this into the State.Probability parameterized monad
 -- We get a computation that depends on the discourse state s
 ```
 
@@ -186,7 +218,7 @@ This beta reduction process shows how the abstract lexical entry combines with s
 
 ### Delta rules: Simplifying the computation
 
-Before compilation to Stan, PDS applies delta rules to simplify the computation. From `Lambda.Delta`, the key rules for factivity involve state updates and control flow:
+Before compilation to Stan, PDS applies delta rules to simplify the computation. From [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html), the key rules for factivity involve state updates and control flow:
 
 ```haskell
 -- Extracting factivity parameters from states
@@ -227,7 +259,7 @@ These rules ensure that:
 
 ### The prior distribution
 
-The prior determines how often "know" is used factively. From `factivityPrior`:
+The prior determines how often "know" is used factively. From [`factivityPrior`](https://juliangrove.github.io/pds/src/Grammar.Lexica.SynSem.Factivity.html#factivityPrior):
 
 ```haskell
 factivityPrior :: Term
@@ -538,7 +570,7 @@ The wholly-gradient model requires modifying three key components of the PDS spe
 } ]
 ```
 
-2. **Modified prior**: Place \ct{TauKnow} in the common ground update:
+2. **Modified prior**: Place $\ct{TauKnow}$ in the common ground update:
 
 ```haskell
 factivityPrior = 
