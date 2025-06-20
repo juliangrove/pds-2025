@@ -9,6 +9,7 @@ website:
     style: docked
     search: true
     contents:
+    - about.qmd
     - index.qmd
     - section: "Background"
       contents:
