@@ -12,19 +12,19 @@ website:
     - index.qmd
     - section: "Background"
       contents:
-      - background/background.qmd
-    - section: "Introduction to probabilistic dynamic semantics"
+      - background/index.qmd
+    - section: "Introduction to PDS"
       contents:
-      - pds-intro/pds-intro.qmd
-    - section: "Vagueness and imprecision"
+      - pds-intro/index.qmd
+    - section: "Gradable adjectives"
       contents:
-      - adjectives/adjectives.qmd
+      - adjectives/index.qmd
     - section: "Factivity inferences"
       contents:
-      - factivity/factivity.qmd
+      - factivity/index.qmd
     - section: "Modeling the question prompt"
       contents:
-      - qud/qud.qmd
+      - qud/index.qmd
 
 format:
   html:

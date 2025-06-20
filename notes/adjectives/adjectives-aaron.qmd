@@ -1,5 +1,0 @@
-# Probabilistic programs in Stan
-
-## Structure of a Stan program
-
-## Mapping lambda-terms to Stan code
