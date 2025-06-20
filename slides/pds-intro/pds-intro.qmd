@@ -73,84 +73,185 @@ they have great difficulty characterizing:
 (@ex-magician)
 The magician's assistant won't admit that they laughed during the trick.
 
-::: {.fragment}
+
+(@ex-laugh-q)
+Did the magician's assistant laugh?
+
+---
+
+## Inferential uncertainty
+
+::: {.nonincremental}
+(@ex-magician)
+The magician's assistant won't admit that they laughed during the trick.
+
+
 (@ex-laugh-q)
 Did the magician's assistant laugh?
 :::
 
+![](images/1.png){width=50px}
 
-  \item \includegraphics[height=5mm]{./images/laugher.png}\,\,\,{\LARGE \color{gb-red} X}
-    \hfill
-    \only<3>{\includegraphics[width=7cm]{./images/yes-no-slider1}}
-    \only<4->{\includegraphics[width=7cm]{./images/no.png}} \pause\pause
-  \item \includegraphics[height=5mm]{./images/laugher.png} \checkmark
-    \hfill
-    \only<5>{\includegraphics[width=7cm]{./images/yes-no-slider1.png}}
-    \only<6->{\includegraphics[width=7cm]{./images/yes.png}}
-  \end{itemize}
-  \pause\pause
-  Average response:
-  \begin{center}
-    \only<8>{\includegraphics[width=7cm]{./images/yes-no-slider1.png}}
-    \only<9>{\includegraphics[width=7cm]{./images/yes-no-slider2.png}}
-  \end{center}
-\end{frame}
+---
 
-<!-- \begin{frame}{Prior approach \#2} -->
-<!--   Frameworks for probabilistic semantics and pragmatics provide powerful tools for characterizing \alert{uncertainty} about what we can mean in using linguistics expressions: \pause -->
-<!--   \begin{itemize} -->
-<!--   \item sampling from and querying arbitrary probability distributions \pause -->
-<!--   \item relating the output to (e.g., human) data \pause -->
-<!--   \item formal model comparison -->
-<!--   \end{itemize} \pause -->
+## Inferential uncertainty
 
-<!--   \textbf{Challenge:} no general structure-preserving method for mapping between semantic analyses and probabilistic analyses. -->
-<!-- \end{frame} -->
+::: {.nonincremental}
+(@ex-magician)
+The magician's assistant won't admit that they laughed during the trick.
 
-<!-- \begin{frame}{Probabilistic Dynamic Semantics} -->
-<!--   \textbf{Goal:} arrive at a framework that views probabilistic reasoning as arising from a module that can be \alert{added} to a semantic analysis without changing its structure. \\ \pause -->
-<!--   ~\\ -->
-<!--   \textbf{Results:} \pause -->
-<!--   \begin{itemize} -->
-<!--   \item We can characterize and distinguish difference sources of inferential uncertainty. \pause -->
-<!--   \item We can use *existing semantic theories* to characterize this uncertainty by plugging them into the framework. \pause -->
-<!--   \item We can formally compare different semantic theories with each other, by seeing how well they characterize the uncertainty exhibited by a dataset. -->
-<!--   \end{itemize} -->
-<!-- \end{frame} -->
 
-<!-- \begin{frame}{The general program} -->
-<!--   Ideally, such a methodology would be widely available to linguists working on meaning. \\ \pause -->
-<!--   ~\\ -->
-<!--   Large-scale inference datasets are becoming more and more central to linguistic methodology, and semantic theory should keep up! \\ \pause -->
-<!--   ~\\ -->
-<!--   Tools to render semantic theories as probabilistic models can help catalyze this process, while making the latter more broadly accessible. -->
-<!--   (More on this later.) -->
-<!-- \end{frame} -->
+(@ex-laugh-q)
+Did the magician's assistant laugh?
+:::
 
-<!-- \begin{frame}{The basic idea} -->
-<!--   We should think of an experimental trial as a little discourse. -->
-<!--   \pause -->
-<!--   \begin{center} -->
-<!--     \includegraphics[width=200px]{./images/schematic.png} -->
-<!--   \end{center} -->
-<!--   \pause \vspace{-5mm} -->
-<!--   \begin{itemize} -->
-<!--   \item \alert{Sentences:} -->
-<!--     Start with a prior distribution over parameters some kind (e.g., encoding world knowledge, basic meanings). \pause -->
-<!--     Update this prior with \(⟦\textit{s1}⟧\), then \(⟦\textit{s2}⟧\), etc. \pause -->
-<!--   \item \alert{Question:} -->
-<!--     Add \(⟦\textit{q}⟧\) to the stack of questions under discussion \autocite{ginzburg_dynamics_1996,farkas_reacting_2010}. \pause -->
-<!--   \item \alert{Answer:} -->
-<!--     Retrieve \(⟦\textit{q}⟧\) from the question stack; -->
-<!--     respond (i.e., query an inference distribution). -->
-<!--   \end{itemize} -->
-<!-- \end{frame} -->
+![](images/2.png)
 
-<!-- \begin{frame}{Upshot} -->
-<!--   Once we have modeled the entire discourse in terms of some semantic analysis, we end up with \alert{a distribution over answers to the question prompt}. \\ \pause -->
-<!--   ~\\ -->
-<!--   Crucially, this is a distribution we can learn about, i.e., from data collected using exactly such an experimental trial!  -->
-<!-- \end{frame} -->
+---
+
+## Inferential uncertainty
+
+::: {.nonincremental}
+(@ex-magician)
+The magician's assistant won't admit that they laughed during the trick.
+
+
+(@ex-laugh-q)
+Did the magician's assistant laugh?
+:::
+
+![](images/3.png)
+
+---
+
+## Inferential uncertainty
+
+::: {.nonincremental}
+(@ex-magician)
+The magician's assistant won't admit that they laughed during the trick.
+
+
+(@ex-laugh-q)
+Did the magician's assistant laugh?
+:::
+
+![](images/4.png)
+
+---
+
+## Inferential uncertainty
+
+::: {.nonincremental}
+(@ex-magician)
+The magician's assistant won't admit that they laughed during the trick.
+
+
+(@ex-laugh-q)
+Did the magician's assistant laugh?
+:::
+
+![](images/4.png)
+
+Average response:
+
+![](images/5.png)
+
+---
+
+## Inferential uncertainty
+
+::: {.nonincremental}
+(@ex-magician)
+The magician's assistant won't admit that they laughed during the trick.
+
+
+(@ex-laugh-q)
+Did the magician's assistant laugh?
+:::
+
+![](images/4.png)
+
+Average response:
+
+![](images/6.png)
+
+---
+
+
+## Prior approach #2
+
+Frameworks for probabilistic semantics and pragmatics provide powerful tools for characterizing [uncertainty]{.gb-orange} about what we can mean in using linguistics expressions: 
+
+- sampling from and querying arbitrary probability distributions 
+- relating the output to (e.g., human) data 
+- formal model comparison
+  
+::: {.fragment}
+Challenge:
+no general structure-preserving method for mapping between semantic analyses and probabilistic analyses.
+:::
+
+---
+
+## "Probabilistic Dynamic Semantics"
+
+Goal:
+framework where probabilistic reasoning can be [added]{.gb-orange} to a semantic analysis without changing its structure.
+
+::: {.fragment}
+Result:
+
+- characterize and distinguish difference sources of uncertainty 
+- use *existing semantic theories* by plugging them into the framework 
+- formally compare different semantic theories with each other
+
+:::
+
+---
+
+## A general goal
+
+- Have a methodology that is widely available to linguists working on meaning.
+
+::: {.fragment}
+Large-scale inference datasets are becoming more and more central to linguistic methodology, and semantic theory should keep up! 
+
+- Tools to render semantic theories as probabilistic models can help catalyze things.
+:::
+
+---
+
+## The basic idea
+
+We should think of an experimental trial as a little discourse.
+  
+<br>
+<div style="text-align: center;">
+<img src="images/schematic.png" style="width: 80%;">
+</div>
+  
+---
+
+## The basic idea (cont'd)
+  
+- [Sentences:]{.gb-orange}
+  Start with a prior distribution over parameters some kind (e.g., encoding world knowledge, basic meanings). 
+  Update this prior with $⟦\textit{s1}⟧$, then $⟦\textit{s2}⟧$, etc. 
+- [Question:]{.gb-orange}
+  Add $⟦\textit{q}⟧$ to the stack of questions under discussion [@ginzburg_dynamics_1996; @farkas_reacting_2010]. 
+- [Answer:]{.gb-orange}
+  Retrieve $⟦\textit{q}⟧$ from the question stack;
+  respond (i.e., query an inference distribution).
+
+---
+
+## Upshot
+
+  Once we have modeled the entire discourse in terms of some semantic analysis, we end up with [a distribution over answers to the question prompt]{.gb-orange}.
+  
+- A distribution we can learn about from data collected using such trials.
+
+---
 
 # Overview
 
