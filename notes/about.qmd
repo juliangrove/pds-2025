@@ -7,7 +7,7 @@ This site contains materials for [a course](https://juliangrove.github.io/nassll
 ## About the instructors
 
 [Julian Grove](http://juliangrove.github.io/) is a postdoctoral researcher in [Linguistics](http://www.sas.rochester.edu/lin/) at the [University of Rochester](https://rochester.edu/) and a member of the [Formal and Computational Semantics lab](http://factslab.io/) (FACTS.lab).
-He is interested in bringing computational tools from Bayesian data analysis and programming language theory to type-theoretic natural language semantics.
+He is interested in combining computational tools from Bayesian data analysis and programming language theory and bringing them to semantics.
 He will be an Assistant Professor of Semantics and Computational Linguistics at the [University of Florida](https://lin.ufl.edu/) starting in August, 2025.
 
 [Aaron Steven White](http://aaronstevenwhite.io/) is an Associate Professor of [Linguistics](http://www.sas.rochester.edu/lin/) and [Computer Science](https://www.cs.rochester.edu/) at the [University of Rochester](https://rochester.edu/), where he directs the [Center for Language Sciences](https://www.sas.rochester.edu/cls/) and the [Formal and Computational Semantics lab](http://factslab.io/) (FACTS.lab).
