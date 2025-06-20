@@ -269,7 +269,7 @@ factivityPrior =
   (Return (UpdTauKnow b ...)))  -- Update state with result
 ```
 
-After delta reduction (via the `disjunctions` rule), this becomes:
+After delta reduction (via the [`disjunctions`](https://juliangrove.github.io/pds/src/Lambda.Delta.html#disjunctions) rule), this becomes:
 
 ```haskell
 -- The Bernoulli sampling gets converted to a disjunction
