@@ -2,7 +2,7 @@
 title: "About"
 ---
 
-This site contains materials for [a course](https://juliangrove.github.io/nassli-2025/) on *Probabilistic dynamic semantics* given by [Julian Grove](http://juliangrove.github.io/) and [Aaron Steven White](http://aaronstevenwhite.io/) at [NASSLLI 2025](https://nasslli25.shane.st/), held at the [University of Washington](https://www.washington.edu/) from June 23–27, 2025. 
+This site contains materials for [a course](https://juliangrove.github.io/nasslli-2025/) on *Probabilistic dynamic semantics* given by [Julian Grove](http://juliangrove.github.io/) and [Aaron Steven White](http://aaronstevenwhite.io/) at [NASSLLI 2025](https://nasslli25.shane.st/), held at the [University of Washington](https://www.washington.edu/) from June 23–27, 2025. 
 
 ## About the instructors
 
