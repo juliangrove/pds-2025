@@ -39,7 +39,9 @@ This observation might in turn lead one to posit, as a means of explaining the p
 
 ### Limitations of the traditional methodology
 
-While this methodology has yielded profound insights, it faces serious challenges when we try to scale up our empirical coverage. It's important to be clear: the problem is *not* with introspective judgments per se—even formal experiments rely on participants' introspections about acceptability and inference. Rather, the challenges are more fundamental:
+While this methodology has yielded profound insights, it faces serious challenges when we try to scale up our empirical coverage. 
+It's important to be clear: the problem is *not* with introspective judgments per se—even formal experiments rely on participants' introspections about acceptability and inference. 
+The challenges are a mix of practical and theoretical:
 
 1. **Scale limitations**: Our semantic theories aim to capture broad generalizations about languages with thousands of morphemes. Continuing the example above: English (and many other languages) has thousands of clause-embedding predicates (broadly construed). Traditional methodology, which relies on a handful of carefully constructed examples, cannot realistically examine patterns across entire lexicons. Can we trust generalizations based on examining 5-10 predicates to hold across hundreds?
 
@@ -50,13 +52,13 @@ While this methodology has yielded profound insights, it faces serious challenge
 - Individual differences in how people understand expressions
 - Strategies for making binary judgments about gradient phenomena
 
-Traditional methodology provides no systematic way to tease apart these factors.
-
 3. **Implicit linking assumptions**: Perhaps most critically, traditional approaches leave implicit the connection between semantic knowledge and behavioral judgments. When we say a predicate "triggers" an inference, what exactly do we mean? How does abstract semantic knowledge produce concrete judgments? Without explicit theories of this link, we cannot rigorously test our semantic theories against behavioral data [@jasbi_linking_2019; @waldon_modeling_2020].
+
+Traditional methodology provides no systematic way to tease apart these factors.
 
 These limitations become acute when we consider the scale of semantic phenomena and the complexity of factors influencing judgments. This recognition has motivated a turn toward experimental methods that can address these challenges systematically.
 
-## Descriptive adequacy and the need for generalizations
+### Descriptive adequacy and the need for generalizations
 
 If we're merely interested in observational adequacy, we could use a highly expressive formalism and stipulate the behavior of each expression. 
 But linguistic theory aims higher—we want *descriptive adequacy* [@chomsky_current_1964, p. 63]: to capture "the observed data...in terms of significant generalizations that express underlying regularities in the language." 
@@ -81,9 +83,9 @@ These approaches bring the tools of behavioral experimentation to bear on questi
 
 ## Scaling up empirical coverage
 
-Instead of relying on introspections from a few speakers about a handful of examples, experimental semantics collects judgments from large numbers of participants under controlled conditions. This addresses the scale problem directly.
+Instead of relying on judgments from a few speakers about a handful of examples, experimental semantics collects judgments from large numbers of participants under controlled conditions. This addresses the scale problem directly.
 
-The basic paradigm largely tracks kidns of questions semanticists ask themselves and their informants: []{@exm-acceptability} []{@exm-truth-conditions} []{@exm-inference-question}
+The basic paradigm largely tracks the kinds of questions semanticists ask themselves and their informants: []{@exm-acceptability} []{@exm-truth-conditions} []{@exm-inference-question}
 
 (@exm-acceptability) How natural does this sentence sound?
 (@exm-truth-conditions) Is this sentence true in the described scenario?
@@ -96,22 +98,23 @@ One particularly influential paradigm is the inference judgment task. []{#exm-di
 
 Participants then respond on some scale–e.g. an ordinal or slider scale with endpoints labels *extremely unlikely* and *extremely likely*.
 
-By collecting such judgments for many predicates, embedded clauses, and inference types, researchers build detailed profiles of inferential properties. The MegaVeridicality dataset, for instance, contains over 500,000 inference judgments covering essentially all clause-embedding predicates in English [@white_role_2018; @white_lexicosyntactic_2018].
-
+By collecting such judgments for many morphems within some class of interest, many contexts in which those morphems occur, and many types of inferences that they might give rise to, one can build detailed profiles of those morphemes' inferential properties for downstream analysis. 
+One instance of this approach can be found in the MegaAttitude datasets [@white_computational_2016; @white_role_2018; @white_lexicosyntactic_2018; @white_frequency_2020; @an_lexical_2020; @moon_source_2020; @kane_intensional_2022], which focus on English cause-embedding verbs;
+but this methodology is broadly applicable in principle.
 This massive scale allows us to see patterns invisible to traditional methods. We can identify subtle distinctions between near-synonyms, unexpected interactions between predicates and their syntactic environments, and systematic variation across semantic domains.
 
 ## Gradience and its sources
 
-The richness of experimental data reveals something that shouldn't be surprising but demands explanation: gradience is pervasive in semantic judgments. After all, philosophers and linguists have known about vagueness since antiquity—the sorites paradox demonstrates that categories like "tall" or "heap" lack sharp boundaries. What experimental work reveals is not that gradience exists, but rather its systematic nature across semantic domains.
+One challenge that the experimental turn has revealed is that gradience is pervasive in semantic judgments. 
+For at least some phenomena, this gradience is unsuprising: 
+after all, philosophers and linguists have known about vagueness since antiquity. 
+What experimental work reveals is not that gradience exists, but rather its prevalence across phenomena.
+
+Taking examples from the MegaAttitude datasets, @white_role_2018 observe gradient measures of predicates' degrees of factivity, with no clear dividing lines among predicate classes (see also @xue_correlation_2011, @smith_projection_2011, @djarv_prosodic_2017). In neg-raising, @an_lexical_2020 find similar patterns in their MegaNegRaising dataset. And among belief and desire inferences, @kane_intensional_2022 observe gradient patterns in their MegaIntensionality dataset.
 
 The real question is: **What must linguistic knowledge be like to produce the observed patterns of gradience?**
 
-This gradience appears systematically across multiple domains. In factivity, @white_role_2018 observe gradient measures of predicates' degrees of factivity, with no clear dividing lines among predicate classes (see also @xue_correlation_2011, @smith_projection_2011, @djarv_prosodic_2017). In neg-raising, @an_lexical_2020 find similar patterns in their MegaNegRaising dataset. And in intensionality, @kane_intensional_2022 observe gradient patterns among belief and desire inferences in their MegaIntensionality dataset. Some authors claim this pervasive gradience casts doubt on discrete lexical categories [@degen_are_2022; @tonhauser_how_2018].
-
-(@exm-know-trigger) (@exm-think-trigger) When *know* triggers inference ratings of 0.8 on average (on a 0-1 scale) while *think* triggers ratings of 0.3, what should we conclude? Are these gradient semantic representations or categorical knowledge plus performance factors?
-
-(@exm-know-trigger) Know triggers inference ratings of 0.8 on average.
-(@exm-think-trigger) Think triggers ratings of 0.3.
+When *know* triggers inference ratings of 0.8 on average (on a 0-1 scale) while *think* triggers ratings of 0.3, what should we conclude? Are these gradient semantic representations or categorical knowledge plus performance factors?
 
 # The linking problem
 
@@ -119,7 +122,9 @@ Testing semantic theory against inference judgment data requires auxiliary assum
 
 ## Connecting theory to behavior
 
-When a participant moves a slider to indicate their confidence (or assessment of the likelihood) that an inference follows, what exactly are they telling us? Let's unpack in detail what we briefly described earlier as the "inference judgment task." The response we observe reflects not just semantic knowledge but a complex cascade of cognitive processes:
+When a participant moves a slider to indicate their confidence (or assessment of the likelihood) that an inference follows, what exactly are they telling us? 
+Let's unpack in detail what we briefly described earlier as the *inference judgment task*.
+The response we observe reflects not just semantic knowledge but a complex cascade of cognitive processes:
 
 1. The participant reads linguistic stimuli
 2. They access their semantic knowledge to compute possible interpretations
@@ -127,7 +132,7 @@ When a participant moves a slider to indicate their confidence (or assessment of
 4. They map their internal confidence onto the response scale
 5. They physically produce a response, introducing motor noise
 
-Each step introduces potential variation. Traditional semantics could remain agnostic about these factors—if the theory says *know* presupposes its complement and speakers judge that "John knows that p" implies p, the theory is confirmed. But experimental semantics cannot maintain this separation. To learn about semantics from behavioral data, we need explicit theories of how semantic knowledge is deployed in judgment tasks.
+Each step introduces potential variation. Traditional semantics could remain agnostic about these factors—if the theory says *know* presupposes its complement and speakers judge that *John knows that p* implies p, the theory is confirmed. But experimental semantics cannot maintain this separation. To learn about semantics from behavioral data, we need explicit theories of how semantic knowledge is deployed in judgment tasks.
 
 ## Sources of variation in judgments
 
@@ -185,7 +190,7 @@ Crucially, these sources of variation can co-occur and interact. Let's revisit o
 
 1. **Resolved indeterminacy**: Which sense of *run*? (locomotion vs. management)
 2. **Unresolved indeterminacy** (given locomotion sense):
-   - **Vagueness**: How athletic counts as "athletic"?
+   - **Vagueness**: How athletic counts as *athletic*?
    - **World knowledge**: How fit must one be to run marathons?
    - **Task effects**: How to map confidence onto the slider?
 
@@ -258,7 +263,7 @@ This case study demonstrates how PDS can model both hypotheses within a unified 
 
 ## Why these case studies matter
 
-These phenomena—vagueness/imprecision and factivity—exemplify the challenges facing semantic theory in the experimental age. Both show pervasive gradience that traditional frameworks struggle to capture. Both involve complex interactions between semantic knowledge, world knowledge, and contextual factors. And both have been subjects of extensive experimental investigation, providing rich datasets against which to evaluate our theories.
+These phenomena—vagueness/imprecision and factivity—exemplify the challenges facing semantic theory as the number and size of datasets grows. Both show pervasive gradience that traditional frameworks struggle to capture. Both involve complex interactions between semantic knowledge, world knowledge, and contextual factors. And both have been subjects of extensive experimental investigation, providing rich datasets against which to evaluate our theories.
 
 By showing how PDS handles these cases, we'll demonstrate its ability to:
 - Maintain compositionality while modeling uncertainty
