@@ -1,10 +1,17 @@
+---
+bibliography: ../../pds.bib
+format:
+  html:
+    css: ../styles.css
+---
+
 # From PDS to Stan: Implementing models of gradable adjectives
 
 Building on the theoretical foundations and compositional semantics introduced in the previous sections, we now turn to the practical challenge of implementing models of vagueness and imprecision. The translation from abstract semantic theory to concrete statistical models requires careful attention to how theoretical commitments manifest as computational procedures. This section demonstrates this translation through three increasingly sophisticated models of gradable adjectives.
 
 ## Stan: A language for statistical modeling
 
-The translation from abstract semantic theory to concrete statistical models requires a computational intermediary—a language that can express both the probabilistic structures we theorize and the inference procedures we need to learn from data. Stan has emerged as the de facto standard for this role in computational semantics and psycholinguistics @burkner_brms_2017, @stan_development_team_stan_2024.
+The translation from abstract semantic theory to concrete statistical models requires a computational intermediary—a language that can express both the probabilistic structures we theorize and the inference procedures we need to learn from data. Stan has emerged as the de facto standard for this role in computational semantics and psycholinguistics [@burkner_brms_2017;@stan_development_team_stan_2024].
 
 Stan is a probabilistic programming language designed for statistical inference. Unlike general-purpose programming languages, Stan is specialized for defining probability distributions and performing Bayesian inference. When we write a Stan program, we're not writing procedures to execute but rather declaring the structure of a probability model. Stan then uses sophisticated algorithms (Hamiltonian Monte Carlo) to sample from the posterior distribution of our model parameters given the observed data.
 
@@ -14,7 +21,7 @@ To understand how Stan works and how we can use it to test semantic theories, le
 
 ## The PDS implementation: Gradable adjectives
 
-Before diving into Stan code, let's examine how gradable adjectives are represented in PDS. From the Haskell codebase (`Grammar.Lexica.SynSem.Adjectives`), here's the lexical entry for "tall":
+Before diving into Stan code, let's examine how gradable adjectives are represented in PDS. From the Haskell codebase ([`Grammar.Lexica.SynSem.Adjectives`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Adjectives.html)), here's the lexical entry for "tall":
 
 ```haskell
 "tall" -> [ SynSem {
@@ -376,7 +383,7 @@ We've also learned key Stan concepts:
 
 With this foundation in Stan, we can now understand how to translate semantic theories into Stan code.
 
-## From PDS lambda terms to semantic values
+## From PDS lambda-terms to semantic values
 
 Now that we understand Stan's structure through a concrete example, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. Let's work through a concrete example to see how the abstract PDS representation becomes executable Stan code.
 
@@ -406,7 +413,7 @@ Let's trace how the sentence "Jo is tall" is processed through PDS, starting wit
 
 ### Step 2: Composition via CCG rules
 
-Using the PDS rules from syntax-meaning-compositionality.qmd, we first combine "is" and "tall":
+Using the PDS rules from [Module 2](../pds-intro/syntax-meaning-compositionality.html),  we first combine "is" and "tall":
 
 ```haskell
 -- "is tall" via forward application
@@ -444,35 +451,35 @@ The final semantic value is a function that:
 2. Extracts the threshold for "tall" from that state
 3. Returns a proposition that's true when Jo's height exceeds that threshold
 
-### Step 4: Delta rule applications
+### Step 4: delta-rule applications
 
-Before compilation to Stan, several delta rules apply to simplify the computation:
+Before compilation to Stan, several delta-rules apply to simplify the computation:
 
 ```haskell
--- From the indices delta rule:
+-- From the indices delta-rule:
 indices :: DeltaRule
 indices = \case
   Height (UpdHeight p _) -> Just p
   Height (UpdEpi _ i)    -> Just (Height i)
   -- ... other cases
 
--- From the states delta rule:  
+-- From the states delta-rule:  
 states :: DeltaRule
 states = \case
   DTall (UpdDTall d _) -> Just d
   DTall (UpdCG _ s)    -> Just (DTall s)
   -- ... other cases
 
--- From the arithmetic delta rule:
+-- From the arithmetic delta-rule:
 arithmetic :: DeltaRule
 arithmetic = \case
   GE (DCon x) (DCon y) -> if x >= y then Just Tr else Just Fa
   -- ... other cases
 ```
 
-## Delta rules: Simplifying adjective computations
+## delta-rules: Simplifying adjective computations
 
-The delta rules play a crucial role in translating PDS to Stan by simplifying λ-terms before compilation. Let's trace through a concrete example to see how they work.
+The delta-rules play a crucial role in translating PDS to Stan by simplifying λ-terms before compilation. Let's trace through a concrete example to see how they work.
 
 Consider evaluating "Jo is tall" in a context where:
 - The discourse state has \ct{d\_tall} = 170 (cm)
@@ -499,13 +506,13 @@ The computation proceeds as follows:
 Tr  -- True
 ```
 
-This sequence of reductions transforms the abstract semantic representation into a concrete truth value. The delta rules ensure that:
+This sequence of reductions transforms the abstract semantic representation into a concrete truth value. The delta-rules ensure that:
 1. State-dependent values are properly extracted
 2. Index-dependent values are resolved
 3. Arithmetic operations are performed
 4. The result is a simple value suitable for further processing
 
-## The compilation pipeline: From λ-terms to Stan
+## The compilation pipeline: From lambda-terms to Stan
 
 The translation from PDS λ-terms to Stan involves several systematic transformations. Let's examine each transformation in detail:
 
@@ -837,9 +844,9 @@ model {
 
 Notice how the compositional structure is still present but has been "compiled out." Instead of a higher-order function `very` that modifies adjective meanings, we have separate thresholds related by addition. The semantic insight—that "very" systematically raises thresholds—is preserved, but expressed in Stan's first-order language @lassiter_adjectival_2017.
 
-### Delta rules and optimization
+### delta-rules and optimization
 
-Before translating λ-terms to Stan, we typically apply delta rules—algebraic simplifications that make the resulting code cleaner and more efficient. These rules embody semantic equivalences that hold in our theory.
+Before translating λ-terms to Stan, we typically apply delta-rules—algebraic simplifications that make the resulting code cleaner and more efficient. These rules embody semantic equivalences that hold in our theory.
 
 From the PDS codebase (`Lambda.Delta`), we have rules like:
 
@@ -863,7 +870,7 @@ arithmetic = \case
     One -> Just u
 ```
 
-These simplifications matter because Stan code can become complex quickly. Consider what happens without delta reduction:
+These simplifications matter because Stan code can become complex quickly. Consider what happens without delta-reduction:
 
 ```haskell
 -- Before reduction

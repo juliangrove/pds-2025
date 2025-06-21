@@ -3,8 +3,6 @@ title: "Background"
 bibliography: ../../pds.bib
 ---
 
-# Background
-
 {{< include background-aaron.qmd >}}
 
 {{< include background-julian.qmd >}}

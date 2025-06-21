@@ -91,7 +91,7 @@ Sources of Gradience in Inference Judgments
 │   └── Discourse Status
 │       └── QUD (Question Under Discussion)
 └── Unresolved (Token-Level) Uncertainty
-    ├── Vagueness (e.g., threshold for "tall")
+    ├── Vagueness (e.g., height of a "tall" person)
     ├── World knowledge (e.g., likelihood facts are true)
     └── Task effects
         ├── Response strategies
