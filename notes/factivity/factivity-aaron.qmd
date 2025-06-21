@@ -8,7 +8,7 @@ This case study demonstrates how discrete semantic knowledge can be expressed in
 
 ### What is factivity?
 
-A predicate is said to be *factive* if it triggers inferences about the truth of its complement that persist even under entailment-canceling operators. This projection behavior has been the hallmark diagnostic for presupposition since @karttunen_observations_1971, building on earlier observations by @strawson_referring_1950. Consider the predicate "know":
+A predicate is said to be *factive* if it triggers inferences about the truth of its complement that persist even under entailment-canceling operators. This projection behavior has been the hallmark diagnostic for presupposition since @karttunen_observations_1971, building on earlier observations by @strawson_referring_1950. []{@exm-know-positive} []{@exm-know-negative} []{@exm-know-question} []{@exm-know-conditional} []{@exm-mo-left-inference} Consider the predicate "know":
 
 (@exm-know-positive) Jo knows that Mo left.
 (@exm-know-negative) Jo doesn't know that Mo left.
@@ -16,7 +16,7 @@ A predicate is said to be *factive* if it triggers inferences about the truth of
 (@exm-know-conditional) If Jo knows that Mo left...
 (@exm-mo-left-inference) Mo left.
 
-The inference in (@exm-mo-left-inference) "projects" through negation, questions, and conditionals—environments that typically cancel entailments. Compare this with non-factive "think":
+The inference in (@exm-mo-left-inference) "projects" through negation, questions, and conditionals—environments that typically cancel entailments. []{@exm-think-positive} []{@exm-think-negative} []{@exm-think-question} Compare this with non-factive "think":
 
 (@exm-think-positive) Jo thinks that Mo left.
 (@exm-think-negative) Jo doesn't think that Mo left.
@@ -24,7 +24,7 @@ The inference in (@exm-mo-left-inference) "projects" through negation, questions
 
 With "think", the inference that Mo left is present (weakly) in (@exm-think-positive) but disappears in (@exm-think-negative) and (@exm-think-question).
 
-This projection behavior has motivated analyses where factive predicates *presuppose* rather than assert their complements [@stalnaker_pragmatic_1974; @heim_presupposition_1983]. The presupposition must be satisfied for the sentence to have a truth value—creating what @strawson_referring_1950 called "presupposition failure" when violated.
+This projection behavior has motivated analyses where factive predicates encode this presupposition directly [@heim_presupposition_1983]. The presupposition must be satisfied for the sentence to have a truth value—creating what @strawson_referring_1950 called "presupposition failure" when violated.
 
 ### The challenge of gradient factivity judgments
 
