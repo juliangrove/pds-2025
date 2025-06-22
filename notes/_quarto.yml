@@ -12,7 +12,8 @@ website:
     - index.qmd
     - section: "Background"
       contents:
-      - background/background.qmd
+      - background/theory-to-data.qmd
+      - background/rsa.qmd
     - section: "Introduction to probabilistic dynamic semantics"
       contents:
       - pds-intro/overview.qmd
