@@ -2,9 +2,9 @@ project:
   type: website
   output-dir: ../docs/slides
   render:
-    # - "background/theory-to-data.qmd"
+    - "background/theory-to-data.qmd"
     - "background/rsa.qmd"
-    # - "pds-intro/pds-intro.qmd"
+    - "pds-intro/pds-intro.qmd"
     # - "adjectives/adjectives.qmd"
     # - "factivity/factivity.qmd"
     # - "qud/qud.qmd"

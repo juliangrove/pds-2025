@@ -232,7 +232,7 @@ We should think of an experimental trial as a little discourse.
   
 ---
 
-## The basic idea (cont'd)
+## The basic idea
   
 - [Sentences:]{.gb-orange}
   Start with a prior distribution over parameters some kind (e.g., encoding world knowledge, basic meanings). 
