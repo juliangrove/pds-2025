@@ -1199,6 +1199,7 @@ indices = \case
   _                      -> Nothing
 ```
 
+::: {.fragment}
 ### States
 
 ```haskell
@@ -1212,6 +1213,7 @@ states = \case
   QUD     (UpdCG _ s)      -> Just (QUD s)
   _                        -> Nothing
 ```
+:::
 
 ---
 
