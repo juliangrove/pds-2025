@@ -36,3 +36,6 @@ format:
     css: styles.css
     toc: true
     code-tools: true
+
+filters:
+  - line-highlight

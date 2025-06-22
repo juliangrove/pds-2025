@@ -3,11 +3,23 @@ bibliography: ../../pds.bib
 format:
   html:
     css: ../styles.css
+filters:
+  - line-highlight
 ---
 
 # From PDS to Stan: Implementing models of gradable adjectives
 
-Building on the theoretical foundations and compositional semantics introduced in the previous sections, we now turn to the practical challenge of implementing models of vagueness and imprecision. The translation from abstract semantic theory to concrete statistical models requires careful attention to how theoretical commitments manifest as computational procedures. This section demonstrates this translation through three increasingly sophisticated models of gradable adjectives.
+Having seen how gradable adjectives are represented in PDS's compositional semantics, we now turn to the practical challenge of implementing statistical models that test these semantic theories against experimental data. The translation from abstract semantic theory to concrete statistical models requires careful attention to how theoretical commitments manifest as computational procedures. This section demonstrates this translation through three increasingly sophisticated models of gradable adjectives.
+
+## PDS outputs and kernel models
+
+Before diving into the implementation details, it's important to understand what PDS produces and how it relates to the full statistical models we'll develop. PDS outputs what we term a **kernel model**—the semantic core that corresponds directly to the lexical and compositional semantics. This kernel can in principle be augmented with random effects, hierarchical priors, and other statistical machinery within the Haskell code itself, but the current implementation focuses on producing just the semantic kernel. 
+
+When we present Stan models in these notes, highlighted lines show the kernel model output by PDS (the semantic core), while non-highlighted lines show statistical augmentations added by the analyst (random effects, priors, etc.).
+
+This distinction is crucial: PDS automates the translation from compositional semantics to the core statistical model, while leaving room for analysts to add domain-specific statistical structure. As we'll see, this separation allows us to maintain theoretical clarity while building models sophisticated enough to handle real experimental data.
+
+We'll be showing prettified versions of what the system actually outputs. For every model block, we'll also provide the current system output in a footnote.
 
 ## Stan: A language for statistical modeling
 
@@ -15,9 +27,11 @@ The translation from abstract semantic theory to concrete statistical models req
 
 Stan is a probabilistic programming language designed for statistical inference. Unlike general-purpose programming languages, Stan is specialized for defining probability distributions and performing Bayesian inference. When we write a Stan program, we're not writing procedures to execute but rather declaring the structure of a probability model. Stan then uses sophisticated algorithms (Hamiltonian Monte Carlo) to sample from the posterior distribution of our model parameters given the observed data.
 
+This approach aligns perfectly with our semantic goals: just as formal semantics declares truth conditions rather than computational procedures, Stan declares probabilistic relationships rather than sampling algorithms. The parallel is not accidental—both frameworks separate the "what" (semantic content, statistical structure) from the "how" (compositional computation, inference algorithms).
+
 ## Case study: Modeling gradable adjectives
 
-To understand how Stan works and how we can use it to test semantic theories, let's work through three models of increasing complexity. We'll start with a baseline norming model that will serve as our introduction to Stan's structure and syntax.
+To understand how Stan works and how we can use it to test semantic theories, let's work through three models of increasing complexity. We'll start with a baseline norming model that will serve as our introduction to Stan's structure and syntax. Each model will demonstrate how PDS translates semantic theory into statistical kernels, which we then augment for real-world data analysis.
 
 ## The PDS implementation: Gradable adjectives
 
@@ -32,6 +46,12 @@ Before diving into Stan code, let's examine how gradable adjectives are represen
 } ]
 ```
 
+This Haskell implementation directly encodes the formal semantics $⟦\text{tall}⟧$ presented in the previous section. The key components map as follows:
+- `sCon "height"` implements the measure function
+- `sCon "d_tall"` extracts the contextual threshold from the discourse state
+- `sCon "(≥)"` implements the comparison relation
+- The lambda abstractions mirror the semantic type $(e → (i → t))$
+
 This lexical entry encodes several key theoretical insights:
 
 1. **Syntactic type**: `AP` indicates this is an adjective phrase
@@ -41,15 +61,15 @@ This lexical entry encodes several key theoretical insights:
    - The proposition is true when the entity's height exceeds the contextual threshold
 
 3. **Semantic components**:
-   - \ct{height}: A function from indices to entity-to-degree mappings (type: $\iota \to e \to r$)
-   - \ct{d\_tall}: Extracts the threshold for "tall" from the discourse state (type: $\sigma \to r$)
-   - \ct{(≥)}: Comparison operator (type: $r \to r \to t$)
+   - $\ct{height}$: A function from indices to entity-to-degree mappings (type: $\iota \to e \to r$)
+   - $\ct{d\_tall}$: Extracts the threshold for "tall" from the discourse state (type: $\sigma \to r$)
+   - $\ct{(≥)}$: Comparison operator (type: $r \to r \to t$)
 
 This implements @kennedy_vagueness_2007's degree-based semantics, where gradable adjectives denote relations between degrees and contextually determined thresholds. The use of the discourse state for threshold storage captures the context-sensitivity of standards.
 
 ### Model 1: Baseline norming
 
-Let's start with the simplest possible model for understanding how participants judge items on gradable scales. This model will serve as our foundation for understanding Stan's structure and syntax. We'll build it up block by block, explaining every line.
+Let's start with the simplest possible model for understanding how participants judge items on gradable scales. This model will serve as our foundation for understanding Stan's structure and syntax, while also showing how PDS translates semantic theory into statistical code. We'll build it up block by block, explaining every line.
 
 #### Understanding the experimental setup
 
@@ -72,11 +92,11 @@ Each row represents one judgment:
 - `condition`: Whether this is a high/mid/low standard context
 - `response`: The participant's slider response (0 = "definitely not X", 1 = "definitely X")
 
-Our simplest model asks: What degree does each item have on its scale, and how do participants map these degrees to slider responses?
+Our simplest model asks: What degree does each item have on its scale, and how do participants map these degrees to slider responses? This connects directly to the semantic theory—we're measuring the degrees that our formal analysis posits.
 
 #### The structure of a Stan program
 
-Every Stan program follows a particular architecture with blocks that appear in a specific order. Each block serves a specific purpose in defining our statistical model. Let's build up our norming model block by block to understand how Stan works.
+Every Stan program follows a particular architecture with blocks that appear in a specific order. Each block serves a specific purpose in defining our statistical model. Let's build up our norming model block by block to understand how Stan works. This structure parallels the modular architecture of PDS itself—each block handles a distinct aspect of the modeling problem.
 
 #### The data block: Declaring what we observe
 
@@ -106,7 +126,7 @@ Next, we handle a subtle but important issue—boundary responses:
   int<lower=1> N_1;           // number of 1s
 ```
 
-Why separate these out? Slider responses of exactly 0 or 1 are "censored"—they might represent even more extreme judgments that the scale can't capture. We'll handle these specially.
+Why separate these out? Slider responses of exactly 0 or 1 are "censored"—they might represent even more extreme judgments that the scale can't capture. We'll handle these specially, implementing insights from measurement theory.
 
 Now for the actual response data:
 
@@ -138,7 +158,7 @@ Looking back at our CSV data, when Stan reads it, it will:
 
 #### The parameters block: What we want to learn
 
-After declaring our data, we declare the parameters—the unknown quantities we want to infer:
+After declaring our data, we declare the parameters—the unknown quantities we want to infer. This is where semantic theory meets statistical inference:
 
 ```stan
 parameters {
@@ -146,7 +166,7 @@ parameters {
   vector[N_item] mu_guess;
 ```
 
-This declares a vector of "guesses" (degrees) for each item. Why `mu_guess`? In statistics, μ (mu) traditionally denotes a mean or central tendency. These represent our best guess about each item's true degree on its scale.
+This declares a vector of "guesses" (degrees) for each item. Why `mu_guess`? In statistics, μ (mu) traditionally denotes a mean or central tendency. These represent our best guess about each item's true degree on its scale—the theoretical degrees that the semantic analysis posits.
 
 But people differ! We need random effects to capture individual variation:
 
@@ -160,7 +180,7 @@ This uses a clever trick called "non-centered parameterization":
 - `sigma_epsilon_guess`: The overall amount of person-to-person variation
 - `z_epsilon_guess`: Standardized (z-score) deviations for each person
 
-We'll combine these later to get each person's actual adjustment. Why not just use `vector[N_participant] epsilon_guess` directly? This separation often helps Stan's algorithms converge much faster.
+We'll combine these later to get each person's actual adjustment. Why not just use `vector[N_participant] epsilon_guess` directly? This separation often helps Stan's algorithms converge much faster—a practical consideration that doesn't affect the semantic theory but matters for implementation.
 
 Next, measurement noise:
 
@@ -183,7 +203,7 @@ This is subtle but important. When someone gives a 0 response, their "true" judg
 
 #### The transformed parameters block: Building predictions
 
-Now we combine our basic parameters to build what we actually need:
+Now we combine our basic parameters to build what we actually need. This block serves as a bridge between abstract parameters and concrete predictions:
 
 ```stan
 transformed parameters {
@@ -231,7 +251,7 @@ We repeat this for the boundary responses:
 
 #### The model block: Putting it all together
 
-The model block is where we specify our statistical assumptions—both our prior beliefs and how the data was generated:
+The model block is where we specify our statistical assumptions—both our prior beliefs and how the data was generated. This is where PDS's semantic computations meet statistical reality:
 
 ```stan
 model {
@@ -381,541 +401,153 @@ We've also learned key Stan concepts:
 - **Non-centered parameterization**: Improves sampling efficiency
 - **Censoring**: Handles boundary responses theoretically
 
-With this foundation in Stan, we can now understand how to translate semantic theories into Stan code.
+With this foundation in Stan, we can now understand how to translate semantic theories into Stan code. The structure of Stan programs mirrors the modular design of PDS—each component has a clear role in the overall system.
+
+### PDS to Stan: Scale-norming with degree questions
+
+Our baseline norming model asks participants "how tall is Jo?"—a degree question that directly elicits scalar judgments. Let's see how PDS compiles this semantic theory to Stan models. Degree questions use a special version of adjective lexical entries that expose the degree argument.
+
+The PDS code for generating a scale-norming model is:
+
+```haskell
+s1'        = termOf $ getSemantics @Adjectives 1 ["jo", "is", "a", "soccer player"]
+q1'        = termOf $ getSemantics @Adjectives 0 ["how", "tall", "jo", "is"]
+discourse' = ty tau $ assert s1' >>> ask q1'
+scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse'
+```
+
+This code:
+1. Asserts that Jo is a soccer player (establishing context)
+2. Asks "how tall is Jo?" using the degree-argument version of the adjective
+3. Applies beta and delta reduction rules via `betaDeltaNormal`
+4. Uses `scaleNormingPrior` to generate prior distributions
+5. Applies `adjectivesRespond` to specify the response function
+
+The PDS system outputs the following kernel model:^[Actual PDS output: `model { w ~ normal(0.0, 1.0); target += normal_lpdf(y | w, sigma); }`]
+
+```stan
+model {
+  // FIXED EFFECTS
+  w ~ normal(0.0, 1.0);
+  
+  // LIKELIHOOD
+  target += normal_lpdf(y | w, sigma);
+}
+```
+
+This is the semantic core—it captures the essential degree-based semantics where `w` represents the degree on the height scale. But reality is complicated... we need random effects, the ability to model censored data, and proper indexing for multiple items and participants. This gap between the kernel model and a full statistical implementation represents ongoing research: how to get from here (PDS output) to here (actual implementation).
+
+The full model with analyst augmentations looks like:
+
+```stan {.line-numbers highlight="6,13"}
+model {
+  // PRIORS (analyst-added)
+  sigma_epsilon_guess ~ exponential(1);
+  sigma_e ~ beta(2, 10);
+  
+  // FIXED EFFECTS (PDS kernel)
+  mu_guess ~ normal(0.0, 1.0);
+  
+  // RANDOM EFFECTS (analyst-added)
+  z_epsilon_guess ~ std_normal();
+  
+  // LIKELIHOOD (PDS kernel with modifications)
+  y[i] ~ normal(mu_guess[item[i]] + epsilon_guess[participant[i]], sigma_e);
+}
+```
+
+Lines 6 and 13 (highlighted) show the kernel model from PDS. The unhighlighted portions add statistical machinery for real data: hierarchical priors, random effects, and indexed parameters. The kernel captures the core semantic computation—degrees on scales—while the augmentations handle the realities of experimental data.
+
+This opens up the prospect of getting people involved in contributing functionality to PDS—the system automates the theory-to-model translation, but there's rich territory in developing principled ways to add statistical structure.
 
 ## From PDS lambda-terms to semantic values
 
-Now that we understand Stan's structure through a concrete example, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. Let's work through a concrete example to see how the abstract PDS representation becomes executable Stan code.
+Now that we understand Stan's structure through a concrete example, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. Let's work through the degree question "how tall is Jo?" to see how PDS processes this construction.
 
-### Working through "Jo is tall"
+### Working through degree questions
 
-Let's trace how the sentence "Jo is tall" is processed through PDS, starting with the lexical entries:
-
-```haskell
--- Step 1: Lexical entries
-"jo" -> SynSem {
-    syn = NP,
-    sem = ty tau (purePP (sCon "j"))
-}
-
-"is" -> SynSem {
-    syn = S :\: NP :/: AP,
-    sem = ty tau (purePP (lam x x))  -- Identity function
-}
-
-"tall" -> SynSem {
-    syn = AP,
-    sem = ty tau (lam s (purePP (lam x (lam i 
-      (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-       (sCon "d_tall" @@ s))))) @@ s))
-}
-```
-
-### Step 2: Composition via CCG rules
-
-Using the PDS rules from [Module 2](../pds-intro/syntax-meaning-compositionality.html),  we first combine "is" and "tall":
+Degree questions like "how tall is Jo?" use a special lexical entry for adjectives that exposes the degree argument. From [`Grammar.Lexica.SynSem.Adjectives`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Adjectives.html):
 
 ```haskell
--- "is tall" via forward application
--- Type: S :\: NP
--- Semantic value (before reduction):
-lam s (
-  Do { m1 <- purePP (lam x x);  -- meaning of "is"
-       m2 <- lam s' (purePP (lam x (lam i 
-              (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-               (sCon "d_tall" @@ s')))) @@ s;  -- meaning of "tall"
-       return (lam x (m1 (m2 x)))
-  }
-) @@ s
+-- Degree-question version of "tall"
+"tall" -> [ SynSem {
+    syn = (S :\: NP) :/: (S :/: NP :/: Deg),
+    sem = ty tau (lam s (purePP (lam f (lam x (lam i 
+      (f @@ (sCon "height" @@ i @@ x) @@ x @@ i))))) @@ s))
+} ]
 ```
 
-### Step 3: Beta reduction
-
-After beta reduction and simplification:
+This entry takes a degree-to-proposition function and applies it to the entity's height. The question word "how" provides this function:
 
 ```haskell
--- "is tall" simplified:
-lam s (purePP (lam x (lam i 
-  (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-   (sCon "d_tall" @@ s)))) @@ s)
-
--- Applying to "jo":
--- After further reduction:
-lam s (purePP (lam i 
-  (sCon "(≥)" @@ (sCon "height" @@ i @@ sCon "j") @@ 
-   (sCon "d_tall" @@ s))) @@ s)
+"how" -> [ SynSem {
+    syn = S :/: (S :\: Deg),
+    sem = ty tau (purePP (lam p (lam i (Return (iota (lam d (p @@ d @@ i)))))))
+} ]
 ```
 
-The final semantic value is a function that:
-1. Takes a discourse state `s`
-2. Extracts the threshold for "tall" from that state
-3. Returns a proposition that's true when Jo's height exceeds that threshold
+The $\iota$ operator extracts the unique degree satisfying the predicate—implementing the semantics of degree questions.
 
-### Step 4: delta-rule applications
+### Delta rules and semantic computation
 
-Before compilation to Stan, several delta-rules apply to simplify the computation:
+PDS applies delta rules to simplify these complex λ-terms. As discussed in [the implementation section](../pds-intro/implementation.html), delta rules enable different semantic computations while preserving semantic equivalence. The formalism is strongly normalizing and confluent, so the order of rule application doesn't affect the final result—a crucial property that ensures our semantic theory remains consistent.
 
-```haskell
--- From the indices delta-rule:
-indices :: DeltaRule
-indices = \case
-  Height (UpdHeight p _) -> Just p
-  Height (UpdEpi _ i)    -> Just (Height i)
-  -- ... other cases
+Key delta rules for adjectives include:
+- **Arithmetic operations**: Simplifying comparisons like $\ct{(≥)}$ when applied to constants
+- **State/index extraction**: Rules for $\ct{height}$, $\ct{d\_tall}$, etc.
+- **Beta reduction**: Standard λ-calculus reduction
 
--- From the states delta-rule:  
-states :: DeltaRule
-states = \case
-  DTall (UpdDTall d _) -> Just d
-  DTall (UpdCG _ s)    -> Just (DTall s)
-  -- ... other cases
+These rules transform the complex compositional semantics into simpler forms suitable for compilation to Stan. The transformation preserves the semantic content while making it computationally tractable.
 
--- From the arithmetic delta-rule:
-arithmetic :: DeltaRule
-arithmetic = \case
-  GE (DCon x) (DCon y) -> if x >= y then Just Tr else Just Fa
-  -- ... other cases
-```
+### From lambda terms to Stan parameters
 
-## delta-rules: Simplifying adjective computations
+The challenge is translating abstract semantic computations into Stan's parameter space. This translation embodies our linking hypothesis between semantic competence and performance. Key transformations:
 
-The delta-rules play a crucial role in translating PDS to Stan by simplifying λ-terms before compilation. Let's trace through a concrete example to see how they work.
+1. **Degree extraction becomes parameter inference**:
+   - $\iota(\lambda d[\ct{height}(i)(j) = d])$ → Infer parameter `height_jo`
+   - The unique degree satisfying the equation becomes a parameter to estimate
 
-Consider evaluating "Jo is tall" in a context where:
-- The discourse state has \ct{d\_tall} = 170 (cm)
-- The index has Jo's height as 180 (cm)
+2. **Functions become data structures**:
+   - $\ct{height} : \iota \to e \to r$ → Array `height[person]`
+   - Function application → Array indexing
 
-The computation proceeds as follows:
+3. **Propositions become probabilities**:
+   - Truth values → Real numbers in [0,1]
+   - Logical operations → Probabilistic operations
 
-```haskell
--- Original expression (simplified):
-(sCon "(≥)" @@ (sCon "height" @@ i @@ sCon "j") @@ (sCon "d_tall" @@ s))
-
--- After extracting height from index (via indices rule):
--- Assume Height (UpdHeight (λx. if x == j then 180 else ...) i0)
--- Reduces to: 180
-(sCon "(≥)" @@ DCon 180 @@ (sCon "d_tall" @@ s))
-
--- After extracting threshold from state (via states rule):
--- Assume DTall (UpdDTall 170 s0)
--- Reduces to: 170
-(sCon "(≥)" @@ DCon 180 @@ DCon 170)
-
--- After arithmetic comparison (via arithmetic rule):
--- Since 180 >= 170:
-Tr  -- True
-```
-
-This sequence of reductions transforms the abstract semantic representation into a concrete truth value. The delta-rules ensure that:
-1. State-dependent values are properly extracted
-2. Index-dependent values are resolved
-3. Arithmetic operations are performed
-4. The result is a simple value suitable for further processing
-
-## The compilation pipeline: From lambda-terms to Stan
-
-The translation from PDS λ-terms to Stan involves several systematic transformations. Let's examine each transformation in detail:
-
-### 1. Threshold parameters: From state to arrays
-
-In PDS, thresholds are stored in the discourse state:
-```haskell
--- PDS: Extract threshold from state
-sCon "d_tall" @@ s  -- Type: r
-```
-
-In Stan, this becomes an indexed parameter:
-```stan
-// Stan: Threshold as array element
-mu_guess[item[i]]  // For item "tall_high", "tall_mid", etc.
-```
-
-The compilation maps the functional extraction `d_tall(s)` to array indexing `mu_guess[item[i]]`. Each item (adjective × condition combination) gets its own threshold parameter.
-
-### 2. Height access: From indices to data
-
-In PDS, heights are functions of indices:
-```haskell
--- PDS: Height as index-dependent function
-sCon "height" @@ i @@ x  -- Type: r
-```
-
-In Stan, heights become data (if known) or parameters (if inferred):
-```stan
-// Stan: Heights as data array
-vector[N_entities] heights;  // Known heights
-// Access: heights[entity[i]]
-```
-
-### 3. Comparison: From discrete to probabilistic
-
-The crucial semantic computation—comparing degree to threshold—undergoes the most significant transformation:
-
-```haskell
--- PDS: Discrete comparison
-sCon "(≥)" @@ degree @@ threshold  -- Returns t (truth value)
-```
-
-In Stan Model 2 (vagueness), this becomes:
-```stan
-// Stan: Probabilistic comparison via normal CDF
-response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
-```
-
-This transformation implements several theoretical insights:
-- **Vagueness as uncertainty**: The `sigma_guess` parameter captures boundary fuzziness
-- **Probabilistic truth**: Instead of True/False, we get probabilities in [0,1]
-- **Smooth transitions**: The normal CDF creates gradient membership functions
-
-### 4. State threading: From dynamic to static
-
-PDS uses monadic operations to thread state through computations:
-```haskell
--- PDS: State threading via monad
-lam s (... computation using s ...) @@ s
-```
-
-Stan has no notion of state threading, so this compiles to static parameter structures:
-```stan
-// Stan: Static parameter declaration
-parameters {
-  vector[N_adjective] spread;      // Context sensitivity
-  vector[N_item] d;                // Degrees
-  real<lower=0> sigma_guess;       // Vagueness
-}
-```
-
-The dynamic state updates in PDS become static relationships between parameters in Stan.
-
-### 5. Uncertainty propagation: From monadic to hierarchical
-
-PDS represents uncertainty via the probability monad:
-```haskell
--- PDS: Sampling in the monad
-Do { threshold <- normal 175 10;
-     height <- getHeight x;
-     return (height >= threshold) }
-```
-
-Stan represents this as hierarchical structure:
-```stan
-// Stan: Hierarchical parameters
-parameters {
-  // Population-level
-  real mu_threshold;
-  real<lower=0> sigma_threshold;
-  
-  // Item-level
-  vector[N_item] threshold_z;
-}
-
-transformed parameters {
-  // Non-centered parameterization
-  vector[N_item] threshold = mu_threshold + sigma_threshold * threshold_z;
-}
-```
-
-## Prior distributions from PDS
-
-The PDS codebase includes prior specifications that encode theoretical assumptions about gradable adjectives. Let's examine these in detail:
-
-### Scale norming prior
-
-```haskell
-scaleNormingPrior :: Term
-scaleNormingPrior = Return (upd_CG cg' ϵ)
-  where cg' = let' b (Bern (dCon 0.5)) 
-              (let' x (normal 0 1) 
-              (let' y (normal 0 1) j'))
-        j'  = Return (UpdHeight (lam z (ITE (SocPla i' @@ z) x y)) i')
-        i'  = UpdSocPla (lam x b) _0
-```
-
-This prior encodes several assumptions:
-
-1. **Category membership uncertainty**: 
-   ```haskell
-   let' b (Bern (dCon 0.5))  -- 50% probability of category membership
+4. **The monad becomes Stan's target**:
+   - The $\Do$-notation structures sequential computation:
    ```
-   This could represent uncertainty about whether someone is a "soccer player" vs "linguist"
-
-2. **Height variation**:
-   ```haskell
-   let' x (normal 0 1)  -- Height for category 1
-   let' y (normal 0 1)  -- Height for category 2
+   \begin{array}[t]{rl}
+   \Do & x ← \ct{return}(5) \\
+       & y ← \ct{normal}(x, 1) \\
+       & \ct{return}(y)
+   \end{array}
    ```
-   Different categories have different typical heights
+   - This becomes contributions to Stan's log probability
 
-3. **Conditional assignment**:
-   ```haskell
-   lam z (ITE (SocPla i' @@ z) x y)
-   ```
-   An entity's height depends on its category membership
+This translation embodies our linking hypothesis: semantic computations generate behavioral data through a noisy measurement process captured by `adjectivesRespond`.
 
-### Likelihood inference prior
+### Challenges in the translation
 
-```haskell
-likelihoodPrior :: Term
-likelihoodPrior = let' x (normal 0 1) 
-                  (Return (UpdDTall x (upd_CG cg' ϵ)))
-  where cg' = let' y (normal 0 1) 
-              (let' w (LogitNormal 0 1) 
-              (let' b (Bern w) 
-              (Return (UpdHeight (lam z y) 
-                      (UpdSocPla (lam z b) _0)))))
-```
+Several theoretical challenges arise when moving from abstract semantics to concrete implementation:
 
-This prior adds threshold uncertainty:
+1. **Higher-order functions**: Degree questions involve functions over functions. Stan's first-order language requires "defunctionalization"—representing these as data structures.
 
-1. **Threshold variation**:
-   ```haskell
-   let' x (normal 0 1) (Return (UpdDTall x ...))
-   ```
-   The threshold for "tall" varies (on a standardized scale)
+2. **Dynamic effects**: Some semantic values contain free variables resolved dynamically. We must either:
+   - Marginalize over possible resolutions
+   - Fix resolution as data
+   - Expand the parameter space
 
-2. **Category probability on logit scale**:
-   ```haskell
-   let' w (LogitNormal 0 1) (let' b (Bern w) ...)
-   ```
-   The logit-normal ensures probabilities stay in [0,1] while allowing flexible shapes
+3. **Anaphora resolution**: Similar to dynamic effects, anaphoric dependencies create challenges for static compilation.
 
-These priors translate to Stan's hierarchical structures, encoding our uncertainty about both word meanings and world knowledge.
-
-## Response function implementation
-
-The response function maps semantic values to behavioral responses:
-
-```haskell
--- From Adjectives.hs
-adjectivesRespond :: Term -> Term -> Term
-adjectivesRespond = respond (lam x (Normal x (Var "sigma")))
-
--- Expanding the definition of respond:
-respond f bg m = let' s bg m'
-  where m' = let' _s' (m @@ s) 
-             (let' i (cg (Pi2 _s')) 
-             (f @@ max' (lam x (qud (Pi2 _s') @@ x @@ i))))
-```
-
-This implements a complete pipeline:
-
-1. **Background knowledge**: Sample from prior beliefs (`bg`)
-2. **Discourse update**: Apply the discourse/assertion (`m`)
-3. **Extract common ground**: Get the updated beliefs
-4. **Find maximum answer**: Compute the answer to the current QUD
-5. **Generate response**: Add Gaussian noise (linking hypothesis)
-
-In Stan, this becomes:
-```stan
-model {
-  // Background knowledge (priors)
-  mu_guess ~ normal(prior_mean, prior_std);
-  
-  // Semantic computation (via transformed parameters)
-  // ... 
-  
-  // Response generation (likelihood)
-  y ~ normal(response_rel, sigma_e);
-}
-```
-
-The `sigma` parameter in the response function becomes `sigma_e` in Stan, implementing the noisy measurement assumption central to psychophysical approaches to semantics @lassiter_measurement_2013.
-
-## Mapping lambda-terms to Stan code
-
-Now that we understand Stan's structure through a concrete example, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. This translation is non-trivial because λ-calculus and Stan operate at different levels of abstraction and with different computational paradigms.
-
-### The semantic starting point
-
-In Probabilistic Dynamic Semantics, we express meanings as typed λ-terms that can include probabilistic effects. Consider the semantics of "tall" from the PDS codebase:
-
-```haskell
--- From Grammar.Lexica.SynSem.Adjectives
-"tall" -> SynSem {
-  syn = AP,
-  sem = ty tau (lam s (purePP (lam x (lam i 
-    (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-     (sCon "d_tall" @@ s))))) @@ s))
-}
-```
-
-This says "tall" denotes a function that:
-1. Takes a discourse state `s`
-2. Returns a function from entities `x` to propositions
-3. The proposition is true when the entity's height exceeds the threshold `d_tall`
-4. The threshold depends on the discourse state, capturing context-sensitivity
-
-We can also write this more intuitively:
-
-```haskell
--- The meaning of "tall" with uncertain threshold
-tall :: Entity -> P Bool
-tall x = do
-  threshold <- normal 175 10  -- Sample threshold (in cm)
-  height <- getHeight x       -- Retrieve x's height
-  return (height >= threshold)
-```
-
-This captures both the context-sensitivity of gradable adjectives (different contexts might have different threshold distributions) and the gradience in judgments (borderline cases have intermediate probabilities) @kennedy_vagueness_2007.
-
-### The representational challenge
-
-Stan, however, doesn't directly support higher-order functions, monadic binding, or many other features we rely on in λ-calculus. Stan is fundamentally about defining probability distributions over fixed-dimensional parameter spaces. So how do we bridge this gap?
-
-The key insight is that we need to "compile" our λ-terms into Stan's more restricted language. This compilation involves several systematic transformations:
-
-1. **Monadic binding becomes sampling**: When we write `threshold <- normal 175 10` in our semantic metalanguage, this becomes `threshold ~ normal(175, 10)` in Stan.
-
-2. **Function application becomes indexing**: Where λ-calculus uses function application, Stan typically uses array indexing. A function from entities to heights becomes an array of heights indexed by entity identifiers.
-
-3. **Composition becomes sequential computation**: Complex semantic derivations involving multiple function applications become sequences of assignments in Stan's transformed parameters block.
-
-4. **Higher-order functions become expanded first-order code**: We can't pass functions as arguments in Stan, so higher-order operations must be expanded at compile time.
-
-### A concrete example: "very tall"
-
-Let's see how this works for a more complex example. Suppose we want to model the semantics of "very tall," which we might analyze as an intensifier that raises the threshold:
-
-```haskell
--- Intensifier semantics
-very :: (Entity -> P Bool) -> (Entity -> P Bool)
-very adj x = do
-  -- Extract and modify the threshold from the adjective meaning
-  threshold <- getThreshold adj
-  let raisedThreshold = threshold + 20  -- "very" adds 20cm
-  height <- getHeight x
-  return (height >= raisedThreshold)
-
--- Composed meaning
-veryTall :: Entity -> P Bool
-veryTall = very tall
-```
-
-This compositional analysis can't be directly translated to Stan because Stan doesn't support higher-order functions. Instead, we need to expand the composition into Stan's first-order language. Building on what we learned from Model 1:
-
-```stan
-data {
-  // Same structure as our norming model
-  int<lower=1> N_entities;
-  vector[N_entities] heights;  // Known heights of entities
-  int<lower=1> N_resp;         // Number of responses
-  array[N_resp] int<lower=1, upper=N_entities> entity;
-  array[N_resp] int<lower=1, upper=2> condition;  // 1=tall, 2=very tall
-  vector<lower=0, upper=1>[N_resp] response;
-}
-
-parameters {
-  // Basic threshold for "tall"
-  real tall_threshold;
-  
-  // Modifier effect for "very"  
-  real very_effect;
-  
-  // Response noise (as in Model 1)
-  real<lower=0> sigma_e;
-}
-
-transformed parameters {
-  // Derived threshold for "very tall"
-  real very_tall_threshold = tall_threshold + very_effect;
-  
-  // Predictions for each response
-  vector[N_resp] predicted_response;
-  
-  for (n in 1:N_resp) {
-    if (condition[n] == 1) {  // "tall"
-      predicted_response[n] = heights[entity[n]] >= tall_threshold ? 0.9 : 0.1;
-    } else {  // "very tall"
-      predicted_response[n] = heights[entity[n]] >= very_tall_threshold ? 0.9 : 0.1;
-    }
-  }
-}
-
-model {
-  // Priors
-  tall_threshold ~ normal(175, 10);
-  very_effect ~ normal(20, 5);
-  sigma_e ~ beta(2, 10);
-  
-  // Likelihood (as in Model 1)
-  response ~ normal(predicted_response, sigma_e);
-}
-```
-
-Notice how the compositional structure is still present but has been "compiled out." Instead of a higher-order function `very` that modifies adjective meanings, we have separate thresholds related by addition. The semantic insight—that "very" systematically raises thresholds—is preserved, but expressed in Stan's first-order language @lassiter_adjectival_2017.
-
-### delta-rules and optimization
-
-Before translating λ-terms to Stan, we typically apply delta-rules—algebraic simplifications that make the resulting code cleaner and more efficient. These rules embody semantic equivalences that hold in our theory.
-
-From the PDS codebase (`Lambda.Delta`), we have rules like:
-
-```haskell
--- Eliminate vacuous binding
-cleanUp :: DeltaRule
-cleanUp = \case
-  Let v m k | sampleOnly m && v `notElem` freeVars k -> Just k
-  _ -> Nothing
-
--- Arithmetic simplifications  
-arithmetic :: DeltaRule
-arithmetic = \case
-  Add t u -> case t of
-    Zero -> Just u
-    x@(DCon _) -> case u of
-      Zero -> Just x
-      y@(DCon _) -> Just (x + y)
-  Mult t u -> case t of
-    Zero -> Just Zero
-    One -> Just u
-```
-
-These simplifications matter because Stan code can become complex quickly. Consider what happens without delta-reduction:
-
-```haskell
--- Before reduction
-do x <- return 5
-   y <- normal x 1
-   observe (y > 0)
-   return y
-
--- After reduction  
-do y <- normal 5 1
-   observe (y > 0)
-   return y
-```
-
-The simplified version translates to cleaner Stan code with one fewer parameter to sample. Over a complex semantic derivation, such simplifications can dramatically improve both code clarity and sampling efficiency.
-
-### The challenge of dynamic effects
-
-Perhaps the greatest challenge in translating to Stan comes from dynamic semantic effects—phenomena like anaphora resolution, presupposition accommodation, and discourse update. Our semantic metalanguage handles these naturally with stateful computations:
-
-```haskell
--- From the PDS codebase: updating discourse state
-ask κ = κ >>>= Lam "q" (getPP >>>= Lam "s" ((putPP (upd_QUD (Var "q") (Var "s")))))
-```
-
-But Stan has no notion of discourse state or dynamic update. We must either:
-
-1. **Marginalize out dynamic effects**: Sum/integrate over all possible resolutions
-2. **Fix resolution as data**: Treat anaphora resolution as observed data
-3. **Expand the parameter space**: Include discrete parameters for each resolution possibility
-
-Each approach has trade-offs. Marginalization can be computationally intractable. Fixing resolution as data requires separate annotation. Expanding the parameter space can lead to combinatorial explosion @grove_probabilistic_2024.
+Each approach has trade-offs. Marginalization can be computationally intractable. Fixing resolution requires additional annotation. Parameter expansion can lead to combinatorial explosion @grove_probabilistic_2024.
 
 ### From semantics to psychosemantics
 
-Ultimately, the translation from λ-terms to Stan forces us to be explicit about the relationship between semantic competence and performance. Our λ-terms express speakers' semantic knowledge—what they know about meaning. Our Stan models express how this knowledge generates behavioral data. The translation between them embodies our linking hypotheses @jasbi_linking_2019.
+The translation from λ-terms to Stan forces us to be explicit about the relationship between semantic competence and performance. Our λ-terms express speakers' semantic knowledge—what they know about meaning. Our Stan models express how this knowledge generates behavioral data. The translation between them embodies our linking hypotheses @jasbi_linking_2019.
 
-This perspective suggests that the compilation process itself is theoretically significant. Different compilation strategies correspond to different psychological assumptions:
-
-- **Eager evaluation**: Compute all semantic values before response generation
-- **Lazy evaluation**: Compute only values needed for the response  
-- **Noisy evaluation**: Semantic computations sometimes fail or give wrong results
-- **Resource-bounded evaluation**: Complex computations are approximated
-
-By making these choices explicit in our Stan models, we commit to testable hypotheses about semantic processing.
+Different compilation strategies correspond to different psychological assumptions about semantic processing. By making these choices explicit in our Stan models, we commit to testable hypotheses about how speakers compute meanings. This connection between formal theory and psychological reality is what makes the PDS approach powerful—it forces us to be explicit about our assumptions at every level.
 
 With this understanding of how PDS translates to Stan, we can now examine more sophisticated models that capture the theoretical distinctions between vagueness and imprecision.
 
@@ -925,7 +557,59 @@ Now that we understand Stan's structure and how to translate from PDS, let's imp
 
 #### Theoretical motivation
 
-The key insight from @kennedy_vagueness_2007 and @lasersohn_pragmatic_1999: gradable adjectives involve comparing an item's degree to a threshold, where both the threshold location and the comparison precision can vary. This implements @barker_dynamics_2002's claim that vague predicates have metalinguistic effects—they don't just describe the world but negotiate standards.
+The key insight from @kennedy_vagueness_2007 and @lasersohn_pragmatic_1999: gradable adjectives involve comparing an item's degree to a threshold, where both the threshold location and the comparison precision can vary. This implements @barker_dynamics_2002's claim that vague predicates have metalinguistic effects—they don't just describe the world but negotiate standards. This negotiation happens through the discourse state mechanism in PDS.
+
+#### PDS to Stan: Likelihood judgments
+
+For the likelihood judgment "how likely is it that Jo is tall?", we use the bare adjective entry (type AP) rather than the degree-question version. The PDS code is:
+
+```haskell
+q1''        = termOf $ getSemantics @Adjectives 0 ["how", "likely", "that", "jo", "is", "tall"]
+discourse'' = ty tau $ assert s1' >>> ask q1''
+likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond likelihoodPrior) discourse''
+```
+
+This uses `likelihoodPrior` to set up distributions over thresholds and degrees, capturing the uncertainty inherent in vague predicates. The prior encodes our theoretical commitment to gradience in standards.
+
+PDS outputs this kernel model:^[Actual PDS output: `model { v ~ normal(0.0, 1.0); target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma); }`]
+
+```stan
+model {
+  // FIXED EFFECTS
+  v ~ normal(0.0, 1.0);
+  
+  // LIKELIHOOD
+  target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma);
+}
+```
+
+This kernel captures the semantic computation: the likelihood that Jo is tall depends on where Jo's height `v` falls relative to the threshold (here normalized to 0). The `normal_cdf` implements the vagueness—there's no sharp cutoff but a gradual transition, exactly as the semantic theory predicts.
+
+But reality is complicated... we need to handle multiple adjectives, context effects, participant variation, and censored data. The full model with analyst augmentations:
+
+```stan {.line-numbers highlight="7,15"}
+model {
+  // PRIORS (analyst-added)
+  sigma_guess ~ exponential(5);
+  spread ~ exponential(1);
+  
+  // DEGREE PARAMETERS (PDS kernel)
+  // Each item has a degree on its scale
+  vector<lower=0, upper=1>[N_item] d;
+  
+  // PARTICIPANT EFFECTS (analyst-added)
+  sigma_epsilon_mu_guess ~ exponential(1);
+  z_epsilon_mu_guess ~ std_normal();
+  
+  // LIKELIHOOD
+  // Core semantic computation from PDS
+  response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
+  // Measurement model (analyst-added modification)
+  y[i] ~ normal(response_rel[i], sigma_e);
+}
+```
+
+The highlighted lines show PDS's semantic computation—comparing degrees to thresholds with vagueness. The unhighlighted code adds the statistical machinery needed for real experimental data. The point here is clear: ongoing research involves figuring out how to get from here (PDS output) to here (actual implementation) in a principled way.
 
 #### Data structure for vagueness experiments
 
@@ -942,7 +626,7 @@ The key difference: we now distinguish between items (specific adjective-conditi
 - Item "9_high" = adjective "quiet" in the "high" condition
 - Item "4_low" = adjective "wide" in the "low" condition
 
-This structure lets us model properties that belong to adjectives (like how context-sensitive they are) separately from properties of specific items.
+This structure lets us model properties that belong to adjectives (like how context-sensitive they are) separately from properties of specific items—a distinction motivated by the semantic theory.
 
 #### Complete Stan code for the vagueness model
 
@@ -1107,7 +791,7 @@ Let's trace through a specific example to see how this model works:
 
 1. **Item degree**: Suppose we're modeling "tall" in the high condition. The parameter `d[item["tall_high"]]` might be 0.85, representing that basketball players (high condition) have high degrees on the height scale.
 
-2. **Adjective spread**: The parameter `spread["tall"]` might be 2.0, meaning "tall" is highly context-sensitive—its threshold shifts dramatically between conditions.
+2. **Adjective spread**: The parameter `spread["tall"]` might be 2.0, meaning "tall" is highly context-sensitive—its threshold shifts dramatically between conditions. This captures the context-dependency that the discourse state mechanism models.
 
 3. **Threshold computation**: 
    - Base threshold (logit scale): `mu_guess0["tall_high"] = spread["tall"] = 2.0`
@@ -1128,6 +812,8 @@ This model implements several key theoretical insights:
 - **Individual differences**: Participants can have systematically different thresholds
 - **Measurement error**: Slider responses are noisy measurements of semantic judgments
 
+The model thus operationalizes the theoretical distinctions introduced earlier while adding the statistical machinery needed for real experimental data.
+
 ### Model 3: Mixture of relative and absolute standards
 
 Our most sophisticated model implements the theoretical distinction between relative and absolute gradable adjectives. Some adjectives like "tall" use relative standards that shift with the comparison class, while others like "full" use absolute standards tied to scale endpoints.
@@ -1140,9 +826,11 @@ Our most sophisticated model implements the theoretical distinction between rela
 
 This distinction has been supported experimentally by @syrett_meaning_2010 and @toledo_absolute_2013. Our mixture model allows the data to reveal which interpretation strategy participants use.
 
+While PDS doesn't currently output mixture models directly, this represents a natural extension where semantic theory guides statistical model structure. The mixture implements the insight that the relative/absolute distinction might not be categorical but graded—a hypothesis that emerges naturally from the compositional framework.
+
 #### Complete Stan code for the mixture model
 
-```stan
+```stan {.line-numbers highlight="45-47,59-61"}
 data {
   // Same basic structure as Model 2
   int<lower=1> N_item;
@@ -1168,12 +856,12 @@ data {
 }
 
 parameters {
-  // MIXTURE COMPONENT
+  // MIXTURE COMPONENT (semantic theory: two interpretation strategies)
   
   // Global probability of using relative (vs absolute) interpretation
   real<lower=0, upper=1> which;
   
-  // TWO SETS OF DEGREE PARAMETERS
+  // TWO SETS OF DEGREE PARAMETERS (PDS kernel structure)
   
   // Absolute interpretation: degrees are fixed per adjective
   vector<lower=0, upper=1>[N_adjective] d_a;
@@ -1276,7 +964,7 @@ model {
   sigma_epsilon_mu_guess ~ exponential(1);
   z_epsilon_mu_guess ~ std_normal();
   
-  // MIXTURE LIKELIHOOD
+  // MIXTURE LIKELIHOOD (PDS kernel structure)
   
   // For each observed response
   for (i in 1:N_data) {
@@ -1345,7 +1033,7 @@ Let's trace through how this model handles the adjective "tall" in different con
    - "tall" + "average person" (mid condition): `d_r["tall_mid"] = 0.6`
    - "tall" + "child" (low condition): `d_r["tall_low"] = 0.3`
    
-   The degree changes with context—what counts as tall depends on the comparison class.
+   The degree changes with context—what counts as tall depends on the comparison class, exactly as the discourse state mechanism predicts.
 
 2. **Under absolute interpretation**:
    - All conditions: `d_a["tall"] = 0.7`
@@ -1371,55 +1059,38 @@ Let's trace through how this model handles the adjective "tall" in different con
 
 #### Key innovations of the mixture model
 
-1. **Theoretical commitment**: Not all adjectives work the same way—some are inherently more relative or absolute @kennedy_scale_2005.
+1. **Theory-neutral**: The model doesn't assume which adjectives are relative or absolute—it learns from data
+2. **Graded membership**: Adjectives can be partially relative/absolute rather than categorical
+3. **Individual differences**: Different participants might use different interpretation strategies
+4. **Response-level inference**: We can identify which specific responses reflect which interpretation
 
-2. **Data-driven classification**: Rather than pre-classifying adjectives, we let the data reveal which adjectives pattern as relative vs absolute.
+This mixture approach implements the theoretical insight that the relative/absolute distinction might not be categorical but graded, with some adjectives showing mixed behavior [@mcnally_scale_2013]. It demonstrates how semantic theory can guide statistical model structure even when PDS doesn't yet output such complex models directly.
 
-3. **Individual differences**: The model can reveal if some participants consistently prefer one interpretation strategy.
+## Conclusion: From theory to implementation
 
-4. **Gradient membership**: Adjectives aren't forced into discrete categories—they can be partially relative and partially absolute.
+Through these three models, we've seen how PDS translates abstract semantic theories into concrete statistical models:
 
-This mixture approach implements @qing_gradable_2014's insight that the relative/absolute distinction might be gradient rather than categorical, while maintaining the theoretical insights from @kennedy_vagueness_2007 about different types of scale structure.
+1. **Model 1 (Norming)**: Established the basic Stan architecture and censoring approach for degree questions
+2. **Model 2 (Vagueness)**: Showed how degree-based semantics with likelihood judgments becomes probabilistic computation
+3. **Model 3 (Mixture)**: Demonstrated how theoretical distinctions become statistical hypotheses
 
-### Theoretical implications
+The progression from PDS's kernel models to full Stan implementations reveals several key insights:
 
-These Stan models demonstrate several key principles in translating semantic theory to statistical models:
+- **Kernel models capture semantics**: The highlighted portions of our Stan code directly implement semantic computations from compositional theory
+- **Augmentations handle reality**: Random effects, hierarchical structure, and measurement noise aren't semantic but are necessary for real data
+- **Theory guides implementation**: Different theoretical commitments (discrete vs. gradient, relative vs. absolute) lead to different model structures
+- **Compilation is theoretical**: The choices made in translating λ-terms to Stan embody linking hypotheses about semantic processing
 
-1. **Censoring as theoretical commitment**: The treatment of boundary responses (0 and 1) isn't just a statistical detail—it embodies assumptions about how semantic values map to behavioral responses @stevens_psychophysics_1975. All three models handle censoring, but the interpretation differs:
-   - Model 1: Censoring reflects measurement limitations
-   - Model 2: Censoring interacts with vagueness (very vague predicates might naturally produce more boundary responses)
-   - Model 3: Absolute adjectives might produce more boundary responses due to endpoint orientation
+### Future directions
 
-2. **Hierarchical structure as compositionality**: The nested structure mirrors the compositional structure of meaning @heim_semantics_1998:
-   - Adjectives compose with contexts to form items
-   - Items combine with participant-specific thresholds to generate judgments
-   - Judgments plus measurement noise produce responses
+This work opens several avenues for development:
 
-3. **Parameters as theoretical constructs**: Each parameter has both statistical and theoretical interpretation:
-   - `sigma_guess`: Degree of vagueness (how fuzzy boundaries are)
-   - `spread`: Context-sensitivity (how much standards shift)
-   - `which`: Prevalence of relative vs absolute interpretation strategies
-   - `d_r` vs `d_a`: Different ways degrees can be assigned
+1. **Automated augmentation**: Currently, analysts manually add statistical structure to kernel models. Future versions of PDS could automate common augmentations like random effects and hierarchical priors.
 
-4. **Model comparison as theory testing**: The progression across models allows us to test increasingly specific hypotheses:
-   - Model 1 baseline: Do items differ in degree?
-   - Model 2 vs Model 1: Does modeling vagueness improve fit?
-   - Model 3 vs Model 2: Is there evidence for multiple interpretation strategies?
+2. **Formally verified compilation**: Delta rules could be accompanied by formal proofs in Agda or Coq, ensuring soundness while enabling powerful transformations.
 
-5. **Linking hypotheses made explicit**: The choice of likelihood functions constitutes explicit linking hypotheses @jasbi_linking_2019:
-   - Normal likelihood: Responses are continuous with symmetric noise
-   - Censoring: The scale has psychological reality at boundaries
-   - Mixture structure: Multiple strategies can coexist
+3. **Richer kernel models**: Extending PDS to output mixture models, censoring mechanisms, and other statistical structures that directly encode semantic theories.
 
-The progression from simple degree estimation to sophisticated mixture models illustrates how computational implementation forces theoretical precision. By translating PDS's abstract semantic representations into Stan's concrete probability distributions, we make testable predictions about human linguistic behavior while maintaining the insights of formal semantic theory @grove_probabilistic_2024.
+4. **Community contributions**: The modular design of PDS invites researchers to contribute new lexical entries, delta rules, and compilation strategies.
 
-## Looking ahead
-
-These models provide the foundation for understanding factivity—a phenomenon where the gradience is unexpected rather than expected. Where vagueness naturally involves uncertain thresholds, factivity has traditionally been viewed as discrete. The tools developed here will prove essential:
-
-- **Censoring**: Factivity judgments often cluster at extremes (definitely does/doesn't project)
-- **Mixture models**: Some predicates might have both factive and non-factive uses
-- **Hierarchical structure**: Predicate-level, context-level, and participant-level variation
-- **Linking functions**: How binary theoretical predictions map to gradient responses
-
-The same Stan building blocks—data structures, parameter types, transformed computations, mixture likelihoods—will allow us to test competing theories of factivity against large-scale experimental data.
+Building on the PDS framework introduced in [previous sections](../pds-intro/overview.html), we've seen how computational tools can bridge the gap between formal semantic theory and experimental data. These models provide the foundation for understanding factivity—where gradience poses even deeper theoretical puzzles that we'll explore in the next section.
