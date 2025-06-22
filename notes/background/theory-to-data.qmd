@@ -1,4 +1,7 @@
-# The Bridge from Theory to Data: Understanding Adequacy in Linguistic Theory
+---
+title: "The bridge from theory to data: understanding adequacy in linguistic theory"
+bibliography: ../../pds.bib
+---
 
 Semantic theory has achieved remarkable success in characterizing the compositional structure of natural language meaning. Through decades of careful theoretical work, semanticists have developed elegant formal systems that capture how complex meanings arise from the systematic combination of simpler parts. These theories explain two fundamental types of judgments that speakers make: *acceptability judgments* about whether strings are well-formed, and *inference judgments* about what follows from what speakers say.
 
@@ -92,7 +95,7 @@ Sources of Gradience in Inference Judgments
 │       └── QUD (Question Under Discussion)
 └── Unresolved (Token-Level) Uncertainty
     ├── Vagueness (e.g., height of a "tall" person)
-    ├── World knowledge (e.g., likelihood facts are true)
+    ├── World knowledge (e.g., likelihood that facts are true)
     └── Task effects
         ├── Response strategies
         └── Response error
@@ -125,7 +128,7 @@ The type of uncertainty has profound implications for semantic theory:
 - **Resolved uncertainty** suggests discrete semantic representations with probabilistic selection
 - **Unresolved uncertainty** suggests gradient representations or probabilistic reasoning within fixed meanings
 
-Different phenomena may involve different uncertainty types. As we'll see, vagueness clearly involves unresolved uncertainty (everyone agrees "tall" lacks sharp boundaries), while factivity's gradience is more puzzling—is it resolved uncertainty from ambiguous predicates, or unresolved uncertainty in projection itself?
+Different phenomena may involve different uncertainty types. As we'll see, vagueness seems to give rise to unresolved uncertainty (the conditions of application of "tall" seem inherently uncertain), while factivity's gradience is perhaps more puzzling---is it resolved uncertainty from ambiguous predicates, or unresolved uncertainty in projection itself?
 
 ## Case Studies: Testing Semantic Theory at Scale
 

@@ -1,11 +1,10 @@
 ---
+title: "A theoretically-oriented approach: RSA models;"
 bibliography: ../../pds.bib
 format:
   html:
     css: ../styles.css
 ---
-
-### A theoretically-oriented approach: RSA models
 
 Rational speech act (RSA) models are a very popular approach to modeling pragmatic inference that integrates ideas from formal semantics into mathematically explicit models of Gricean reasoning [@grice_logic_1975].
 Crucially, these models aim for a certain kind of *modularity*:
