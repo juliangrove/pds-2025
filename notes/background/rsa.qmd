@@ -1,11 +1,10 @@
 ---
+title: "A theoretically-oriented approach: RSA models"
 bibliography: ../../pds.bib
 format:
   html:
     css: ../styles.css
 ---
-
-### A theoretically-oriented approach: RSA models
 
 Rational speech act (RSA) models are a very popular approach to modeling pragmatic inference that integrates ideas from formal semantics into mathematically explicit models of Gricean reasoning [@grice_logic_1975].
 Crucially, these models aim for a certain kind of *modularity*:
@@ -15,6 +14,9 @@ They achieve this kind of modularity, essentially, by allowing one to state a th
 Here we describe what is sometimes called *vanilla* RSA.
 Vanilla RSA is RSA more or less as it was originally formulated @frank_predicting_2012 and @goodman_knowledge_2013 (see @degen_rational_2023 for a recent comprehensive overview of the RSA literature).
 The basic idea is that there are two sets of models, *listener* models, and *speaker* models, which are kind of mirror images of each other.
+
+#### Listener models
+
 In particular, any given listener model $L_{i}$ characterizes a probability distribution over possible worlds $w$, given some utterance $u$.
 $$
 \begin{aligned}
@@ -32,8 +34,6 @@ P_{L_i}(w^\prime)}\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,
 $$
 In words, $P_{L_0}(w | u)$ depends only on whether or not $u$ and $w$ are compatible.
 It thus acts as a *filter*, eliminating possible worlds from the prior in which the utterance $u$ is false.
-
-#### Listener models
 
 The definition of $P_{L_i}(w | u)$ for $i > 0$ uses [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem).
 To state that this definition *uses* Bayes' theorem is kind of a tautology when viewed simply as a mathematical description.

@@ -1,19 +1,775 @@
-# Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments
+---
+bibliography: ../../pds.bib
+format:
+  html:
+    css: ../styles.css
+    html-math-method: mathjax
+    mathjax-config:
+      loader: {load: ['[tex]/bussproofs','[tex]/bbox','[tex]/colorbox']}
+      tex:
+        packages: {'[+]': ['bussproofs','bbox','colorbox']}
+---
 
-## The problem of gradience in veridicality judgments
+::: {.hidden}
+$$
+\newcommand{\expr}[3]{\begin{array}{c}
+#1 \\
+\bbox[lightblue,5px]{#2}
+\end{array} ⊢ #3}
+\newcommand{\ct}[1]{\bbox[font-size: 0.8em]{\mathsf{#1}}}
+\newcommand{\updct}[1]{\ct{upd\_#1}}
+\newcommand{\abbr}[1]{\bbox[transform: scale(0.95)]{\mathtt{#1}}}
+\newcommand{\pure}[1]{\bbox[border: 1px solid orange]{\bbox[border: 4px solid transparent]{#1}}}
+\newcommand{\return}[1]{\bbox[border: 1px solid black]{\bbox[border: 4px solid transparent]{#1}}}
+\def\P{\mathtt{P}}
+\def\Q{\mathtt{Q}}
+\def\True{\ct{T}}
+\def\False{\ct{F}}
+\def\ite{\ct{if\_then\_else}}
+\def\Do{\abbr{do}}
+$$
+:::
 
-### White & Rawlins 2019
+# Factivity and presupposition projection: From PDS to Stan
 
-### Degen & Tonhauser 2022
+Building on our exploration of gradable adjectives—where gradience is expected and theoretically motivated—we now turn to factivity, a phenomenon where gradience poses a deeper theoretical puzzle. While vagueness naturally involves uncertain thresholds, factivity has traditionally been viewed as a discrete property: predicates either presuppose the truth of their complements or they don't [@kiparsky_fact_1970; @karttunen_observations_1971]. The discovery of systematic gradience in factivity judgments thus challenges fundamental assumptions about the nature of presupposition and projection.
 
-## Two hypotheses
+This case study demonstrates how discrete semantic knowledge can be expressed in PDS through branching computations, and how these translate into mixture models in Stan. The translation process reveals both the power and challenges of compiling high-level semantic theories into statistical models, while forcing us to be explicit about our linking hypotheses between competence and performance.
 
-### The Fundamental Discreteness Hypothesis
+## The phenomenon: Factivity and presupposition projection
 
-### The Fundamental Gradience Hypothesis
+### What is factivity?
 
-## Lexica
+A predicate is said to be *factive* if it triggers inferences about the truth of its complement that persist even under entailment-canceling operators. This projection behavior has been the hallmark diagnostic for presupposition since @karttunen_observations_1971, building on earlier observations by @strawson_referring_1950. []{@exm-know-positive} []{@exm-know-negative} []{@exm-know-question} []{@exm-know-conditional} []{@exm-mo-left-inference} Consider the predicate "know":
 
-### The fundamental discreteness hypothesis
+(@exm-know-positive) Jo knows that Mo left.
+(@exm-know-negative) Jo doesn't know that Mo left.
+(@exm-know-question) Does Jo know that Mo left?
+(@exm-know-conditional) If Jo knows that Mo left...
+(@exm-mo-left-inference) Mo left.
 
-### The fundamental gradience hypothesis
+The inference in (@exm-mo-left-inference) "projects" through negation, questions, and conditionals—environments that typically cancel entailments. []{@exm-think-positive} []{@exm-think-negative} []{@exm-think-question} Compare this with non-factive "think":
+
+(@exm-think-positive) Jo thinks that Mo left.
+(@exm-think-negative) Jo doesn't think that Mo left.
+(@exm-think-question) Does Jo think that Mo left?
+
+With "think", the inference that Mo left is present (weakly) in (@exm-think-positive) but disappears in (@exm-think-negative) and (@exm-think-question).
+
+This projection behavior has motivated analyses where factive predicates encode this presupposition directly [@heim_presupposition_1983]. The presupposition must be satisfied for the sentence to have a truth value—creating what @strawson_referring_1950 called "presupposition failure" when violated.
+
+### The challenge of gradient factivity judgments
+
+While theoretical work treats factivity as categorical, experimental studies reveal systematic gradience. @white_role_2018 collected over 500,000 inference judgments for essentially all clause-embedding predicates in English, finding:
+
+- No clear bimodal distribution separating factive from non-factive predicates
+- Continuous variation in projection strength across predicates
+- Substantial inter-speaker variation in judgments
+- Context effects on projection strength
+
+Mean certainty ratings (on a 0-1 scale) varied continuously:
+- "be annoyed": 0.85 (strongly factive)
+- "know": 0.75 (canonically factive but not maximal)
+- "discover": 0.73
+- "be right": 0.65
+- "think": 0.45
+- "believe": 0.40
+- "pretend": 0.20 (strongly non-factive)
+
+Similar gradient patterns have been observed by @xue_correlation_2011, @smith_projection_2011, and @djarv_prosodic_2017. This gradience has led some researchers to argue that factivity is not a discrete lexical property but emerges from pragmatic reasoning about speaker commitments [@simons_observations_2001; @abusch_presupposition_2010; @tonhauser_how_2018]. Others maintain that factivity is discrete but interacts with other factors like world knowledge and contextual plausibility [@djarv_factivity_2019; @white_lexically_2019; @roberts_preconditions_2024].
+
+## The experimental paradigm: Measuring projection with world knowledge
+
+To investigate how world knowledge influences factivity inferences, @degen_prior_2021 developed an elegant two-stage experimental paradigm that we'll model using PDS.
+
+### Stage 1: Prior elicitation
+
+Participants first judge the prior probability of propositions in context:
+
+(@exm-prior-context) Context: Zoe is a kindergartener.
+(@exm-prior-question) Question: How likely is it that Zoe can tie her shoes?
+(@exm-prior-response) Response: [slider from "very unlikely" to "very likely"]
+
+This establishes baseline expectations about the embedded proposition independent of any clause-embedding predicate. Contexts manipulate prior probability:
+- High prior: "Zoe is a gymnast" → tying shoes very likely
+- Low prior: "Zoe is a toddler" → tying shoes very unlikely
+
+### Stage 2: Projection measurement
+
+Participants then see the proposition embedded under various predicates:
+
+(@exm-projection-context) Context: Zoe is a kindergartener.
+(@exm-projection-sentence) Sentence: Edward discovered that Zoe can tie her shoes.
+(@exm-projection-question) Question: How certain is Edward that Zoe can tie her shoes?
+(@exm-projection-response) Response: [slider from "not certain" to "certain"]
+
+The key insight: if a predicate is factive, the certainty rating should be high regardless of prior probability. Non-factive predicates should show sensitivity to priors.
+
+### The empirical findings
+
+@degen_prior_2021 tested 20 predicates across three theoretical classes:
+- **Cognitive factives**: know, discover, realize, learn, find out, remember
+- **Emotive factives**: be annoyed, love, be surprised  
+- **Non-factives**: think, believe, suspect, hope, suggest, pretend
+
+Results revealed:
+1. **Gradient projection**: No predicates showed categorical behavior
+2. **Prior effects**: All predicates showed some sensitivity to prior probability
+3. **Scalar differences**: Predicates differed in *degree* of prior sensitivity
+4. **No clear clusters**: Continuous variation rather than discrete classes
+
+These findings raise fundamental questions: Is the underlying representation discrete or gradient? How do semantic knowledge and world knowledge interact? What generates the observed gradience?
+
+## Two hypotheses about factivity in PDS
+
+The gradience in factivity judgments admits (at least) two theoretical interpretations. PDS allows us to formalize both hypotheses precisely and derive testable predictions.
+
+### Hypothesis 1: Fundamental discreteness
+
+Under this hypothesis, factivity remains a discrete property of predicates, but various factors conspire to produce gradient behavioral patterns:
+
+1. **Lexical ambiguity**: Predicates have both factive and non-factive senses
+2. **Structural ambiguity**: Different syntactic structures trigger different readings. Cross-linguistic evidence supports this view, with languages showing morphological marking (Korean, Turkish), syntactic selection (Greek, Romanian), and mood selection (Spanish, French) for factivity [@varlokosta_issues_1994; @giannakidou_polarity_1998; @giannakidou_affective_1999; @giannakidou_dependency_2009; @roussou_selecting_2010; @farudi_antisymmetric_2007; @abrusan_predicting_2011; @kastner_factivity_2015; @ozyildiz_attitude_2017; @ozyildiz_factivity_2021]
+3. **Pragmatic enrichment**: Context coerces interpretations [@qing_rational_2016; @simons_best_2017; @roberts_preconditions_2024]
+4. **Noisy measurement**: Response generation introduces continuous noise
+
+This view maintains the insights of formal semantic theory while explaining gradience through independently motivated mechanisms. As we'll see, PDS naturally expresses this through branching computations.
+
+### Hypothesis 2: Fundamental gradience
+
+Under this hypothesis, no discrete factivity property exists. Instead:
+
+1. **Gradient commitment**: Predicates encode degrees of speaker commitment to complement truth
+2. **Continuous projection**: Projection strength varies continuously  
+3. **No categorical distinction**: Factive/non-factive is a false dichotomy
+4. **Direct encoding**: Gradience is in the semantics, not just behavior
+
+This view, advocated by @tonhauser_how_2018 and @degen_are_2022, requires rethinking presupposition theory but may better capture the empirical patterns.
+
+## The PDS implementation: Discrete factivity
+
+Let's examine how PDS implements the discrete factivity hypothesis. The key insight is that factivity is encoded as a branching computation—the meaning of "know" depends on a discourse parameter that determines whether it behaves factively.
+
+### The lexical entry for "know"
+
+From [`Grammar.Lexica.SynSem.Factivity`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Factivity.html), here's the entry for "knows":
+
+```haskell
+"knows" -> [ SynSem {
+  syn = S :\: NP :/: S,
+  sem = ty tau (lam s (purePP (lam p (lam x (lam i 
+    (ITE (TauKnow s) 
+         (And (epi i @@ x @@ p) (p @@ i))  -- Factive branch
+         (epi i @@ x @@ p))))))            -- Non-factive branch
+    @@ s))
+} ]
+```
+
+Let's unpack this step by step to understand how discrete factivity is implemented:
+
+1. **Type structure**: `S :\: NP :/: S` indicates "know" combines with a sentential complement (S) and a subject (NP) to form a sentence (S). This is standard CCG notation [@steedman_syntactic_2000; @steedman_surface_1996].
+
+2. **Semantic computation**: The meaning is a function that:
+   - Takes a discourse state `s` (containing factivity information)
+   - Returns a function from propositions `p` to functions from individuals `x` to propositional meanings
+
+3. **The crucial branching**: `ITE (TauKnow s) ...` is an if-then-else that checks the factivity parameter:
+   - \ct{TauKnow} `s` extracts whether this token of "know" is factive from the discourse state
+   - If factive: `And (epi i @@ x @@ p) (p @@ i)` — both the epistemic state AND the proposition itself
+   - If non-factive: `epi i @@ x @@ p` — only the epistemic state
+
+4. **Semantic components**:
+   - `epi i @@ x @@ p`: x's epistemic state regarding p at index i
+   - `p @@ i`: the truth of p at index i  
+   - \ct{(∧)}: logical conjunction
+
+This branching implements the core insight: factive uses presuppose complement truth (via conjunction), while non-factive uses only assert the attitude relation.
+
+### From PDS lambda terms to beta reduction
+
+Let's trace how this lambda term gets reduced when applied to actual arguments. Consider the sentence "Jo knows that Bo left":
+
+```haskell
+-- Step 1: The raw lambda term
+lam s (purePP (lam p (lam x (lam i 
+  (ITE (TauKnow s) 
+       (And (epi i @@ x @@ p) (p @@ i))
+       (epi i @@ x @@ p))))) @@ s))
+
+-- Step 2: Apply to the complement "that Bo left" (simplified as 'left')
+-- After beta reduction with p = left:
+lam s (purePP (lam x (lam i 
+  (ITE (TauKnow s) 
+       (And (epi i @@ x @@ left) (left @@ i))
+       (epi i @@ x @@ left)))) @@ s))
+
+-- Step 3: Apply to subject "Jo" (simplified as 'j')  
+-- After beta reduction with x = j:
+lam s (purePP (lam i 
+  (ITE (TauKnow s) 
+       (And (epi i @@ j @@ left) (left @@ i))
+       (epi i @@ j @@ left))) @@ s))
+
+-- Step 4: The purePP injects this into the State.Probability parameterized monad
+-- We get a computation that depends on the discourse state s
+```
+
+This beta reduction process shows how the abstract lexical entry combines with specific arguments to yield a concrete semantic representation.
+
+### Delta rules: Simplifying the computation
+
+Before compilation to Stan, PDS applies delta rules to simplify the computation. From [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html), the key rules for factivity involve state updates and control flow:
+
+```haskell
+-- Extracting factivity parameters from states
+states :: DeltaRule
+states = \case
+  TauKnow (UpdTauKnow b _) -> Just b    -- Extract factivity parameter
+  TauKnow (UpdCG _ s)      -> Just (TauKnow s)  -- Thread through CG updates
+  TauKnow (UpdQUD _ s)     -> Just (TauKnow s)  -- Thread through QUD updates
+  -- ... other state operations
+
+-- Simplifying if-then-else constructs  
+ite :: DeltaRule
+ite = \case
+  ITE Tr x y -> Just x  -- If condition is True, return first branch
+  ITE Fa x y -> Just y  -- If condition is False, return second branch
+  _          -> Nothing
+
+-- Converting Bernoulli samples to disjunctions
+disjunctions :: DeltaRule
+disjunctions = \case
+  Let b (Bern x) k -> Just (Disj x (subst b Tr k) (subst b Fa k))
+  -- This transforms sampling into explicit branching
+  
+-- Handling observations
+observations :: DeltaRule
+observations = \case
+  Let _ (Observe Tr) k -> Just k  -- Observing truth is trivial
+  Let _ (Observe Fa) k -> Just Undefined  -- Observing falsity yields undefined
+  _                    -> Nothing
+```
+
+These rules ensure that:
+- Factivity parameters are correctly extracted from updated states
+- State threading preserves information through discourse updates
+- Redundant computations are eliminated
+- Discrete sampling becomes explicit branching
+- Failed observations properly propagate as undefined distributions
+
+### The prior distribution
+
+The prior determines how often "know" is used factively. From [`factivityPrior`](https://juliangrove.github.io/pds/src/Grammar.Lexica.SynSem.Factivity.html#factivityPrior):
+
+```haskell
+factivityPrior :: Term
+factivityPrior = 
+  let' x (LogitNormal 0 1)      -- Sample base rate on logit scale
+  (let' b (Bern x)              -- Sample factivity parameter  
+  (Return (UpdTauKnow b ...)))  -- Update state with result
+```
+
+After delta reduction (via the [`disjunctions`](https://juliangrove.github.io/pds/src/Lambda.Delta.html#disjunctions) rule), this becomes:
+
+```haskell
+-- The Bernoulli sampling gets converted to a disjunction
+let' x (LogitNormal 0 1)
+  (Disj x 
+    (Return (UpdTauKnow Tr ...))  -- Factive branch
+    (Return (UpdTauKnow Fa ...))) -- Non-factive branch
+```
+
+The logit-normal distribution is crucial—it allows the base rate to vary across a continuum while respecting probability bounds, implementing our uncertainty about how often "know" is used factively.
+
+### Response generation
+
+The response function maps semantic values to behavioral responses:
+
+```haskell
+factivityRespond :: Term -> Term -> Term
+factivityRespond = respond (lam x (Truncate (Normal x (Var "sigma")) 0 1))
+```
+
+This truncated normal distribution:
+- Centers responses at the semantic value
+- Adds Gaussian noise with standard deviation `sigma`
+- Truncates to [0,1] to match the slider scale
+- Implements the noisy measurement process
+
+## The compilation challenge: From discrete branching to continuous mixtures
+
+The central challenge in translating PDS to Stan is that Stan's HMC sampler cannot handle discrete parameters. We cannot directly translate the discrete branching:
+
+```haskell
+ITE (TauKnow s) factive_meaning non_factive_meaning
+```
+
+Into Stan's:
+```stan
+if (tau_know[s]) {  // INVALID: tau_know must be continuous
+  // Factive computation
+} else {
+  // Non-factive computation  
+}
+```
+
+### The marginalization strategy
+
+The solution is to marginalize over the discrete choice, transforming branching into probability weighting. Instead of sampling a discrete factivity parameter, we:
+
+1. Maintain the probability of being factive as a continuous parameter
+2. Compute the likelihood under both interpretations
+3. Weight each likelihood by its probability
+4. Sum the weighted likelihoods
+
+Mathematically:
+```
+P(response | verb, context) = 
+  P(factive | verb) × P(response | factive, context) +
+  P(non-factive | verb) × P(response | non-factive, context)
+```
+
+### The mixture model transformation
+
+In Stan, this marginalization is implemented using `log_mix`, which efficiently computes mixture likelihoods on the log scale:
+
+```stan
+real log_lik_lpdf(real resp, real verb_prob, real context_prob, real sigma) {
+  return log_mix(
+    verb_prob,                                         // P(factive)
+    truncated_normal_lpdf(resp | 1, sigma, 0, 1),     // Factive: certain
+    truncated_normal_lpdf(resp | context_prob, sigma, 0, 1)  // Non-factive: follows prior
+  );
+}
+```
+
+The key insight: under the factive interpretation, the response centers at 1 (certainty), while under the non-factive interpretation, it centers at the prior probability.
+
+## Complete Stan implementation: Breaking down the discrete factivity model
+
+Let's examine the Stan model piece by piece, showing how each component derives from the PDS specification.
+
+### Functions block: Core computations
+
+```stan
+functions {
+  // Truncated normal for bounded responses
+  real truncated_normal_lpdf(real x, real mu, real sigma, real a, real b) {
+    return normal_lpdf(x | mu, sigma) - 
+           log_diff_exp(normal_lcdf(b | mu, sigma), 
+                        normal_lcdf(a | mu, sigma));
+  }
+  
+  // Mixture likelihood implementing the PDS branching computation
+  real log_lik_lpdf(real resp, real verb_prob, real context_prob, real sigma) {
+    return log_mix(
+      verb_prob,                                          // P(TauKnow = true)
+      truncated_normal_lpdf(resp | 1, sigma, 0, 1),      // Factive branch
+      truncated_normal_lpdf(resp | context_prob, sigma, 0, 1)  // Non-factive
+    );
+  }
+}
+```
+
+The `truncated_normal_lpdf` function implements the response distribution from PDS. The `log_lik_lpdf` function directly implements the marginalized branching computation from our PDS specification.
+
+### Data block: Experimental structure
+
+```stan
+data {
+  // Experimental structure (parallels adjectives data structure)
+  int<lower=0> N_resp;      // Total responses
+  int<lower=0> N_verb;      // Number of verbs tested (20)
+  int<lower=0> N_context;   // Number of context-complement pairs (40)
+  int<lower=0> N_subj;      // Number of participants
+  
+  // Prior information from Stage 1 norming
+  vector[N_verb] verb_mean;         // Prior estimates of verb factivity
+  vector[N_verb] verb_std;          // Uncertainty about verb factivity
+  vector[N_context] context_mean;   // Prior probability from norming
+  vector[N_context] context_std;    // Uncertainty about context
+  
+  // Indexing arrays (implements PDS function application)
+  int<lower=1,upper=N_verb> verb[N_resp];
+  int<lower=1,upper=N_context> context[N_resp];
+  int<lower=1,upper=N_subj> subj[N_resp];
+  
+  // Response data
+  vector<lower=0,upper=1>[N_resp] resp;
+}
+```
+
+This data structure mirrors how PDS applies functions to arguments. The indexing arrays implement the application of verb meanings to contexts and participants.
+
+### Parameters block: What we're inferring
+
+```stan
+parameters {
+  // DISCRETE FACTIVITY PARAMETERS (marginalized)
+  
+  // Verb-level factivity (implements TauKnow per verb)
+  vector[N_verb] verb_intercept_z;  // Standardized
+  
+  // Context effects (implements world knowledge)
+  real<lower=0> context_intercept_std;
+  vector[N_context] context_intercept_z;
+  
+  // PARTICIPANT VARIATION (implements individual differences)
+  
+  // Variation in factivity interpretation
+  real<lower=0> subj_intercept_verb_std;
+  vector[N_subj] subj_intercept_verb_z;
+  
+  // Variation in context sensitivity  
+  real<lower=0> subj_intercept_context_std;
+  vector[N_subj] subj_intercept_context_z;
+  
+  // RESPONSE NOISE (implements measurement error)
+  real<lower=0,upper=1> sigma;
+}
+```
+
+Each parameter group corresponds to a component of the PDS model:
+- `verb_intercept_z`: The \ct{TauKnow} values for each verb
+- `context_intercept_z`: World knowledge from the norming study
+- `subj_intercept_*_z`: Individual differences in interpretation
+- `sigma`: The noise parameter from `factivityRespond`
+
+### Transformed parameters: Computing probabilities
+
+```stan
+transformed parameters {
+  // Transform standardized parameters (non-centered parameterization)
+  vector[N_verb] verb_intercept = verb_std .* verb_intercept_z + verb_mean;
+  vector[N_context] context_intercept = 
+    context_intercept_std * context_intercept_z;
+  vector[N_subj] subj_intercept_verb = 
+    subj_intercept_verb_std * subj_intercept_verb_z;
+  vector[N_subj] subj_intercept_context = 
+    subj_intercept_context_std * subj_intercept_context_z;
+  
+  // Compute response-level probabilities
+  vector[N_resp] log_lik;
+  vector[N_resp] verb_prob_by_resp;
+  vector[N_resp] context_prob_by_resp;
+  
+  for (n in 1:N_resp) {
+    // Verb probability: P(TauKnow = true | verb, participant)
+    // Implements the Bernoulli draw in factivityPrior
+    verb_prob_by_resp[n] = inv_logit(
+      verb_intercept[verb[n]] + subj_intercept_verb[subj[n]]
+    );
+    
+    // Context probability: P(complement true | context, participant)  
+    // Implements world knowledge from norming
+    context_prob_by_resp[n] = inv_logit(
+      context_intercept[context[n]] + subj_intercept_context[subj[n]]
+    );
+    
+    // Likelihood: implements marginalized PDS branching computation
+    log_lik[n] = log_lik_lpdf(
+      resp[n] | verb_prob_by_resp[n], context_prob_by_resp[n], sigma
+    );
+  }
+}
+```
+
+This block shows the direct correspondence between PDS computations and Stan:
+- The `inv_logit` transformation implements the logit-normal prior
+- The addition of intercepts implements participant-specific adjustments
+- The `log_lik_lpdf` call implements the marginalized ITE branching
+
+### Model block: Priors and likelihood
+
+```stan
+model {
+  // PRIORS (implement PDS prior distributions)
+  
+  // Verb factivity: hierarchical centering on prior estimates
+  verb_intercept_z ~ std_normal();
+  
+  // Context effects: estimated from norming data
+  context_intercept_std ~ exponential(1);
+  context_intercept_z ~ std_normal();
+  
+  // Participant variation: mild regularization
+  subj_intercept_verb_std ~ exponential(1);
+  subj_intercept_verb_z ~ std_normal();
+  subj_intercept_context_std ~ exponential(1);
+  subj_intercept_context_z ~ std_normal();
+  
+  // Response noise: beta prior for bounded parameter
+  sigma ~ beta(2, 10);  // Prior expectation around 0.17
+  
+  // LIKELIHOOD (implements response generation)
+  for (n in 1:N_resp)
+    target += log_lik[n];
+}
+```
+
+The priors implement the distributional assumptions from PDS:
+- Standard normal priors on z-scores implement the hierarchical structure
+- Exponential priors on standard deviations allow flexible variation
+- The beta prior on sigma matches the bounded nature of response noise
+
+### Generated quantities: Extracting interpretable parameters
+
+```stan
+generated quantities {
+  // Extract interpretable parameters
+  vector[N_verb] verb_prob = inv_logit(verb_intercept);  // P(factive) per verb
+  vector[N_context] context_prob = inv_logit(context_intercept);  // Prior per context
+  
+  // Posterior predictive checks
+  vector[N_resp] resp_pred;
+  for (n in 1:N_resp) {
+    real factive_draw = bernoulli_rng(verb_prob_by_resp[n]);
+    if (factive_draw) {
+      resp_pred[n] = truncated_normal_rng(1, sigma, 0, 1);
+    } else {
+      resp_pred[n] = truncated_normal_rng(context_prob_by_resp[n], sigma, 0, 1);
+    }
+  }
+}
+```
+
+This block provides interpretable quantities and implements posterior predictive checks that mirror the original PDS computation.
+
+### Understanding the compilation
+
+The translation from PDS to Stan reveals several key transformations:
+
+1. **Discrete choices become mixture weights**: The branching `ITE (TauKnow s)` becomes the mixture weight `verb_prob`
+
+2. **State dependencies become array indexing**: PDS's functional \ct{TauKnow} :: $\sigma \to t$ becomes Stan's `verb_prob[verb[n]]`
+
+3. **Hierarchical sampling becomes non-centered parameterization**: The nested sampling in `factivityPrior` becomes Stan's `_z` parameters with scaling
+
+4. **Response functions become truncated distributions**: The `Truncate` operation in PDS maps directly to Stan's truncated normal
+
+5. **Dynamic updates become static structure**: PDS's state updates compile away, leaving only the final parameter dependencies
+
+## Alternative models: Testing gradient factivity
+
+The discrete factivity model makes strong predictions: response distributions should be bimodal, with modes at 1 (factive) and at the prior probability (non-factive). But what if factivity is fundamentally gradient?
+
+### The wholly-gradient model in PDS
+
+The wholly-gradient model requires modifying three key components of the PDS specification:
+
+1. **Modified lexical entry**: Check factivity from the common ground rather than discourse state:
+
+```haskell
+"knows" -> [ SynSem {
+  syn = S :\: NP :/: S,
+  sem = ty tau (lam s (purePP (lam p (lam x (lam i 
+    (ITE (TauKnow i)  -- Note: checks i, not s
+         (And (epi i @@ x @@ p) (p @@ i))
+         (epi i @@ x @@ p))))) 
+    @@ s))
+} ]
+```
+
+2. **Modified prior**: Place $\ct{TauKnow}$ in the common ground update:
+
+```haskell
+factivityPrior = 
+  let' x (LogitNormal 0 1) 
+  (let' y (LogitNormal 0 1) 
+  (Return (UpdCG 
+    (let' b (Bern x) (Return (UpdTauKnow b _0))) 
+    ϵ)))
+```
+
+3. **Modified delta rules**: Move \ct{TauKnow} handling to indices:
+
+```haskell
+indices :: DeltaRule
+indices = \case
+  TauKnow (UpdTauKnow b _) -> Just b
+  TauKnow (UpdEpi _ i)     -> Just (TauKnow i)
+  -- ... other index operations
+```
+
+### Compilation to Stan
+
+The wholly-gradient model compiles to a strikingly different Stan model:
+
+```stan
+real log_lik_lpdf(real resp, real verb_prob, real context_prob, real sigma) {
+  // Probabilistic OR: complement likely if verb OR context suggests it
+  real prob_or = 1.0 - (1.0 - verb_prob) * (1.0 - context_prob);
+  return truncated_normal_lpdf(resp | prob_or, sigma, 0, 1);
+}
+```
+
+Instead of a mixture, we get continuous combination through probabilistic disjunction. This predicts unimodal response distributions whose means shift smoothly with both verb and context parameters.
+
+### The discrete-world and wholly-discrete variants
+
+The discrete-world and wholly-discrete models test specific hypotheses about parameter scope:
+
+- **Discrete-world**: World knowledge is discrete (true/false) while factivity is gradient
+- **Wholly-discrete**: Both factivity and world knowledge are discrete
+
+These models help diagnose whether gradience arises from discrete categories plus noise versus fundamental gradience in the representations.
+
+## Model comparison: What the data reveals
+
+Fitting these four models to @degen_prior_2021's data yields clear results:
+
+(@exm-model-comparison) Model comparison results:
+- Discrete-factivity: ELPD = 2917 (SE = 44)
+- Wholly-discrete: ELPD = 2739 (SE = 42)
+- Wholly-gradient: ELPD = 2698 (SE = 41)
+- Discrete-world: ELPD = 2689 (SE = 41)
+
+The discrete-factivity model's superior fit (ΔELPD > 170) provides strong evidence that:
+1. Factivity is best modeled as a discrete property with probabilistic selection
+2. World knowledge effects are gradient, not discrete
+3. The observed gradience arises from uncertainty about which meaning is intended
+
+### Response distribution analysis
+
+Examining posterior predictive distributions reveals why discrete-factivity wins:
+
+- **Factive predicates** (know, discover): Bimodal distributions with modes at prior and 1
+- **Non-factive predicates** (think, believe): Unimodal distributions centered at prior  
+- **Individual trials**: Often show extreme responses (0 or 1), not intermediate values
+
+This pattern—bimodality at the population level, extremity at the trial level—is exactly what discrete-factivity predicts.
+
+## Theoretical implications: Compilation as theoretical commitment
+
+The process of compiling PDS to Stan illuminates several deep issues in semantic theory and psycholinguistics:
+
+### 1. The nature of gradience
+
+Our models demonstrate that behavioral gradience doesn't necessitate representational gradience. The discrete-factivity model generates gradient population-level patterns from discrete trial-level choices. This vindicates formal semantic approaches that maintain discrete categories while acknowledging behavioral variability [@white_computational_2021; @grove_factivity_2024].
+
+### 2. Marginalization and cognitive architecture  
+
+The mathematical necessity of marginalization in Stan raises cognitive questions: Do speakers marginalize over interpretations online? The success of mixture models suggests that uncertainty about discrete choices—rather than gradient representations—may underlie many "gradient" phenomena in linguistics.
+
+### 3. Linking hypotheses made explicit
+
+The compilation from PDS to Stan forces complete explicitness about:
+- How semantic knowledge generates behavioral responses
+- What sources of variability exist (lexical, contextual, individual)
+- How different factors combine (mixture vs. continuous combination)
+
+This explicitness enables quantitative theory comparison impossible with informal theories [@jasbi_linking_2019; @waldon_modeling_2020].
+
+### 4. The role of world knowledge
+
+Our models reveal that world knowledge and semantic knowledge interact differently than previously assumed:
+- Semantic knowledge (factivity) appears discrete with probabilistic selection
+- World knowledge effects appear gradient and continuous
+- The interaction is multiplicative in mixtures, not additive
+
+This suggests a cognitive architecture where semantic and world knowledge remain distinct.
+
+## Compilation patterns: From branching to mixtures
+
+Several systematic patterns emerge when compiling factivity models from PDS to Stan:
+
+### Pattern 1: Discrete parameters require marginalization
+
+Every discrete choice in PDS:
+```haskell
+ITE discrete_param option1 option2
+```
+
+Must become a marginalized mixture in Stan:
+```stan
+log_mix(prob_param, likelihood1, likelihood2)
+```
+
+This isn't just a technical requirement—it reflects a deep connection between discrete semantic knowledge and mixture models of behavior.
+
+### Pattern 2: Discourse dynamics become parameter structure
+
+PDS elegantly handles dynamic updates:
+```haskell
+UpdTauKnow b (UpdCG cg s)  -- Update factivity, then common ground
+```
+
+Stan requires static parameter structures:
+```stan
+vector[N_verb] verb_factivity;
+matrix[N_context, N_verb] interaction;
+```
+
+The dynamic becomes static through compilation, but the dependencies remain.
+
+### Pattern 3: Uncertainty propagation through hierarchical models
+
+PDS's nested sampling:
+```haskell
+let' population_param (LogitNormal 0 1) (
+  let' individual_param (Normal population_param 0.5) (
+    ...))
+```
+
+Maps naturally to Stan's hierarchical structures, preserving uncertainty propagation from population to individual to trial level.
+
+### Pattern 4: Response functions as measurement models
+
+The truncated normal response function appears in both adjectives and factivity, implementing a consistent measurement theory: semantic values are psychological quantities measured with noise on bounded scales [@lassiter_measurement_2013; @stevens_psychophysics_1975].
+
+## Challenges and future directions
+
+While our implementation successfully captures discrete factivity, several challenges remain:
+
+### 1. Scaling to natural discourse
+
+Our models handle single sentences, but natural discourse involves:
+- Multiple potential antecedents for presuppositions
+- Accommodation and cancellation  
+- Dynamic binding and anaphora resolution
+
+Extending PDS to handle these requires richer discourse representations [@kamp_theory_1993; @beaver_presupposition_2001].
+
+### 2. Cross-linguistic variation
+
+Languages differ dramatically in how they mark factivity. Beyond the morphological and syntactic patterns mentioned earlier, we find:
+- Evidential interactions (Turkish, Korean)
+- Honorific interactions (Japanese, Korean)
+- Tense/aspect interactions (Greek, Russian)
+
+These patterns suggest factivity has deeper grammatical reflexes than English reveals [@ozyildiz_factivity_2021].
+
+### 3. Gradient presupposition triggers
+
+Beyond factivity, many presupposition triggers show gradient behavior:
+- Change of state verbs (stop, continue) [@abrusan_predicting_2011]
+- Iteratives (again, return)
+- Focus particles (only, even)
+
+Do these require trigger-specific treatments or can a general theory emerge?
+
+### 4. Processing considerations
+
+Our models are competence-level—they don't address:
+- Incremental processing of presuppositions [@schwarz_processing_2015]
+- Memory limitations in tracking discourse state
+- Strategic accommodation vs. failure
+
+Extending to processing requires integrating PDS with psycholinguistic models of real-time comprehension.
+
+## Conclusion: The power of explicit compilation
+
+This case study demonstrates how compiling from PDS to Stan illuminates theoretical issues in semantics and pragmatics. By forcing complete explicitness about:
+- How discrete knowledge generates gradient behavior
+- How semantic and world knowledge interact
+- How uncertainty propagates through interpretation
+
+We gain insights impossible with informal theories. The discrete-factivity model's success suggests that much apparent gradience in semantics may arise from uncertainty about discrete choices rather than gradient representations—a conclusion with broad implications for semantic theory.
+
+(@exm-looking-ahead) Looking ahead, the same compilation pipeline can address other challenging phenomena:
+- Questions and discourse structure
+- Conventional implicatures and parentheticals  
+- Evidentials and epistemic modality
+- Social meaning and identity
+
+In each case, PDS provides the theoretical framework while Stan enables quantitative evaluation, bridging formal semantics and experimental pragmatics in unprecedented ways.

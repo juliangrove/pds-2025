@@ -1,5 +1,1425 @@
-# Probabilistic programs in Stan
+---
+bibliography: ../../pds.bib
+format:
+  html:
+    css: ../styles.css
+---
 
-## Structure of a Stan program
+# From PDS to Stan: Implementing models of gradable adjectives
+
+Building on the theoretical foundations and compositional semantics introduced in the previous sections, we now turn to the practical challenge of implementing models of vagueness and imprecision. The translation from abstract semantic theory to concrete statistical models requires careful attention to how theoretical commitments manifest as computational procedures. This section demonstrates this translation through three increasingly sophisticated models of gradable adjectives.
+
+## Stan: A language for statistical modeling
+
+The translation from abstract semantic theory to concrete statistical models requires a computational intermediary—a language that can express both the probabilistic structures we theorize and the inference procedures we need to learn from data. Stan has emerged as the de facto standard for this role in computational semantics and psycholinguistics [@burkner_brms_2017;@stan_development_team_stan_2024].
+
+Stan is a probabilistic programming language designed for statistical inference. Unlike general-purpose programming languages, Stan is specialized for defining probability distributions and performing Bayesian inference. When we write a Stan program, we're not writing procedures to execute but rather declaring the structure of a probability model. Stan then uses sophisticated algorithms (Hamiltonian Monte Carlo) to sample from the posterior distribution of our model parameters given the observed data.
+
+## Case study: Modeling gradable adjectives
+
+To understand how Stan works and how we can use it to test semantic theories, let's work through three models of increasing complexity. We'll start with a baseline norming model that will serve as our introduction to Stan's structure and syntax.
+
+## The PDS implementation: Gradable adjectives
+
+Before diving into Stan code, let's examine how gradable adjectives are represented in PDS. From the Haskell codebase ([`Grammar.Lexica.SynSem.Adjectives`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Adjectives.html)), here's the lexical entry for "tall":
+
+```haskell
+"tall" -> [ SynSem {
+    syn = AP,
+    sem = ty tau (lam s (purePP (lam x (lam i 
+      (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+       (sCon "d_tall" @@ s))))) @@ s))
+} ]
+```
+
+This lexical entry encodes several key theoretical insights:
+
+1. **Syntactic type**: `AP` indicates this is an adjective phrase
+2. **Semantic computation**: The meaning is a function that:
+   - Takes a discourse state `s` (containing threshold information)
+   - Returns a function from entities `x` to propositions (functions from indices `i` to truth values)
+   - The proposition is true when the entity's height exceeds the contextual threshold
+
+3. **Semantic components**:
+   - \ct{height}: A function from indices to entity-to-degree mappings (type: $\iota \to e \to r$)
+   - \ct{d\_tall}: Extracts the threshold for "tall" from the discourse state (type: $\sigma \to r$)
+   - \ct{(≥)}: Comparison operator (type: $r \to r \to t$)
+
+This implements @kennedy_vagueness_2007's degree-based semantics, where gradable adjectives denote relations between degrees and contextually determined thresholds. The use of the discourse state for threshold storage captures the context-sensitivity of standards.
+
+### Model 1: Baseline norming
+
+Let's start with the simplest possible model for understanding how participants judge items on gradable scales. This model will serve as our foundation for understanding Stan's structure and syntax. We'll build it up block by block, explaining every line.
+
+#### Understanding the experimental setup
+
+Before diving into the Stan code, let's understand what data we're modeling. In a norming experiment, participants see items paired with adjectives and conditions, then provide slider responses from 0 to 1. Here's a sample of the data:
+
+```csv
+"participant","item","item_number","adjective","adjective_number","condition","condition_number","scale_type","scale_type_number","response"
+1,"closed_mid",6,"closed",2,"mid",3,"absolute",1,0.66
+1,"old_mid",24,"old",8,"mid",3,"relative",2,0.51
+1,"expensive_mid",15,"expensive",5,"mid",3,"relative",2,0.62
+1,"full_high",16,"full",6,"high",1,"absolute",1,1
+1,"deep_low",8,"deep",3,"low",2,"relative",2,0.22
+```
+
+Each row represents one judgment:
+- `participant`: Which person made this judgment (participant 1, 2, etc.)
+- `item`: A unique identifier combining adjective and condition (e.g., "tall_high")
+- `item_number`: Numeric ID for the item (used in Stan)
+- `adjective`: The gradable adjective being tested
+- `condition`: Whether this is a high/mid/low standard context
+- `response`: The participant's slider response (0 = "definitely not X", 1 = "definitely X")
+
+Our simplest model asks: What degree does each item have on its scale, and how do participants map these degrees to slider responses?
+
+#### The structure of a Stan program
+
+Every Stan program follows a particular architecture with blocks that appear in a specific order. Each block serves a specific purpose in defining our statistical model. Let's build up our norming model block by block to understand how Stan works.
+
+#### The data block: Declaring what we observe
+
+Every Stan program begins with a `data` block that tells Stan what information will be provided from the outside world—our experimental observations. Let's build this up piece by piece:
+
+```stan
+data {
+  int<lower=1> N_item;        // number of items
+  int<lower=1> N_participant; // number of participants  
+  int<lower=1> N_data;        // number of data points
+```
+
+These first lines declare basic counts. The syntax breaks down as:
+- `int`: This will be an integer (whole number)
+- `<lower=1>`: This integer must be at least 1 (no negative counts!)
+- `N_item`: The variable name (we'll use this throughout our program)
+- `// number of items`: A comment explaining what this represents
+
+Why do we need these constraints? Stan uses them to:
+1. Catch data errors early (if we accidentally pass 0 items, Stan will complain)
+2. Optimize its algorithms (knowing bounds helps the sampler work efficiently)
+
+Next, we handle a subtle but important issue—boundary responses:
+
+```stan
+  int<lower=1> N_0;           // number of 0s
+  int<lower=1> N_1;           // number of 1s
+```
+
+Why separate these out? Slider responses of exactly 0 or 1 are "censored"—they might represent even more extreme judgments that the scale can't capture. We'll handle these specially.
+
+Now for the actual response data:
+
+```stan
+  vector<lower=0, upper=1>[N_data] y; // response in (0, 1)
+```
+
+This declares a vector (like an array) of length `N_data`, where each element must be between 0 and 1. Notice this is for responses *between* 0 and 1, not including the boundaries.
+
+Finally, we need to map responses to items and participants:
+
+```stan
+  array[N_data] int<lower=1, upper=N_item> item;        // which item for each response
+  array[N_0] int<lower=1, upper=N_item> item_0;         // which item for each 0
+  array[N_1] int<lower=1, upper=N_item> item_1;         // which item for each 1
+  array[N_data] int<lower=1, upper=N_participant> participant;     
+  array[N_0] int<lower=1, upper=N_participant> participant_0;
+  array[N_1] int<lower=1, upper=N_participant> participant_1;
+}
+```
+
+These arrays work like lookup tables. If `item[5] = 3`, then the 5th response in our data was about item #3. This indexing structure connects our flat data file to the hierarchical structure of our experiment.
+
+Looking back at our CSV data, when Stan reads it, it will:
+1. Count unique items → `N_item` (e.g., 36 if we have 12 adjectives × 3 conditions)
+2. Count unique participants → `N_participant` 
+3. Extract all responses between 0 and 1 → `y` vector
+4. Build index arrays mapping each response to its item and participant
+
+#### The parameters block: What we want to learn
+
+After declaring our data, we declare the parameters—the unknown quantities we want to infer:
+
+```stan
+parameters {
+  // Fixed effects
+  vector[N_item] mu_guess;
+```
+
+This declares a vector of "guesses" (degrees) for each item. Why `mu_guess`? In statistics, μ (mu) traditionally denotes a mean or central tendency. These represent our best guess about each item's true degree on its scale.
+
+But people differ! We need random effects to capture individual variation:
+
+```stan
+  // Random effects
+  real<lower=0> sigma_epsilon_guess;     // how much people vary
+  vector[N_participant] z_epsilon_guess; // each person's deviation
+```
+
+This uses a clever trick called "non-centered parameterization":
+- `sigma_epsilon_guess`: The overall amount of person-to-person variation
+- `z_epsilon_guess`: Standardized (z-score) deviations for each person
+
+We'll combine these later to get each person's actual adjustment. Why not just use `vector[N_participant] epsilon_guess` directly? This separation often helps Stan's algorithms converge much faster.
+
+Next, measurement noise:
+
+```stan
+  real<lower=0,upper=1> sigma_e;  // response variability
+```
+
+Even if two people agree on an item's degree, their slider responses might differ slightly. This parameter captures that noise.
+
+Finally, those boundary responses:
+
+```stan
+  // Censored data
+  array[N_0] real<upper=0> y_0;  // true values for observed 0s
+  array[N_1] real<lower=1> y_1;  // true values for observed 1s
+}
+```
+
+This is subtle but important. When someone gives a 0 response, their "true" judgment might be -0.1 or -0.5—we just can't see below 0. These parameters let Stan infer what those true values might have been @stevens_psychophysics_1975.
+
+#### The transformed parameters block: Building predictions
+
+Now we combine our basic parameters to build what we actually need:
+
+```stan
+transformed parameters {
+  vector[N_participant] epsilon_guess;
+  vector[N_data] guess;
+  vector[N_0] guess_0;
+  vector[N_1] guess_1;
+```
+
+First, we convert those z-scores to actual participant adjustments:
+
+```stan
+  // Non-centered parameterization
+  epsilon_guess = sigma_epsilon_guess * z_epsilon_guess;
+```
+
+If `sigma_epsilon_guess = 0.2` and participant 3 has `z_epsilon_guess[3] = 1.5`, then participant 3 tends to give responses 0.3 units higher than average.
+
+Now we can compute predicted responses:
+
+```stan
+  for (i in 1:N_data) {
+    guess[i] = mu_guess[item[i]] + epsilon_guess[participant[i]];
+  }
+```
+
+Let's trace through one prediction:
+- Response i is about item 5 by participant 3
+- `item[i] = 5`, so we look up `mu_guess[5]` (say it's 0.7)
+- `participant[i] = 3`, so we add `epsilon_guess[3]` (say it's 0.1)
+- `guess[i] = 0.7 + 0.1 = 0.8`
+
+We repeat this for the boundary responses:
+
+```stan
+  for (i in 1:N_0) {
+    guess_0[i] = mu_guess[item_0[i]] + epsilon_guess[participant_0[i]];
+  }
+  
+  for (i in 1:N_1) {
+    guess_1[i] = mu_guess[item_1[i]] + epsilon_guess[participant_1[i]];
+  }
+}
+```
+
+#### The model block: Putting it all together
+
+The model block is where we specify our statistical assumptions—both our prior beliefs and how the data was generated:
+
+```stan
+model {
+  // Priors on random effects
+  sigma_epsilon_guess ~ exponential(1);
+  z_epsilon_guess ~ std_normal();
+```
+
+These priors encode mild assumptions:
+- `exponential(1)`: We expect person-to-person variation to be moderate (not huge)
+- `std_normal()`: By construction, z-scores have a standard normal distribution
+
+Notice we don't specify priors for `mu_guess`—Stan treats this as an implicit uniform prior over the real numbers. Since our responses are bounded, the data will naturally constrain these values.
+
+Now the likelihood—how data relates to parameters:
+
+```stan
+  // Likelihood
+  for (i in 1:N_data) {
+    y[i] ~ normal(guess[i], sigma_e);
+  }
+```
+
+This says: each response is drawn from a normal distribution centered at our prediction with standard deviation `sigma_e`. The `~` symbol means "is distributed as."
+
+For boundary responses, we use the latent values:
+
+```stan
+  for (i in 1:N_0) {
+    y_0[i] ~ normal(guess_0[i], sigma_e);
+  }
+  
+  for (i in 1:N_1) {
+    y_1[i] ~ normal(guess_1[i], sigma_e);
+  } 
+}
+```
+
+Remember, we're inferring `y_0` and `y_1` as parameters! Stan will sample plausible values that are consistent with both the model and the fact that we observed 0s and 1s.
+
+#### The generated quantities block: After-the-fact calculations
+
+Finally, we compute quantities that help us understand and evaluate our model:
+
+```stan
+generated quantities {
+  vector[N_data] ll; // log-likelihoods
+  
+  for (i in 1:N_data) {
+    if (y[i] >= 0 && y[i] <= 1)
+      ll[i] = normal_lpdf(y[i] | guess[i], sigma_e);
+    else
+      ll[i] = negative_infinity();
+  }
+}
+```
+
+The log-likelihood tells us how probable each observation is under our model. We'll use these for model comparison—models that assign higher probability to the actual data are better.
+
+#### The complete norming model
+
+Here's our complete model with consistent naming:
+
+```stan
+data {
+  int<lower=1> N_item;              // number of items
+  int<lower=1> N_participant;       // number of participants
+  int<lower=1> N_data;              // number of data points in (0, 1)
+  int<lower=1> N_0;                 // number of 0s
+  int<lower=1> N_1;                 // number of 1s
+  vector<lower=0, upper=1>[N_data] y; // response in (0, 1)
+  array[N_data] int<lower=1, upper=N_item> item;
+  array[N_0] int<lower=1, upper=N_item> item_0;
+  array[N_1] int<lower=1, upper=N_item> item_1;
+  array[N_data] int<lower=1, upper=N_participant> participant;
+  array[N_0] int<lower=1, upper=N_participant> participant_0;
+  array[N_1] int<lower=1, upper=N_participant> participant_1;
+}
+
+parameters {
+  vector[N_item] mu_guess;
+  real<lower=0> sigma_epsilon_guess;
+  vector[N_participant] z_epsilon_guess;
+  real<lower=0,upper=1> sigma_e;
+  array[N_0] real<upper=0> y_0;
+  array[N_1] real<lower=1> y_1;
+}
+
+transformed parameters {
+  vector[N_participant] epsilon_guess = sigma_epsilon_guess * z_epsilon_guess;
+  vector[N_data] guess;
+  vector[N_0] guess_0;
+  vector[N_1] guess_1;
+
+  for (i in 1:N_data) {
+    guess[i] = mu_guess[item[i]] + epsilon_guess[participant[i]];
+  }
+  for (i in 1:N_0) {
+    guess_0[i] = mu_guess[item_0[i]] + epsilon_guess[participant_0[i]];
+  }
+  for (i in 1:N_1) {
+    guess_1[i] = mu_guess[item_1[i]] + epsilon_guess[participant_1[i]];
+  }
+}
+
+model {
+  sigma_epsilon_guess ~ exponential(1);
+  z_epsilon_guess ~ std_normal();
+
+  for (i in 1:N_data) {
+    y[i] ~ normal(guess[i], sigma_e);
+  }
+  for (i in 1:N_0) {
+    y_0[i] ~ normal(guess_0[i], sigma_e);
+  }
+  for (i in 1:N_1) {
+    y_1[i] ~ normal(guess_1[i], sigma_e);
+  } 
+}
+
+generated quantities {
+  vector[N_data] ll;
+  for (i in 1:N_data) {
+    if (y[i] >= 0 && y[i] <= 1)
+      ll[i] = normal_lpdf(y[i] | guess[i], sigma_e);
+    else
+      ll[i] = negative_infinity();
+  }
+}
+```
+
+This baseline model treats each item as having an inherent degree along the relevant scale, with participants providing noisy measurements of these degrees. The censoring approach handles the common issue of responses at the boundaries (0 and 1) of the slider scale—implementing @lassiter_measurement_2013's approach to gradable adjective semantics.
+
+#### What we've learned about Stan
+
+Through building this model, we've seen that Stan programs have a specific structure:
+1. **data block**: Declares observed quantities with constraints
+2. **parameters block**: Declares unknown quantities to infer
+3. **transformed parameters block**: Builds derived quantities
+4. **model block**: Specifies priors and likelihood
+5. **generated quantities block**: Computes post-inference quantities
+
+We've also learned key Stan concepts:
+- **Constraints**: `<lower=0>` ensures valid parameter ranges
+- **Indexing**: Arrays like `item[i]` connect responses to structure
+- **Sampling notation**: `y ~ normal(mu, sigma)` specifies distributions
+- **Non-centered parameterization**: Improves sampling efficiency
+- **Censoring**: Handles boundary responses theoretically
+
+With this foundation in Stan, we can now understand how to translate semantic theories into Stan code.
+
+## From PDS lambda-terms to semantic values
+
+Now that we understand Stan's structure through a concrete example, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. Let's work through a concrete example to see how the abstract PDS representation becomes executable Stan code.
+
+### Working through "Jo is tall"
+
+Let's trace how the sentence "Jo is tall" is processed through PDS, starting with the lexical entries:
+
+```haskell
+-- Step 1: Lexical entries
+"jo" -> SynSem {
+    syn = NP,
+    sem = ty tau (purePP (sCon "j"))
+}
+
+"is" -> SynSem {
+    syn = S :\: NP :/: AP,
+    sem = ty tau (purePP (lam x x))  -- Identity function
+}
+
+"tall" -> SynSem {
+    syn = AP,
+    sem = ty tau (lam s (purePP (lam x (lam i 
+      (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+       (sCon "d_tall" @@ s))))) @@ s))
+}
+```
+
+### Step 2: Composition via CCG rules
+
+Using the PDS rules from [Module 2](../pds-intro/syntax-meaning-compositionality.html),  we first combine "is" and "tall":
+
+```haskell
+-- "is tall" via forward application
+-- Type: S :\: NP
+-- Semantic value (before reduction):
+lam s (
+  Do { m1 <- purePP (lam x x);  -- meaning of "is"
+       m2 <- lam s' (purePP (lam x (lam i 
+              (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+               (sCon "d_tall" @@ s')))) @@ s;  -- meaning of "tall"
+       return (lam x (m1 (m2 x)))
+  }
+) @@ s
+```
+
+### Step 3: Beta reduction
+
+After beta reduction and simplification:
+
+```haskell
+-- "is tall" simplified:
+lam s (purePP (lam x (lam i 
+  (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+   (sCon "d_tall" @@ s)))) @@ s)
+
+-- Applying to "jo":
+-- After further reduction:
+lam s (purePP (lam i 
+  (sCon "(≥)" @@ (sCon "height" @@ i @@ sCon "j") @@ 
+   (sCon "d_tall" @@ s))) @@ s)
+```
+
+The final semantic value is a function that:
+1. Takes a discourse state `s`
+2. Extracts the threshold for "tall" from that state
+3. Returns a proposition that's true when Jo's height exceeds that threshold
+
+### Step 4: delta-rule applications
+
+Before compilation to Stan, several delta-rules apply to simplify the computation:
+
+```haskell
+-- From the indices delta-rule:
+indices :: DeltaRule
+indices = \case
+  Height (UpdHeight p _) -> Just p
+  Height (UpdEpi _ i)    -> Just (Height i)
+  -- ... other cases
+
+-- From the states delta-rule:  
+states :: DeltaRule
+states = \case
+  DTall (UpdDTall d _) -> Just d
+  DTall (UpdCG _ s)    -> Just (DTall s)
+  -- ... other cases
+
+-- From the arithmetic delta-rule:
+arithmetic :: DeltaRule
+arithmetic = \case
+  GE (DCon x) (DCon y) -> if x >= y then Just Tr else Just Fa
+  -- ... other cases
+```
+
+## delta-rules: Simplifying adjective computations
+
+The delta-rules play a crucial role in translating PDS to Stan by simplifying λ-terms before compilation. Let's trace through a concrete example to see how they work.
+
+Consider evaluating "Jo is tall" in a context where:
+- The discourse state has \ct{d\_tall} = 170 (cm)
+- The index has Jo's height as 180 (cm)
+
+The computation proceeds as follows:
+
+```haskell
+-- Original expression (simplified):
+(sCon "(≥)" @@ (sCon "height" @@ i @@ sCon "j") @@ (sCon "d_tall" @@ s))
+
+-- After extracting height from index (via indices rule):
+-- Assume Height (UpdHeight (λx. if x == j then 180 else ...) i0)
+-- Reduces to: 180
+(sCon "(≥)" @@ DCon 180 @@ (sCon "d_tall" @@ s))
+
+-- After extracting threshold from state (via states rule):
+-- Assume DTall (UpdDTall 170 s0)
+-- Reduces to: 170
+(sCon "(≥)" @@ DCon 180 @@ DCon 170)
+
+-- After arithmetic comparison (via arithmetic rule):
+-- Since 180 >= 170:
+Tr  -- True
+```
+
+This sequence of reductions transforms the abstract semantic representation into a concrete truth value. The delta-rules ensure that:
+1. State-dependent values are properly extracted
+2. Index-dependent values are resolved
+3. Arithmetic operations are performed
+4. The result is a simple value suitable for further processing
+
+## The compilation pipeline: From lambda-terms to Stan
+
+The translation from PDS λ-terms to Stan involves several systematic transformations. Let's examine each transformation in detail:
+
+### 1. Threshold parameters: From state to arrays
+
+In PDS, thresholds are stored in the discourse state:
+```haskell
+-- PDS: Extract threshold from state
+sCon "d_tall" @@ s  -- Type: r
+```
+
+In Stan, this becomes an indexed parameter:
+```stan
+// Stan: Threshold as array element
+mu_guess[item[i]]  // For item "tall_high", "tall_mid", etc.
+```
+
+The compilation maps the functional extraction `d_tall(s)` to array indexing `mu_guess[item[i]]`. Each item (adjective × condition combination) gets its own threshold parameter.
+
+### 2. Height access: From indices to data
+
+In PDS, heights are functions of indices:
+```haskell
+-- PDS: Height as index-dependent function
+sCon "height" @@ i @@ x  -- Type: r
+```
+
+In Stan, heights become data (if known) or parameters (if inferred):
+```stan
+// Stan: Heights as data array
+vector[N_entities] heights;  // Known heights
+// Access: heights[entity[i]]
+```
+
+### 3. Comparison: From discrete to probabilistic
+
+The crucial semantic computation—comparing degree to threshold—undergoes the most significant transformation:
+
+```haskell
+-- PDS: Discrete comparison
+sCon "(≥)" @@ degree @@ threshold  -- Returns t (truth value)
+```
+
+In Stan Model 2 (vagueness), this becomes:
+```stan
+// Stan: Probabilistic comparison via normal CDF
+response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
+```
+
+This transformation implements several theoretical insights:
+- **Vagueness as uncertainty**: The `sigma_guess` parameter captures boundary fuzziness
+- **Probabilistic truth**: Instead of True/False, we get probabilities in [0,1]
+- **Smooth transitions**: The normal CDF creates gradient membership functions
+
+### 4. State threading: From dynamic to static
+
+PDS uses monadic operations to thread state through computations:
+```haskell
+-- PDS: State threading via monad
+lam s (... computation using s ...) @@ s
+```
+
+Stan has no notion of state threading, so this compiles to static parameter structures:
+```stan
+// Stan: Static parameter declaration
+parameters {
+  vector[N_adjective] spread;      // Context sensitivity
+  vector[N_item] d;                // Degrees
+  real<lower=0> sigma_guess;       // Vagueness
+}
+```
+
+The dynamic state updates in PDS become static relationships between parameters in Stan.
+
+### 5. Uncertainty propagation: From monadic to hierarchical
+
+PDS represents uncertainty via the probability monad:
+```haskell
+-- PDS: Sampling in the monad
+Do { threshold <- normal 175 10;
+     height <- getHeight x;
+     return (height >= threshold) }
+```
+
+Stan represents this as hierarchical structure:
+```stan
+// Stan: Hierarchical parameters
+parameters {
+  // Population-level
+  real mu_threshold;
+  real<lower=0> sigma_threshold;
+  
+  // Item-level
+  vector[N_item] threshold_z;
+}
+
+transformed parameters {
+  // Non-centered parameterization
+  vector[N_item] threshold = mu_threshold + sigma_threshold * threshold_z;
+}
+```
+
+## Prior distributions from PDS
+
+The PDS codebase includes prior specifications that encode theoretical assumptions about gradable adjectives. Let's examine these in detail:
+
+### Scale norming prior
+
+```haskell
+scaleNormingPrior :: Term
+scaleNormingPrior = Return (upd_CG cg' ϵ)
+  where cg' = let' b (Bern (dCon 0.5)) 
+              (let' x (normal 0 1) 
+              (let' y (normal 0 1) j'))
+        j'  = Return (UpdHeight (lam z (ITE (SocPla i' @@ z) x y)) i')
+        i'  = UpdSocPla (lam x b) _0
+```
+
+This prior encodes several assumptions:
+
+1. **Category membership uncertainty**: 
+   ```haskell
+   let' b (Bern (dCon 0.5))  -- 50% probability of category membership
+   ```
+   This could represent uncertainty about whether someone is a "soccer player" vs "linguist"
+
+2. **Height variation**:
+   ```haskell
+   let' x (normal 0 1)  -- Height for category 1
+   let' y (normal 0 1)  -- Height for category 2
+   ```
+   Different categories have different typical heights
+
+3. **Conditional assignment**:
+   ```haskell
+   lam z (ITE (SocPla i' @@ z) x y)
+   ```
+   An entity's height depends on its category membership
+
+### Likelihood inference prior
+
+```haskell
+likelihoodPrior :: Term
+likelihoodPrior = let' x (normal 0 1) 
+                  (Return (UpdDTall x (upd_CG cg' ϵ)))
+  where cg' = let' y (normal 0 1) 
+              (let' w (LogitNormal 0 1) 
+              (let' b (Bern w) 
+              (Return (UpdHeight (lam z y) 
+                      (UpdSocPla (lam z b) _0)))))
+```
+
+This prior adds threshold uncertainty:
+
+1. **Threshold variation**:
+   ```haskell
+   let' x (normal 0 1) (Return (UpdDTall x ...))
+   ```
+   The threshold for "tall" varies (on a standardized scale)
+
+2. **Category probability on logit scale**:
+   ```haskell
+   let' w (LogitNormal 0 1) (let' b (Bern w) ...)
+   ```
+   The logit-normal ensures probabilities stay in [0,1] while allowing flexible shapes
+
+These priors translate to Stan's hierarchical structures, encoding our uncertainty about both word meanings and world knowledge.
+
+## Response function implementation
+
+The response function maps semantic values to behavioral responses:
+
+```haskell
+-- From Adjectives.hs
+adjectivesRespond :: Term -> Term -> Term
+adjectivesRespond = respond (lam x (Normal x (Var "sigma")))
+
+-- Expanding the definition of respond:
+respond f bg m = let' s bg m'
+  where m' = let' _s' (m @@ s) 
+             (let' i (cg (Pi2 _s')) 
+             (f @@ max' (lam x (qud (Pi2 _s') @@ x @@ i))))
+```
+
+This implements a complete pipeline:
+
+1. **Background knowledge**: Sample from prior beliefs (`bg`)
+2. **Discourse update**: Apply the discourse/assertion (`m`)
+3. **Extract common ground**: Get the updated beliefs
+4. **Find maximum answer**: Compute the answer to the current QUD
+5. **Generate response**: Add Gaussian noise (linking hypothesis)
+
+In Stan, this becomes:
+```stan
+model {
+  // Background knowledge (priors)
+  mu_guess ~ normal(prior_mean, prior_std);
+  
+  // Semantic computation (via transformed parameters)
+  // ... 
+  
+  // Response generation (likelihood)
+  y ~ normal(response_rel, sigma_e);
+}
+```
+
+The `sigma` parameter in the response function becomes `sigma_e` in Stan, implementing the noisy measurement assumption central to psychophysical approaches to semantics @lassiter_measurement_2013.
 
 ## Mapping lambda-terms to Stan code
+
+Now that we understand Stan's structure through a concrete example, we can address the heart of our enterprise: translating semantic theories expressed as typed λ-terms into Stan programs that can be fit to data. This translation is non-trivial because λ-calculus and Stan operate at different levels of abstraction and with different computational paradigms.
+
+### The semantic starting point
+
+In Probabilistic Dynamic Semantics, we express meanings as typed λ-terms that can include probabilistic effects. Consider the semantics of "tall" from the PDS codebase:
+
+```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
+"tall" -> SynSem {
+  syn = AP,
+  sem = ty tau (lam s (purePP (lam x (lam i 
+    (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+     (sCon "d_tall" @@ s))))) @@ s))
+}
+```
+
+This says "tall" denotes a function that:
+1. Takes a discourse state `s`
+2. Returns a function from entities `x` to propositions
+3. The proposition is true when the entity's height exceeds the threshold `d_tall`
+4. The threshold depends on the discourse state, capturing context-sensitivity
+
+We can also write this more intuitively:
+
+```haskell
+-- The meaning of "tall" with uncertain threshold
+tall :: Entity -> P Bool
+tall x = do
+  threshold <- normal 175 10  -- Sample threshold (in cm)
+  height <- getHeight x       -- Retrieve x's height
+  return (height >= threshold)
+```
+
+This captures both the context-sensitivity of gradable adjectives (different contexts might have different threshold distributions) and the gradience in judgments (borderline cases have intermediate probabilities) @kennedy_vagueness_2007.
+
+### The representational challenge
+
+Stan, however, doesn't directly support higher-order functions, monadic binding, or many other features we rely on in λ-calculus. Stan is fundamentally about defining probability distributions over fixed-dimensional parameter spaces. So how do we bridge this gap?
+
+The key insight is that we need to "compile" our λ-terms into Stan's more restricted language. This compilation involves several systematic transformations:
+
+1. **Monadic binding becomes sampling**: When we write `threshold <- normal 175 10` in our semantic metalanguage, this becomes `threshold ~ normal(175, 10)` in Stan.
+
+2. **Function application becomes indexing**: Where λ-calculus uses function application, Stan typically uses array indexing. A function from entities to heights becomes an array of heights indexed by entity identifiers.
+
+3. **Composition becomes sequential computation**: Complex semantic derivations involving multiple function applications become sequences of assignments in Stan's transformed parameters block.
+
+4. **Higher-order functions become expanded first-order code**: We can't pass functions as arguments in Stan, so higher-order operations must be expanded at compile time.
+
+### A concrete example: "very tall"
+
+Let's see how this works for a more complex example. Suppose we want to model the semantics of "very tall," which we might analyze as an intensifier that raises the threshold:
+
+```haskell
+-- Intensifier semantics
+very :: (Entity -> P Bool) -> (Entity -> P Bool)
+very adj x = do
+  -- Extract and modify the threshold from the adjective meaning
+  threshold <- getThreshold adj
+  let raisedThreshold = threshold + 20  -- "very" adds 20cm
+  height <- getHeight x
+  return (height >= raisedThreshold)
+
+-- Composed meaning
+veryTall :: Entity -> P Bool
+veryTall = very tall
+```
+
+This compositional analysis can't be directly translated to Stan because Stan doesn't support higher-order functions. Instead, we need to expand the composition into Stan's first-order language. Building on what we learned from Model 1:
+
+```stan
+data {
+  // Same structure as our norming model
+  int<lower=1> N_entities;
+  vector[N_entities] heights;  // Known heights of entities
+  int<lower=1> N_resp;         // Number of responses
+  array[N_resp] int<lower=1, upper=N_entities> entity;
+  array[N_resp] int<lower=1, upper=2> condition;  // 1=tall, 2=very tall
+  vector<lower=0, upper=1>[N_resp] response;
+}
+
+parameters {
+  // Basic threshold for "tall"
+  real tall_threshold;
+  
+  // Modifier effect for "very"  
+  real very_effect;
+  
+  // Response noise (as in Model 1)
+  real<lower=0> sigma_e;
+}
+
+transformed parameters {
+  // Derived threshold for "very tall"
+  real very_tall_threshold = tall_threshold + very_effect;
+  
+  // Predictions for each response
+  vector[N_resp] predicted_response;
+  
+  for (n in 1:N_resp) {
+    if (condition[n] == 1) {  // "tall"
+      predicted_response[n] = heights[entity[n]] >= tall_threshold ? 0.9 : 0.1;
+    } else {  // "very tall"
+      predicted_response[n] = heights[entity[n]] >= very_tall_threshold ? 0.9 : 0.1;
+    }
+  }
+}
+
+model {
+  // Priors
+  tall_threshold ~ normal(175, 10);
+  very_effect ~ normal(20, 5);
+  sigma_e ~ beta(2, 10);
+  
+  // Likelihood (as in Model 1)
+  response ~ normal(predicted_response, sigma_e);
+}
+```
+
+Notice how the compositional structure is still present but has been "compiled out." Instead of a higher-order function `very` that modifies adjective meanings, we have separate thresholds related by addition. The semantic insight—that "very" systematically raises thresholds—is preserved, but expressed in Stan's first-order language @lassiter_adjectival_2017.
+
+### delta-rules and optimization
+
+Before translating λ-terms to Stan, we typically apply delta-rules—algebraic simplifications that make the resulting code cleaner and more efficient. These rules embody semantic equivalences that hold in our theory.
+
+From the PDS codebase (`Lambda.Delta`), we have rules like:
+
+```haskell
+-- Eliminate vacuous binding
+cleanUp :: DeltaRule
+cleanUp = \case
+  Let v m k | sampleOnly m && v `notElem` freeVars k -> Just k
+  _ -> Nothing
+
+-- Arithmetic simplifications  
+arithmetic :: DeltaRule
+arithmetic = \case
+  Add t u -> case t of
+    Zero -> Just u
+    x@(DCon _) -> case u of
+      Zero -> Just x
+      y@(DCon _) -> Just (x + y)
+  Mult t u -> case t of
+    Zero -> Just Zero
+    One -> Just u
+```
+
+These simplifications matter because Stan code can become complex quickly. Consider what happens without delta-reduction:
+
+```haskell
+-- Before reduction
+do x <- return 5
+   y <- normal x 1
+   observe (y > 0)
+   return y
+
+-- After reduction  
+do y <- normal 5 1
+   observe (y > 0)
+   return y
+```
+
+The simplified version translates to cleaner Stan code with one fewer parameter to sample. Over a complex semantic derivation, such simplifications can dramatically improve both code clarity and sampling efficiency.
+
+### The challenge of dynamic effects
+
+Perhaps the greatest challenge in translating to Stan comes from dynamic semantic effects—phenomena like anaphora resolution, presupposition accommodation, and discourse update. Our semantic metalanguage handles these naturally with stateful computations:
+
+```haskell
+-- From the PDS codebase: updating discourse state
+ask κ = κ >>>= Lam "q" (getPP >>>= Lam "s" ((putPP (upd_QUD (Var "q") (Var "s")))))
+```
+
+But Stan has no notion of discourse state or dynamic update. We must either:
+
+1. **Marginalize out dynamic effects**: Sum/integrate over all possible resolutions
+2. **Fix resolution as data**: Treat anaphora resolution as observed data
+3. **Expand the parameter space**: Include discrete parameters for each resolution possibility
+
+Each approach has trade-offs. Marginalization can be computationally intractable. Fixing resolution as data requires separate annotation. Expanding the parameter space can lead to combinatorial explosion @grove_probabilistic_2024.
+
+### From semantics to psychosemantics
+
+Ultimately, the translation from λ-terms to Stan forces us to be explicit about the relationship between semantic competence and performance. Our λ-terms express speakers' semantic knowledge—what they know about meaning. Our Stan models express how this knowledge generates behavioral data. The translation between them embodies our linking hypotheses @jasbi_linking_2019.
+
+This perspective suggests that the compilation process itself is theoretically significant. Different compilation strategies correspond to different psychological assumptions:
+
+- **Eager evaluation**: Compute all semantic values before response generation
+- **Lazy evaluation**: Compute only values needed for the response  
+- **Noisy evaluation**: Semantic computations sometimes fail or give wrong results
+- **Resource-bounded evaluation**: Complex computations are approximated
+
+By making these choices explicit in our Stan models, we commit to testable hypotheses about semantic processing.
+
+With this understanding of how PDS translates to Stan, we can now examine more sophisticated models that capture the theoretical distinctions between vagueness and imprecision.
+
+### Model 2: Vagueness and imprecision
+
+Now that we understand Stan's structure and how to translate from PDS, let's implement a more sophisticated model that captures the theoretical distinction between vagueness (uncertainty about standards) and imprecision (tolerance around thresholds).
+
+#### Theoretical motivation
+
+The key insight from @kennedy_vagueness_2007 and @lasersohn_pragmatic_1999: gradable adjectives involve comparing an item's degree to a threshold, where both the threshold location and the comparison precision can vary. This implements @barker_dynamics_2002's claim that vague predicates have metalinguistic effects—they don't just describe the world but negotiate standards.
+
+#### Data structure for vagueness experiments
+
+Our vagueness/imprecision data looks similar to the norming data but now tracks adjectives separately:
+
+```csv
+"participant","item","item_number","adjective","adjective_number","scale_type","scale_type_number","condition","condition_number","response"
+1,"9_high",25,"quiet",9,"absolute",1,"high",1,0.82
+1,"4_low",11,"wide",4,"relative",2,"low",2,0.34
+1,"5_mid",15,"deep",5,"relative",2,"mid",3,0.77
+```
+
+The key difference: we now distinguish between items (specific adjective-condition pairs) and adjectives themselves. For example:
+- Item "9_high" = adjective "quiet" in the "high" condition
+- Item "4_low" = adjective "wide" in the "low" condition
+
+This structure lets us model properties that belong to adjectives (like how context-sensitive they are) separately from properties of specific items.
+
+#### Complete Stan code for the vagueness model
+
+Here's the complete model with detailed explanations:
+
+```stan
+data {
+  // Basic counts
+  int<lower=1> N_item;         // number of items (adjective × condition)
+  int<lower=1> N_adjective;    // number of unique adjectives
+  int<lower=1> N_participant;  // number of participants
+  int<lower=1> N_data;         // responses in (0,1)
+  int<lower=1> N_0;            // boundary responses at 0
+  int<lower=1> N_1;            // boundary responses at 1
+  
+  // Response data
+  vector<lower=0, upper=1>[N_data] y;  // slider responses
+  
+  // NEW: Mapping structure
+  array[N_item] int<lower=1, upper=N_adjective> item_adj;  // which adjective for each item
+  
+  // Indexing arrays for responses
+  array[N_data] int<lower=1, upper=N_item> item;
+  array[N_0] int<lower=1, upper=N_item> item_0;
+  array[N_1] int<lower=1, upper=N_item> item_1;
+  array[N_data] int<lower=1, upper=N_adjective> adjective;
+  array[N_0] int<lower=1, upper=N_adjective> adjective_0;
+  array[N_1] int<lower=1, upper=N_adjective> adjective_1;
+  array[N_data] int<lower=1, upper=N_participant> participant;
+  array[N_0] int<lower=1, upper=N_participant> participant_0;
+  array[N_1] int<lower=1, upper=N_participant> participant_1;
+}
+
+parameters {
+  // SEMANTIC PARAMETERS
+  
+  // Each item has a degree on its scale
+  vector<lower=0, upper=1>[N_item] d;
+  
+  // Global vagueness: how fuzzy are threshold comparisons?
+  real<lower=0> sigma_guess;
+  
+  // Adjective-specific context sensitivity
+  vector<lower=0>[N_adjective] spread;
+  
+  // PARTICIPANT VARIATION
+  
+  // How much participants vary in their thresholds
+  real<lower=0> sigma_epsilon_mu_guess;
+  // Each participant's standardized deviation
+  vector[N_participant] z_epsilon_mu_guess;
+  
+  // RESPONSE NOISE
+  real<lower=0, upper=1> sigma_e;
+  
+  // CENSORED DATA
+  array[N_0] real<upper=0> y_0;  // latent values for 0s
+  array[N_1] real<lower=1> y_1;  // latent values for 1s
+}
+
+transformed parameters {
+  // Convert standardized participant effects to natural scale
+  vector[N_participant] epsilon_mu_guess = sigma_epsilon_mu_guess * z_epsilon_mu_guess;
+  
+  // STEP 1: Set up base thresholds for each item
+  vector[N_item] mu_guess0;
+  
+  // This assumes our data has 3 conditions per adjective in order:
+  // high (index 1), low (index 2), mid (index 3)
+  for (i in 0:(N_adjective-1)) {
+    // High condition: positive threshold shift
+    mu_guess0[3 * i + 1] = spread[i + 1];
+    // Low condition: negative threshold shift  
+    mu_guess0[3 * i + 2] = -spread[i + 1];
+    // Mid condition: no shift (baseline)
+    mu_guess0[3 * i + 3] = 0;
+  }
+  
+  // STEP 2: Transform thresholds to probability scale
+  vector<lower=0, upper=1>[N_data] mu_guess;
+  vector<lower=0, upper=1>[N_0] mu_guess_0;
+  vector<lower=0, upper=1>[N_1] mu_guess_1;
+  
+  // STEP 3: Compute predicted responses
+  vector<lower=0, upper=1>[N_data] response_rel;
+  vector<lower=0, upper=1>[N_0] response_rel_0;
+  vector<lower=0, upper=1>[N_1] response_rel_1;
+  
+  // For each response in (0,1)
+  for (i in 1:N_data) {
+    // Add participant adjustment to base threshold
+    real threshold_logit = mu_guess0[item[i]] + epsilon_mu_guess[participant[i]];
+    // Convert from logit scale to probability scale
+    mu_guess[i] = inv_logit(threshold_logit);
+    
+    // KEY SEMANTIC COMPUTATION:
+    // P(adjective applies) = P(degree > threshold)
+    // Using normal CDF for smooth threshold crossing
+    response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
+  }
+  
+  // Repeat for censored data
+  for (i in 1:N_0) {
+    mu_guess_0[i] = inv_logit(mu_guess0[item_0[i]] + epsilon_mu_guess[participant_0[i]]);
+    response_rel_0[i] = 1 - normal_cdf(d[item_0[i]] | mu_guess_0[i], sigma_guess);
+  }
+  
+  for (i in 1:N_1) {
+    mu_guess_1[i] = inv_logit(mu_guess0[item_1[i]] + epsilon_mu_guess[participant_1[i]]);
+    response_rel_1[i] = 1 - normal_cdf(d[item_1[i]] | mu_guess_1[i], sigma_guess);
+  }
+}
+
+model {
+  // PRIORS
+  
+  // Vagueness: smaller values = more precise thresholds
+  sigma_guess ~ exponential(5);
+  
+  // Context effects: how much standards shift
+  spread ~ exponential(1);
+  
+  // Participant variation
+  sigma_epsilon_mu_guess ~ exponential(1);
+  z_epsilon_mu_guess ~ std_normal();
+  
+  // LIKELIHOOD
+  
+  // Observed responses are noisy measurements of semantic judgments
+  for (i in 1:N_data) {
+    y[i] ~ normal(response_rel[i], sigma_e);
+  }
+  
+  // Censored responses
+  for (i in 1:N_0) {
+    y_0[i] ~ normal(response_rel_0[i], sigma_e);
+  }
+  
+  for (i in 1:N_1) {
+    y_1[i] ~ normal(response_rel_1[i], sigma_e);
+  }
+}
+
+generated quantities {
+  // Log-likelihood for model comparison
+  vector[N_data] ll;
+  
+  for (i in 1:N_data) {
+    ll[i] = normal_lpdf(y[i] | response_rel[i], sigma_e);
+  }
+  
+  // We could also compute other quantities of interest:
+  // - Average vagueness per adjective
+  // - Predicted responses for new items
+  // - Posterior predictive checks
+}
+```
+
+#### How the model components map to semantic theory
+
+Let's trace through a specific example to see how this model works:
+
+1. **Item degree**: Suppose we're modeling "tall" in the high condition. The parameter `d[item["tall_high"]]` might be 0.85, representing that basketball players (high condition) have high degrees on the height scale.
+
+2. **Adjective spread**: The parameter `spread["tall"]` might be 2.0, meaning "tall" is highly context-sensitive—its threshold shifts dramatically between conditions.
+
+3. **Threshold computation**: 
+   - Base threshold (logit scale): `mu_guess0["tall_high"] = spread["tall"] = 2.0`
+   - Participant adjustment: Say participant 5 has `epsilon_mu_guess[5] = -0.3`
+   - Final threshold (logit): `2.0 + (-0.3) = 1.7`
+   - Final threshold (probability): `inv_logit(1.7) ≈ 0.85`
+
+4. **Semantic judgment**:
+   - The crucial computation: `response_rel = 1 - normal_cdf(0.85 | 0.85, sigma_guess)`
+   - If `sigma_guess = 0.1` (precise threshold), this gives ≈ 0.5
+   - If `sigma_guess = 0.3` (vague threshold), the response is more variable
+
+5. **Response generation**: The participant's actual slider response is a noisy measurement of this semantic judgment, with noise `sigma_e`.
+
+This model implements several key theoretical insights:
+- **Vagueness as threshold uncertainty**: The `sigma_guess` parameter captures how fuzzy the boundary is
+- **Context sensitivity**: The `spread` parameters capture how standards shift across contexts
+- **Individual differences**: Participants can have systematically different thresholds
+- **Measurement error**: Slider responses are noisy measurements of semantic judgments
+
+### Model 3: Mixture of relative and absolute standards
+
+Our most sophisticated model implements the theoretical distinction between relative and absolute gradable adjectives. Some adjectives like "tall" use relative standards that shift with the comparison class, while others like "full" use absolute standards tied to scale endpoints.
+
+#### Theoretical motivation
+
+@kennedy_scale_2005 argues that gradable adjectives fall into two classes:
+- **Relative adjectives** (tall, expensive): Standards shift dramatically with context
+- **Absolute adjectives** (full, empty): Standards are anchored to scale endpoints
+
+This distinction has been supported experimentally by @syrett_meaning_2010 and @toledo_absolute_2013. Our mixture model allows the data to reveal which interpretation strategy participants use.
+
+#### Complete Stan code for the mixture model
+
+```stan
+data {
+  // Same basic structure as Model 2
+  int<lower=1> N_item;
+  int<lower=1> N_adjective;
+  int<lower=1> N_participant;
+  int<lower=1> N_data;
+  int<lower=1> N_0;
+  int<lower=1> N_1;
+  
+  vector<lower=0, upper=1>[N_data] y;
+  array[N_item] int<lower=1, upper=N_adjective> item_adj;
+  
+  // Indexing arrays (same structure as Model 2)
+  array[N_data] int<lower=1, upper=N_item> item;
+  array[N_0] int<lower=1, upper=N_item> item_0;
+  array[N_1] int<lower=1, upper=N_item> item_1;
+  array[N_data] int<lower=1, upper=N_adjective> adjective;
+  array[N_0] int<lower=1, upper=N_adjective> adjective_0;
+  array[N_1] int<lower=1, upper=N_adjective> adjective_1;
+  array[N_data] int<lower=1, upper=N_participant> participant;
+  array[N_0] int<lower=1, upper=N_participant> participant_0;
+  array[N_1] int<lower=1, upper=N_participant> participant_1;
+}
+
+parameters {
+  // MIXTURE COMPONENT
+  
+  // Global probability of using relative (vs absolute) interpretation
+  real<lower=0, upper=1> which;
+  
+  // TWO SETS OF DEGREE PARAMETERS
+  
+  // Absolute interpretation: degrees are fixed per adjective
+  vector<lower=0, upper=1>[N_adjective] d_a;
+  
+  // Relative interpretation: degrees vary by item (adjective × context)
+  vector<lower=0, upper=1>[N_item] d_r;
+  
+  // THRESHOLD PARAMETERS (same as Model 2)
+  
+  // Global vagueness
+  real<lower=0> sigma_guess;
+  
+  // Context sensitivity per adjective
+  vector<lower=0>[N_adjective] spread;
+  
+  // PARTICIPANT EFFECTS
+  real<lower=0> sigma_epsilon_mu_guess;
+  vector[N_participant] z_epsilon_mu_guess;
+  
+  // RESPONSE NOISE
+  real<lower=0, upper=1> sigma_e;
+  
+  // CENSORED DATA
+  array[N_0] real<upper=0> y_0;
+  array[N_1] real<lower=1> y_1;
+}
+
+transformed parameters {
+  // Participant effects (same as Model 2)
+  vector[N_participant] epsilon_mu_guess = sigma_epsilon_mu_guess * z_epsilon_mu_guess;
+  
+  // MIXTURE WEIGHTS ON LOG SCALE
+  // This prevents numerical underflow when probabilities get very small
+  vector[2] log_which;
+  log_which[1] = log(which);      // log P(relative)
+  log_which[2] = log1m(which);    // log P(absolute) = log(1 - which)
+  
+  // BASE THRESHOLDS (same structure as Model 2)
+  vector[N_item] mu_guess0;
+  for (i in 0:(N_adjective-1)) {
+    mu_guess0[3 * i + 1] = spread[i + 1];   // High condition
+    mu_guess0[3 * i + 2] = -spread[i + 1];  // Low condition
+    mu_guess0[3 * i + 3] = 0;                // Mid condition
+  }
+  
+  // COMPUTE PREDICTIONS UNDER BOTH INTERPRETATIONS
+  
+  // Thresholds on probability scale
+  vector<lower=0, upper=1>[N_data] mu_guess;
+  vector<lower=0, upper=1>[N_0] mu_guess_0;
+  vector<lower=0, upper=1>[N_1] mu_guess_1;
+  
+  // Predictions under relative interpretation
+  vector<lower=0, upper=1>[N_data] response_rel;
+  vector<lower=0, upper=1>[N_0] response_rel_0;
+  vector<lower=0, upper=1>[N_1] response_rel_1;
+  
+  // Predictions under absolute interpretation
+  vector<lower=0, upper=1>[N_data] response_abs;
+  vector<lower=0, upper=1>[N_0] response_abs_0;
+  vector<lower=0, upper=1>[N_1] response_abs_1;
+  
+  // For each response
+  for (i in 1:N_data) {
+    // Threshold (same for both interpretations)
+    mu_guess[i] = inv_logit(mu_guess0[item[i]] + epsilon_mu_guess[participant[i]]);
+    
+    // RELATIVE: degree varies by item
+    // "tall for a basketball player" vs "tall for a jockey"
+    response_rel[i] = 1 - normal_cdf(d_r[item[i]] | mu_guess[i], sigma_guess);
+    
+    // ABSOLUTE: degree fixed per adjective
+    // "tall" has same degree regardless of context
+    response_abs[i] = 1 - normal_cdf(d_a[adjective[i]] | mu_guess[i], sigma_guess);
+  }
+  
+  // Repeat for censored data at 0
+  for (i in 1:N_0) {
+    mu_guess_0[i] = inv_logit(mu_guess0[item_0[i]] + epsilon_mu_guess[participant_0[i]]);
+    response_rel_0[i] = 1 - normal_cdf(d_r[item_0[i]] | mu_guess_0[i], sigma_guess);
+    response_abs_0[i] = 1 - normal_cdf(d_a[adjective_0[i]] | mu_guess_0[i], sigma_guess);
+  }
+  
+  // Repeat for censored data at 1
+  for (i in 1:N_1) {
+    mu_guess_1[i] = inv_logit(mu_guess0[item_1[i]] + epsilon_mu_guess[participant_1[i]]);
+    response_rel_1[i] = 1 - normal_cdf(d_r[item_1[i]] | mu_guess_1[i], sigma_guess);
+    response_abs_1[i] = 1 - normal_cdf(d_a[adjective_1[i]] | mu_guess_1[i], sigma_guess);
+  }
+}
+
+model {
+  // PRIORS
+  
+  // Vagueness and context effects
+  sigma_guess ~ exponential(5);
+  spread ~ exponential(1);
+  
+  // Participant variation
+  sigma_epsilon_mu_guess ~ exponential(1);
+  z_epsilon_mu_guess ~ std_normal();
+  
+  // MIXTURE LIKELIHOOD
+  
+  // For each observed response
+  for (i in 1:N_data) {
+    // Log probability under relative interpretation
+    real lps_r = log_which[1] + normal_lpdf(y[i] | response_rel[i], sigma_e);
+    
+    // Log probability under absolute interpretation
+    real lps_a = log_which[2] + normal_lpdf(y[i] | response_abs[i], sigma_e);
+    
+    // Add log of sum of probabilities (marginalizing over interpretations)
+    // log_sum_exp(a, b) = log(exp(a) + exp(b)) but numerically stable
+    target += log_sum_exp(lps_r, lps_a);
+  }
+  
+  // Same for censored at 0
+  for (i in 1:N_0) {
+    real lps_r = log_which[1] + normal_lpdf(y_0[i] | response_rel_0[i], sigma_e);
+    real lps_a = log_which[2] + normal_lpdf(y_0[i] | response_abs_0[i], sigma_e);
+    target += log_sum_exp(lps_r, lps_a);
+  }
+  
+  // Same for censored at 1
+  for (i in 1:N_1) {
+    real lps_r = log_which[1] + normal_lpdf(y_1[i] | response_rel_1[i], sigma_e);
+    real lps_a = log_which[2] + normal_lpdf(y_1[i] | response_abs_1[i], sigma_e);
+    target += log_sum_exp(lps_r, lps_a);
+  }
+}
+
+generated quantities {
+  // OVERALL LOG-LIKELIHOOD
+  vector[N_data] ll;
+  
+  // COMPONENT LOG-LIKELIHOODS
+  vector[N_data] ll_r;  // relative component
+  vector[N_data] ll_a;  // absolute component
+  
+  // POSTERIOR PROBABILITY OF EACH INTERPRETATION
+  vector[N_data] prob_relative;
+  
+  for (i in 1:N_data) {
+    // Component likelihoods
+    ll_r[i] = log_which[1] + normal_lpdf(y[i] | response_rel[i], sigma_e);
+    ll_a[i] = log_which[2] + normal_lpdf(y[i] | response_abs[i], sigma_e);
+    
+    // Overall likelihood
+    ll[i] = log_sum_exp(ll_r[i], ll_a[i]);
+    
+    // Posterior probability this response used relative interpretation
+    prob_relative[i] = exp(ll_r[i] - ll[i]);
+  }
+  
+  // We could also compute:
+  // - Which adjectives are more likely relative vs absolute
+  // - Individual differences in interpretation preference
+  // - Predicted classifications for new adjectives
+}
+```
+
+#### How the mixture model works: A concrete example
+
+Let's trace through how this model handles the adjective "tall" in different conditions:
+
+1. **Under relative interpretation**:
+   - "tall" + "basketball player" (high condition): `d_r["tall_high"] = 0.9`
+   - "tall" + "average person" (mid condition): `d_r["tall_mid"] = 0.6`
+   - "tall" + "child" (low condition): `d_r["tall_low"] = 0.3`
+   
+   The degree changes with context—what counts as tall depends on the comparison class.
+
+2. **Under absolute interpretation**:
+   - All conditions: `d_a["tall"] = 0.7`
+   
+   The degree is fixed—"tall" means the same thing regardless of context.
+
+3. **Threshold computation** (same for both):
+   - High condition: threshold shifts up (`spread["tall"]` added)
+   - Low condition: threshold shifts down (`spread["tall"]` subtracted)
+   - But the shift might be small if "tall" is absolute-like
+
+4. **Mixture computation**:
+   ```
+   P(response | data) = which × P(response | relative) + (1-which) × P(response | absolute)
+   ```
+   
+   If `which = 0.8`, then 80% of responses come from relative interpretation.
+
+5. **What we learn**:
+   - Global `which`: Overall tendency toward relative vs absolute interpretation
+   - `spread` values: Which adjectives show more context sensitivity
+   - Generated `prob_relative`: Which specific responses likely used which interpretation
+
+#### Key innovations of the mixture model
+
+1. **Theoretical commitment**: Not all adjectives work the same way—some are inherently more relative or absolute @kennedy_scale_2005.
+
+2. **Data-driven classification**: Rather than pre-classifying adjectives, we let the data reveal which adjectives pattern as relative vs absolute.
+
+3. **Individual differences**: The model can reveal if some participants consistently prefer one interpretation strategy.
+
+4. **Gradient membership**: Adjectives aren't forced into discrete categories—they can be partially relative and partially absolute.
+
+This mixture approach implements @qing_gradable_2014's insight that the relative/absolute distinction might be gradient rather than categorical, while maintaining the theoretical insights from @kennedy_vagueness_2007 about different types of scale structure.
+
+### Theoretical implications
+
+These Stan models demonstrate several key principles in translating semantic theory to statistical models:
+
+1. **Censoring as theoretical commitment**: The treatment of boundary responses (0 and 1) isn't just a statistical detail—it embodies assumptions about how semantic values map to behavioral responses @stevens_psychophysics_1975. All three models handle censoring, but the interpretation differs:
+   - Model 1: Censoring reflects measurement limitations
+   - Model 2: Censoring interacts with vagueness (very vague predicates might naturally produce more boundary responses)
+   - Model 3: Absolute adjectives might produce more boundary responses due to endpoint orientation
+
+2. **Hierarchical structure as compositionality**: The nested structure mirrors the compositional structure of meaning @heim_semantics_1998:
+   - Adjectives compose with contexts to form items
+   - Items combine with participant-specific thresholds to generate judgments
+   - Judgments plus measurement noise produce responses
+
+3. **Parameters as theoretical constructs**: Each parameter has both statistical and theoretical interpretation:
+   - `sigma_guess`: Degree of vagueness (how fuzzy boundaries are)
+   - `spread`: Context-sensitivity (how much standards shift)
+   - `which`: Prevalence of relative vs absolute interpretation strategies
+   - `d_r` vs `d_a`: Different ways degrees can be assigned
+
+4. **Model comparison as theory testing**: The progression across models allows us to test increasingly specific hypotheses:
+   - Model 1 baseline: Do items differ in degree?
+   - Model 2 vs Model 1: Does modeling vagueness improve fit?
+   - Model 3 vs Model 2: Is there evidence for multiple interpretation strategies?
+
+5. **Linking hypotheses made explicit**: The choice of likelihood functions constitutes explicit linking hypotheses @jasbi_linking_2019:
+   - Normal likelihood: Responses are continuous with symmetric noise
+   - Censoring: The scale has psychological reality at boundaries
+   - Mixture structure: Multiple strategies can coexist
+
+The progression from simple degree estimation to sophisticated mixture models illustrates how computational implementation forces theoretical precision. By translating PDS's abstract semantic representations into Stan's concrete probability distributions, we make testable predictions about human linguistic behavior while maintaining the insights of formal semantic theory @grove_probabilistic_2024.
+
+## Looking ahead
+
+These models provide the foundation for understanding factivity—a phenomenon where the gradience is unexpected rather than expected. Where vagueness naturally involves uncertain thresholds, factivity has traditionally been viewed as discrete. The tools developed here will prove essential:
+
+- **Censoring**: Factivity judgments often cluster at extremes (definitely does/doesn't project)
+- **Mixture models**: Some predicates might have both factive and non-factive uses
+- **Hierarchical structure**: Predicate-level, context-level, and participant-level variation
+- **Linking functions**: How binary theoretical predictions map to gradient responses
+
+The same Stan building blocks—data structures, parameter types, transformed computations, mixture likelihoods—will allow us to test competing theories of factivity against large-scale experimental data.
