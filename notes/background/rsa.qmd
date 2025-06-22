@@ -1,5 +1,5 @@
 ---
-title: "A theoretically-oriented approach: RSA models;"
+title: "A theoretically-oriented approach: RSA models"
 bibliography: ../../pds.bib
 format:
   html:
