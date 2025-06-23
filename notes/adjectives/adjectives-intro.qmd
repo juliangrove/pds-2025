@@ -1,0 +1,396 @@
+## Vagueness and imprecision
+
+## Semantics
+  \textbf{Semantics} characterizes a certain linguistic system---the one giving us access to knowledge about: \pause
+  \begin{itemize}
+  \item certain kinds of \emph{inferences} from one expression to another (those based on \emph{literal meaning}); \pause
+    \begin{itemize}
+    \item \textit{the door was closed} ↝ \textit{someone closed the door} \pause 
+    \end{itemize}
+  \item where certain words can occur---what sounds good. \pause
+    \begin{itemize}
+      \item ??\textit{anyone closed the door}
+    \end{itemize}
+  \end{itemize}
+
+---
+
+% ## Pragmatics
+%   Semantics contrasts with \textbf{pragmatics}, which studies \emph{speaker}/\textit{signer} meaning\pause---or \emph{implicated} meaning\pause---rather than literal meaning. \vspace{-2mm} \pause
+%   \begin{itemize}
+%   \item \textit{buy a ticket \uline{in the next hour}, and you'll get good seats} \\ \pause
+%     ↝ \textit{if you don't buy a ticket in the next hour, you won't/might not get good seats} \hfill \pause (``conversational implicature'')
+%   \end{itemize} \pause
+%   ~\\
+%   \begin{columns}
+%     \begin{column}{0.7\columnwidth}
+%       Broadly:
+%       \begin{itemize}
+%       \item \onslide<7->{Pragmatics asks what the \alert{recipe} for meaningful linguistic communication is.}
+%       \item \onslide<8->{Semantics asks what the \alert{ingredients} are\ldots \\}
+%         \onslide<9->{\ldots what facts about conventionalized inferences may one take advantage of?}
+%       \end{itemize}
+%     \end{column}
+%     \begin{column}{0.4\columnwidth}
+%       \includegraphics[width=4cm]{./images/pancakes.png}
+%     \end{column}
+%   \end{columns}
+% 
+---
+
+## Inferences
+  Semanticists are in the business of classifying linguistic inferences: \pause
+  \begin{itemize}
+  \item \textbf{entailments}:
+    \emph{at-issue} meaning; what is implied \emph{literally} \pause
+    \begin{itemize}
+    \item \textit{the dog bit me} ↝ \textit{something bit me} \pause
+    \item If entailment is false, you have said something false! \pause
+    \item Destroyed by negation: \\
+      \textit{the dog didn't bite me} \(\not\leadsto\) \textit{something bit me}
+    \end{itemize} \pause
+  \item \textbf{presuppositions}:
+    backgrounded inferences \pause
+    \begin{itemize}
+    \item \textit{\uline{the dog} bit me} ↝ \textit{there is a dog} \pause
+    \item If presupposition is false, you have said something \emph{weird}! \\
+      \pause
+    \item \emph{Projects} past negation: \\
+      \textit{the dog didn't bite me} ↝ \textit{there is a dog}
+    \end{itemize}
+  \end{itemize}
+
+---
+
+## Studying inferences: big picture
+  Semantic inferences (e.g., entailments, presuppositions) are discrete:
+  they are turned on or off by linguistic expressions. \\ \pause
+  ~\\
+  Semantics studies such inferences in terms of \textbf{grammars}. \\ \pause
+  These are formal systems which: \pause
+  \begin{itemize}
+  \item map individual words onto logical formulae of some kind; \pause
+  \item put formulae for words together → get formulae for phrases; \pause
+  \item yield theories of a significant chunk of an entire language\ldots \\ \pause
+    \ldots is an inference ``on'' or ``off'' for the expressions in that chunk.
+  \end{itemize} \pause
+
+  \begin{center}
+    \textbf{Vagueness makes this hard.}
+  \end{center}
+
+---
+
+## Vagueness: adjectives
+  Vague adjectives:
+  \textit{tall}, \textit{wide}, \textit{expensive}, \textit{happy}, \ldots \vspace{-2mm} \pause
+  
+  \ex[exno=1] \label{ex:coffee}
+  The coffee in Rome is \alert{expensive}. \hfill \parencite{kennedy_vagueness_2007}
+  \xe
+  
+  \begin{columns}
+    \begin{column}{0.65\columnwidth}
+      \onslide<3->{True if: \vspace{-2mm}}
+      \begin{itemize}
+      \item \onslide<4->{the cost of coffee in Rome is as great as a salient threshold,
+          \alert{\(d\)}: \\
+          \begin{center}
+            \(c ≥ d\)
+          \end{center}
+        }
+      \item \onslide<5->{Maybe the cost of coffee is 3 euros.}
+      \item \onslide<6->{\(d\) is \alert{vague}\ldots \\}
+        \onslide<7->{\ldots maybe it ranges somewhere from 2 euros to 4 euros.}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.35\columnwidth}
+      \onslide<2->{\includegraphics[width=3cm]{./images/coffee.jpg}}
+    \end{column}
+  \end{columns}
+
+---
+
+## Vagueness: strange inference patterns
+  Vague adjectives such as \textit{expensive} \vspace{-2mm} \pause
+  \begin{itemize}
+  \item admit \alert{borderline cases}: \pause
+    \begin{itemize}
+    \item Mud Blend: \$1.50/lb \xmark \pause
+    \item Organic Kona: \$20/lb \checkmark \pause
+    \item Swell Start Blend: \$9.25/lb ??
+    \end{itemize} \pause
+  \item produce \alert{sorites paradoxes}:
+    \mbox{} \\
+    \mbox{} \\
+    \mbox{}
+  \end{itemize}
+
+---
+
+## Sorites: \$10
+  \begin{center}
+    Is a \$10 cup of coffee expensive? \\ \pause
+    ~\\
+    \includegraphics[width=6cm]{./images/hands1.jpg}
+  \end{center}
+
+---
+
+## Sorites: \$9.99
+  \begin{center}
+    Take \$0.01 away. \pause Is a \$9.99 cup of coffee expensive? \\ \pause
+    ~\\
+    \includegraphics[width=6cm]{./images/hands2.jpg}
+  \end{center}
+
+---
+
+## Sorites: \$9.98
+  \begin{center}
+     Take \$0.01 away. \pause Is a \$9.98 cup of coffee expensive? \\ \pause
+    ~\\
+    \includegraphics[width=6cm]{./images/hands3.jpg}
+  \end{center}
+
+---
+
+## Vagueness: strange inference patterns
+  Vague adjectives such as \textit{expensive} \vspace{-2mm}
+  \begin{itemize}
+  \item admit \alert{borderline cases}:
+    \begin{itemize}
+    \item Mud Blend: \$1.50/lb \xmark
+    \item Organic Kona: \$20/lb \checkmark
+    \item Swell Start Blend: \$9.25/lb ??
+    \end{itemize}
+  \item produce \alert{sorites paradoxes}: \\ \pause
+    Premise 1: A \$10 cup of coffee is expensive. \\ \pause
+    Premise 2: If an expensive cup of coffee were 1 cent cheaper, it would still be expensive. \\ \pause
+    Conclusion: \emph{Therefore}, a \alert{free} cup of coffee is expensive!
+  \end{itemize}
+
+---
+
+## Why is this vagueness tricky to handle?
+  Borderline cases and sorites paradoxes: \pause
+  inference patterns that do not fall into any traditional semantic classification. \pause
+
+  \begin{itemize}
+  \item Borderline cases:
+    things to which the adjective neither applies nor doesn't apply. \pause
+    \begin{itemize}
+    \item The inference is not simply ``on'' or ``off''!
+    \end{itemize} \pause
+  \item The sorites paradox: troublesome because \ldots \pause
+    \begin{itemize}
+    \item inferences should be \textbf{closed under implication}: \\ \pause
+      if \$10 ↝ \$9.99, and \$9.99 ↝ \$9.98, then \$10.00 ↝ \$9.98. \pause
+    \item \textit{a \$10 cup is expensive} ↝ \textit{a free cup is expensive}
+    \end{itemize}
+  \end{itemize}
+
+---
+
+## Imprecision
+  Imprecision is kind of like vagueness:\vspace{-2mm}
+  \ex[exno=3] \label{ex:theater}
+  The theater is \alert{empty} tonight. \hfill \parencite{kennedy_vagueness_2007}
+  \xe \vspace{-9mm}\pause
+
+  True if the theater has five people when it usually has 300. \\\pause
+
+  \begin{itemize}
+  \item \textit{empty} is known as a \textbf{maximum standard \underline{absolute} adjective}.\pause
+    \begin{itemize}
+    \item The standard corresponds to complete emptiness.
+    \end{itemize} \pause
+  \item Vague adjectives like \textit{expensive}: \textbf{\underline{relative} adjectives}. \pause
+    \begin{itemize}
+    \item The standard is determined relative to some context of use.
+    \end{itemize}
+  \end{itemize}
+
+---
+
+## What makes imprecision a \emph{thing}?
+  How is it different from vagueness?\pause
+  \begin{itemize}
+  \item Borderline cases can be eliminated.\pause
+    \begin{itemize}
+    \item \textbf{Context:}
+      the theater needs to be completely empty for the cleaning crew to work…\pause \\
+      … here, a single person can make a difference. \pause
+    \end{itemize}
+  \item Lack of sorites paradoxes.\pause
+    \begin{itemize}
+    \item Premise 1: A theater with zero people in it is empty. \\ \pause
+      Premise 2: If an empty theater had one more person in it, it would still be empty. \pause\hfill \textbf{Nope!}
+    \end{itemize}
+  \end{itemize}
+
+---
+
+## Characterizing vagueness and imprecision
+  A number of different approaches to vagueness and imprecision have been entertained over the years. \pause
+  \begin{itemize}
+  \item Vagueness: \pause
+    \begin{itemize}
+    \item \alert{Logical systems} with non-standard values for sentences:
+      ``True'', ``False'', but also ``Neither'' (for borderline cases) \pause
+    \item \alert{Contextualist approaches}:
+      vague adjectives produce widely varying inferences which depend on the context of use. \pause
+    \end{itemize}
+  \item Imprecision: \pause
+    \begin{itemize}
+    \item A prominent pragmatic approach \parencite{lasersohn_pragmatic_1999}: \\ \pause
+      a ``pragmatic halo'' surrounds the semantically fixed standard threshold. \\
+      \hspace{1cm} ↝ Error must be ``inside'' the halo. 
+    \end{itemize}
+  \end{itemize}
+
+---
+
+## Characterizing vagueness and imprecision (cont'd)
+  \begin{itemize}
+  \item Both vagueness and imprecision: \pause
+    \begin{itemize}
+    \item \alert{Probabilistic approaches}:
+      people are implicitly performing probabilistic reasoning about whether or not the adjective applies to something. \pause
+      \begin{itemize}
+      \item borderline cases:
+        \(∼0.5\) probability that adjective applies. \pause
+      \item sorites reasoning:
+        `A ↝ B' really means \(P(B ∣ A)\) is \emph{high}.
+      \end{itemize}
+    \end{itemize} \pause
+    % \begin{center}
+      % \alert{General challenge}:
+      % how to make precise predictions while conforming to the constraints of logical formalisms?
+    % \end{center}
+  \end{itemize}
+
+---
+
+## Investigating vagueness and imprecision using inference judgments
+  Ongoing work with Helena Aparicio (Cornell Linguistics): \pause \vspace{-2mm}
+  \begin{itemize}
+  \item let's see if a Bayesian model of inference judgment data can ``learn'' which adjectives are relative (vague) and which are absolute maximum standard (imprecise). \pause
+  \end{itemize}
+  Plan: \vspace{-2mm} \pause
+  \begin{itemize}
+  \item Collect \textbf{scale norming} data. \pause
+    \begin{itemize}
+    \item ``X drank a coffee. Guess how \alert{expensive} it was?'' \pause
+    \item ``X drank a glass of wine. Guess how \alert{full} it was?'' \pause
+    \end{itemize}
+  \item Collect \textbf{adjectival inference} data. \pause
+    \begin{itemize}
+    \item ``X drank a coffee. How likely is it that it was \alert{expensive}?'' (vague) \pause
+    \item ``X drank a glass of wine. How likely is it that it was \alert{full}?'' (imprecise)
+    \end{itemize}
+  \end{itemize}
+
+---
+
+## Modeling
+  Using the norming data to help model the adjectival inference data: \pause
+  \begin{itemize}
+  \item Assume that people make likelihood judgments based on their probabilistic estimate of where an object lands on the adjective's scale. \\ \pause
+    \hspace{1cm} ↝ We can model the distribution over estimates using \\
+    \hspace{15mm} the norming data. \pause 
+  \end{itemize}
+
+  Steps: \vspace{-2mm} \pause
+  \begin{itemize}
+  \item Construct a ``relative'' model, which allows the adjective's standard threshold to freely vary from item to item. \pause
+  \item Construct an ``absolute'' model, which forces the standard threshold to be at the right endpoint of the scale, also allowing some imprecision (i.e., a pragmatic halo). \pause
+  \item Combine the models into a single hierarchical model, allowing each adjective to determine a preference for one or the other.
+  \end{itemize}
+
+---
+
+## Norming task
+  Relative example \hfill Absolute example
+  \begin{center}
+    \includegraphics[width=53mm]{./images/expensive_norming.png}
+    \includegraphics[width=53mm]{./images/full_norming.png}
+  \end{center}
+  \begin{itemize}
+  \item 12 adjectives (six relative, six absolute)
+  \item 3 possible contexts for each adjective (``high'', ``medium'', ``low'')
+  \end{itemize}
+
+---
+
+## Norming model
+  \begin{center}
+    \includegraphics[width=115mm]{./images/norming_posteriors.pdf}
+  \end{center}
+  \footnotesize
+  \begin{itemize}
+  \item flat priors on the guesses
+  \item normally distributed participant intercepts
+  \item normal likelihood; endpoint responses modeled as censored data
+  \end{itemize}
+
+---
+
+## Adjectival inference task
+  Relative example \hfill Absolute example
+  \begin{center}
+    \includegraphics[width=53mm]{./images/expensive_test.png}
+    \includegraphics[width=53mm]{./images/full_test.png}
+  \end{center}
+  \begin{itemize}
+  \item Same 12 adjectives (six relative, six absolute)
+  \item Same 3 possible contexts for each adjective (``high'', ``medium'', ``low'')
+  \end{itemize}
+
+---
+
+## Adjectival inference data: by scale type
+  \begin{center}
+    \includegraphics[width=115mm]{./images/adjectival_inference.pdf}
+  \end{center}
+
+---
+
+## Adjectival inference data: by adjective
+  \begin{center}
+    \includegraphics[width=115mm]{./images/adjectival_inference_by_adj.pdf}
+  \end{center}
+
+---
+
+## Adjectival inference models
+  \begin{center}
+    \includegraphics[width=7cm]{./images/blackboard.jpg}
+  \end{center}
+
+---
+
+
+
+
+# Case study: vagueness and imprecision
+
+## Background on vagueness and imprecision
+
+# The data-collection pipeline
+
+## Scale norming
+
+## Likelihood inferences
+
+# Compositional semantics
+
+## Gradable adjectives
+
+## Scale-norming prompts
+
+## Likelihood prompts
+
+# Some implementation details
+
+## Delta rules
