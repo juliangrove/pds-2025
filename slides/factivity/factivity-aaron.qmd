@@ -1,19 +1,380 @@
-# Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments
+---
+title: "Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments"
+bibliography: ../../pds.bib
+format:
+  revealjs:
+    css: ../styles.css
+    html-math-method: mathjax
+    mathjax-config:
+      loader: {load: ['[tex]/bussproofs','[tex]/bbox','[tex]/colorbox']}
+      tex:
+        packages: {'[+]': ['bussproofs','bbox','colorbox']}
+---
 
-## The problem of gradience in veridicality judgments
+# Factivity and projection
 
-### White & Rawlins 2019
+## The phenomenon
 
-### Degen & Tonhauser 2022
+While gradience in adjectives arises from well-understood sources, factivity presents a deeper puzzle.
 
-## Two hypotheses
+::: {.incremental}
+- **Traditional view**: Predicates either trigger presuppositions or they don't
+- **Empirical reality**: Pervasive gradience in projection judgments
+- **The challenge**: What explains this gradience?
+:::
 
-### The Fundamental Discreteness Hypothesis
+---
 
-### The Fundamental Gradience Hypothesis
+## What makes factivity special
 
-## Lexica
+Factivity = property of predicates associated with presupposition that complements are true
 
-### The fundamental discreteness hypothesis
+::: {.fragment}
+Compare:
 
-### The fundamental gradience hypothesis
+**Factive**: 
+- Jo loved that Mo left. ⟹ Mo left.
+- Jo didn't love that Mo left. ⟹ Mo left.
+- Did Jo love that Mo left? ⟹ Mo left.
+:::
+
+::: {.fragment}
+**Non-factive**:
+- Jo thinks that Mo left. ⏸ Mo left.
+- Jo doesn't think that Mo left. ⏸ Mo left.
+:::
+
+---
+
+## The empirical landscape
+
+::: {style="text-align: center;"}
+![](plots/veridicality_factivity.pdf){width=500}
+
+::: {style="font-size: 85%;"}
+MegaVeridicality dataset (@white_role_2018): continuous gradient, not discrete clusters
+:::
+:::
+
+---
+
+## Two competing hypotheses
+
+### Discrete-factivity hypothesis
+
+- Factivity is discrete—speakers either interpret as factive or not
+- Gradience reflects uncertainty about interpretation
+- Analogous to lexical ambiguity
+
+::: {.fragment}
+### Wholly-gradient hypothesis
+
+- No discrete factivity property exists
+- Predicates make gradient contributions to complement truth
+- Aligned with Gradient Projection Principle
+:::
+
+---
+
+## Experimental paradigms
+
+### The challenge
+
+Judgments about certainty depend on:
+
+1. Properties of the predicate (factivity)
+2. World knowledge about proposition likelihood
+
+::: {.fragment}
+@degen_prior_2021 developed a two-stage design to tease these apart
+:::
+
+---
+
+## Stage 1: Norming study
+
+Measure world knowledge independent of embedding predicates:
+
+::: {style="background-color: #f0f0f0; padding: 15px; margin: 20px 0;"}
+**Fact**: Sophia is a hipster.  
+**Question**: How likely is it that Sophia got a tattoo?  
+**Response**: [slider from 0 to 1]
+:::
+
+::: {.fragment}
+Created high/low likelihood contexts for each proposition
+:::
+
+---
+
+## Stage 2: Projection study
+
+Embed propositions under predicates, ask about speaker certainty:
+
+::: {style="background-color: #f0f0f0; padding: 15px; margin: 20px 0;"}
+**Context**: Isabella said that Sophia is a hipster.  
+**Utterance**: Noah knows that Sophia got a tattoo.  
+**Question**: Is Noah certain that Sophia got a tattoo?  
+**Response**: [slider from 0 to 1]
+:::
+
+---
+
+## Predicates tested
+
+20 predicates spanning theoretical categories:
+
+::: {style="font-size: 90%;"}
+- **Canonical factives**: *know*, *discover*, *realize*, *be aware*
+- **Non-factives**: *think*, *believe*, *say*, *suggest*  
+- **"Semifactives"**: *see*, *hear*, *notice*, *find out*
+- **Variable behavior**: *confirm*, *admit*, *be right*
+:::
+
+---
+
+## The empirical challenge
+
+::: {style="text-align: center;"}
+![](plots/projection_no_fact_means.pdf){width=600}
+
+Continuous gradient of projection behavior
+:::
+
+---
+
+## World knowledge: gradient or discrete?
+
+First, test whether world knowledge itself is discrete or gradient:
+
+::: {style="text-align: center;"}
+![](plots/norming_elpd.pdf){width=600}
+
+Gradient model substantially outperforms discrete (ΔELPD = 442.3)
+:::
+
+---
+
+## From PDS to Stan
+
+### Discrete-factivity in PDS
+
+```haskell
+"knows" -> [ SynSem {
+    syn = S :\: NP :/: S,
+    sem = ty tau (lam s (purePP (lam p (lam x (lam i 
+      (ITE (TauKnow i) 
+           (And (epi i @@ x @@ p) (p @@ i))  -- factive
+           (epi i @@ x @@ p))))))            -- non-factive
+      @@ s)
+} ]
+```
+
+::: {.fragment}
+`ITE` creates discrete choice based on `TauKnow` parameter
+:::
+
+---
+
+## The Stan implementation
+
+Key factivity-specific components:
+
+```stan {.line-numbers highlight="17-18,21-22,25-27"}
+model {
+  // ... priors and hierarchical structure ...
+  
+  for (n in 1:N) {
+    // Probability of factive interpretation
+    real verb_prob = inv_logit(verb_intercept[verb[n]] + 
+                               subj_intercept_verb[subj[n], verb[n]]);
+    
+    // World knowledge probability  
+    real context_prob = inv_logit(context_intercept[context[n]] + 
+                                  subj_intercept_context[subj[n], context[n]]);
+    
+    // MIXTURE LIKELIHOOD
+    target += log_mix(verb_prob,
+                      truncated_normal_lpdf(y[n] | 1.0, sigma_e, 0.0, 1.0),
+                      truncated_normal_lpdf(y[n] | context_prob, sigma_e, 0.0, 1.0));
+  }
+}
+```
+
+---
+
+## Model comparison
+
+Four models tested:
+
+1. **Discrete-factivity**: Factivity discrete, world knowledge gradient
+2. **Wholly-gradient**: Both factivity and world gradient
+3. **Discrete-world**: World knowledge discrete, factivity gradient
+4. **Wholly-discrete**: Both discrete
+
+---
+
+## Quantitative results
+
+::: {style="text-align: center;"}
+![](plots/fits_elpd.pdf){width=600}
+
+Discrete-factivity dramatically outperforms alternatives
+:::
+
+::: {.fragment}
+- vs. wholly-gradient: ΔELPD = 834.5 ± 55.4
+- vs. discrete-world: ΔELPD = 766.1 ± 53.8
+- vs. wholly-discrete: ΔELPD = 295.1 ± 34.8
+:::
+
+---
+
+## Robustness checks
+
+### Anti-veridicality
+
+::: {style="text-align: center;"}
+![](plots/fits_a-v_elpd.pdf){width=500}
+
+Pattern holds even with anti-veridicality component
+:::
+
+---
+
+## Cross-experimental validation
+
+::: {style="text-align: center;"}
+![](plots/contentful_elpd.pdf){width=500}
+
+Discrete-factivity advantage persists in replication
+:::
+
+---
+
+## Replication success
+
+::: {style="text-align: center;"}
+![](plots/projection_item_means.pdf){width=700}
+
+Near-perfect correlation at verb level (r = 0.98)
+:::
+
+---
+
+## Non-contentful experiments
+
+Test with minimal contexts:
+
+::: {.columns}
+::: {.column width="50%"}
+**Bleached**: "a particular thing happened"
+
+**Templatic**: "X happened"
+:::
+::: {.column width="50%"}
+![](plots/bleached_verb_means.pdf){width=350}
+:::
+:::
+
+::: {.fragment}
+Factivity patterns persist even without rich content!
+:::
+
+---
+
+## Model performance on minimal contexts
+
+::: {style="text-align: center;"}
+![](plots/non-contentful_elpds.pdf){width=700}
+
+Discrete-factivity maintains advantage
+:::
+
+---
+
+## Predicate-specific patterns
+
+::: {style="text-align: center;"}
+![](plots/fit_6_thetas.pdf){width=700}
+
+Variation in propensity to trigger factive interpretations
+:::
+
+---
+
+## Theoretical implications
+
+### For semantic theory
+
+- Factivity involves categorical semantic properties
+- Gradience emerges from uncertainty about interpretation
+- Not from gradient truth conditions
+
+::: {.fragment}
+### For projection theories
+
+- Underlying mechanisms operate discretely
+- Whether QUD-based, at-issueness, or commitment
+- Categorical inclusion/exclusion of content
+:::
+
+---
+
+## Methodological implications
+
+::: {.incremental}
+1. **Aggregate ≠ individual gradience**
+   - Population patterns can emerge from discrete processes
+   
+2. **Theory-driven models matter**
+   - PDS maintains theoretical commitments
+   - Enables quantitative tests
+   
+3. **Multiple paradigms strengthen conclusions**
+   - Convergent results across experiments
+   - Robust evidence for theoretical claims
+:::
+
+---
+
+## Connections across phenomena
+
+### Adjectives vs. Factivity
+
+::: {style="font-size: 90%;"}
+**Adjectives**:
+- Gradient uncertainty from vagueness
+- Unresolved indeterminacy
+- Continuous threshold parameters
+
+**Factivity**:
+- Discrete uncertainty from interpretation
+- Resolved indeterminacy  
+- Mixture model components
+:::
+
+::: {.fragment}
+PDS compilation naturally reflects these theoretical distinctions
+:::
+
+---
+
+## Summary
+
+### Empirically
+Discrete-factivity models dramatically outperform gradient alternatives
+
+::: {.fragment}
+### Theoretically
+Factivity involves categorical interpretation selection
+:::
+
+::: {.fragment}
+### Methodologically
+PDS enables principled theory comparison through compositional semantics → statistical models
+:::
+
+::: {.fragment}
+The framework provides a template for investigating similar questions across semantic phenomena
+:::
