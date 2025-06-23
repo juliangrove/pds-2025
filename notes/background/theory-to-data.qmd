@@ -13,12 +13,12 @@ Probabilistic Dynamic Semantics (PDS) aims to provide a systematic bridge betwee
 
 Semanticists study the systematic relationships between linguistic expressions and the inferences they support. The field's methodology centers on two types of judgments:
 
-**Acceptability judgments** assess whether strings are well-formed relative to a language and in a particular context of use (@chomsky_syntactic_1957; see @schütze_gramaticality_2016). []{#exm-comitative-good} []{#exm-coordination-bad} For example, in a context where a host asks what a guest wants with coffee, (@exm-comitative-good) is clearly acceptable, while (@exm-coordination-bad) is not (@ross_constraints_1967, see @sprouse_island_2021):
+**Acceptability judgments** assess whether strings are well-formed relative to a language and in a particular context of use [@chomsky_syntactic_1957; see @schütze_gramaticality_2016]. []{#exm-comitative-good} []{#exm-coordination-bad} For example, in a context where a host asks what a guest wants with coffee, (@exm-comitative-good) is clearly acceptable, while (@exm-coordination-bad) is not [@ross_constraints_1967, see @sprouse_island_2021]:
 
 (@exm-comitative-good) What would you like with your coffee?
 (@exm-coordination-bad) #What would you like and your coffee?
 
-**Inference judgments** assess relationships between strings (see @davis_semantics_2004). []{#exm-love-antecedent} []{#exm-veridicality-inference}  When speakers hear (@exm-love-antecedent), they typically infer (@exm-veridicality-inference) [@white_lexically_2019]:
+**Inference judgments** assess relationships between strings [see @davis_semantics_2004]. []{#exm-love-antecedent} []{#exm-veridicality-inference}  When speakers hear (@exm-love-antecedent), they typically infer (@exm-veridicality-inference) [@white_lexically_2019]:
 
 (@exm-love-antecedent) Jo loved that Mo left.
 (@exm-veridicality-inference) Mo left.
@@ -29,7 +29,7 @@ A core desideratum for semantic theories is *observational adequacy* [@chomsky_c
 Achieving observational adequacy requires mapping vocabulary elements to abstractions that predict judgments parsimoniously. 
 
 These abstractions may be discrete or continuous, simple or richly structured. Through careful analysis of consistent inference patterns, semanticists have identified powerful generalizations.
-For instance, examining predicates like *love*, *hate*, *be surprised*, and *know*, theorists observed they all give rise to inferences about their complement clauses that survive under negation and questioning. This led to positing that they all share a property that predicts systematic inferential behavior across diverse predicates (@kiparsky_fact_1970, cf. @karttunen_observations_1971).
+For instance, examining predicates like *love*, *hate*, *be surprised*, and *know*, theorists observed they all give rise to inferences about their complement clauses that survive under negation and questioning. This led to positing that they all share a property that predicts systematic inferential behavior across diverse predicates [@kiparsky_fact_1970; cf. @karttunen_observations_1971].
 
 ### Descriptive Adequacy and Theoretical Depth
 
@@ -44,9 +44,13 @@ The hypothesis-driven approach, which PDS adopts for semantics, aims to delineat
 
 ### The Power and Natural Boundaries of Traditional Methods
 
-This methodology has yielded profound insights into semantic composition, scope phenomena, discourse dynamics, and the semantics-pragmatics interface. By focusing on carefully constructed examples and native speaker intuitions, theorists have uncovered deep regularities in how meaning is constructed and interpreted.
+This methodology has yielded profound insights into semantic composition, scope phenomena, discourse dynamics, and the semantics-pragmatics interface more generally. By focusing on carefully constructed examples and native speaker intuitions, theorists have uncovered deep regularities in how meaning is constructed and interpreted.
 
-Yet every methodology has natural boundaries. Traditional semantic methods excel at identifying patterns and building theories but face practical constraints when we ask: How well do our generalizations, based on examining 5-10 predicates, extend to the thousands of predicates in the lexicon? What factors beyond semantic knowledge influence the judgments we observe? And how exactly does abstract semantic knowledge produce concrete behavioral responses?
+Yet every methodology has natural boundaries. Traditional semantic methods excel at identifying patterns and building theories but face practical constraints when we ask: 
+
+- How well do our generalizations, based on examining 5-10 predicates, extend to the thousands of predicates in the lexicon? 
+- What factors beyond semantic knowledge influence the judgments we observe? 
+- How exactly does abstract semantic knowledge produce concrete behavioral responses?
 
 ## The Experimental Turn: New Opportunities for Semantic Theory
 
@@ -78,7 +82,61 @@ This is not merely a methodological detail—it's a substantive theoretical ques
 
 ## Understanding Gradience: A Taxonomy of Uncertainty
 
-One of the most striking findings from experimental semantics is the pervasiveness of gradient judgments. While semanticists have long recognized the existence of graidence in some domains–e.g. gradable adjectives–we often assume categorical distinctions in other domains–e.g. factivity. And even where traditional approaches assume categorical distinctions, experimental methods often reveal continuous variation. For the reasons laid out above,understanding this gradience is crucial for developing theories that connect formal semantics to behavioral data.
+One of the most striking findings from experimental semantics is the pervasiveness of gradience in aggregated measures. While semanticists have long recognized the existence of gradience in some domains–e.g. gradable adjectives–we often assume categorical distinctions in other domains–e.g. factivity. And even where traditional approaches assume categorical distinctions, experimental methods often reveal continuous variation. For the reasons laid out above,understanding this gradience is crucial for developing theories that connect formal semantics to behavioral data.
+
+### Examples of Potentially Unexpected Gradience
+
+The kinds of distributionally and inferentially defined properties we develop generalizations around are not always readily apparent in large-scale datasets.
+An example we will look at in-depth in our second case study of the course is that, when attempting to measure veridicality/factivity, we end up with more gradience than we might have expected.
+We can illustrate this using the MegaAttitude datasets.
+
+@fig-veridicality shows veridicality judgments collected by @white_role_2018 as part of their MegaVeridicality dataset.
+
+
+![Veridicality judgments collected by @white_role_2018 as part of their MegaVeridicality dataset.](plots/veridicality_factivity.png){#fig-veridicality width=500}
+
+One thing @white_role_2018 note is the apparent gradience in these measures.
+This gradience presents a challenge if we want to use these measures to evaluate generalizations about the relationship between two properties.
+For instance, say we are interested in understanding the relationship betwen factivity and neg(ation)-raising.
+[]{#exm-negraising} []{#exm-negraising-inference} A predicate is neg-raising if it gives rise to inferences of the form from (@exm-negraising) to (@exm-negraising-inference):
+
+(@exm-negraising) Jo doesn't think that Mo left.
+(@exm-negraising-inference) Jo thinks that Mo didn't leave.
+
+One way of deriving a factivity measure from the MegaVeridicality dataset is to take the max along both dimensions, as shown in @fig-derived-factivity.
+The idea here is that, it will give rise to veridicality inferences with both positive and negative matrix polarity.
+
+![One way of deriving a factivity measure from the MegaVeridicality dataset.](plots/derived_factivity_measure.png){#fig-derived-factivity width=500}
+
+Now let's suppose we're interested in generalizations about the relationship between two measures.
+For instance, maybe want to evaluate the relationship between factivity and neg-raising, where we might tend to suspect that factives are not neg-raisers.
+
+@fig-negraising-factivity shows a comparison of the measure of neg(ation)-raising from the MegaNegRaising dataset collected by @an_lexical_2020 and the derived factivity measure from the MegaVeridicality dataset collected by @white_role_2018.
+
+![A comparison of the measure of neg(ation)-raising from the MegaNegRaising dataset collected by @an_lexical_2020 and the derived factivity measure from the MegaVeridicality dataset collected by @white_role_2018.](plots/negraising_factivity.png){#fig-negraising-factivity width=500}
+
+The challenge is that, once we move to relating continuous measures, rather than categorical distinctions, we don't know what the relationship between measures should look like in any particular case.
+To illustrate, let's consider another example.
+@anand_factivity_2014 propose that, if a predicate gives rise to inferences about both beliefs and preferences, it backgrounds the belief inferences.
+To evaluate this hypothesis, we might try to derive a measure of belief inferences and preference inferences and then relate them.
+
+To this end, we can use the MegaIntensionality dataset collected by @kane_intensional_2022.
+@fig-belief shows a measure of belief inferences and @fig-desire shows a measure of desire inferences.
+
+![A measure of belief inferences from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/belief.png){#fig-belief width=500}
+
+And @fig-desire-belief shows a comparison of the desire and belief measures.
+
+![A measure of desire inferences from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/desire.png){#fig-desire width=500}
+
+@fig-desire-belief show the relationship between these two measures.
+
+![A comparison of the desire and belief measures from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/desire_belief.png){#fig-desire-belief width=500}
+
+There are two main takeaways from this example.
+First, the generalization proposed by@anand_factivity_2014 is indeed supported by the data.
+Second, the relationship between these two measures is strikingly different from the relationship we observe between the continuous measures of factivity and neg-raising.
+We need some way of theorizing about these continuous relationships.
 
 ### Two Fundamental Types of Uncertainty
 
@@ -147,7 +205,7 @@ Vague predicates provide an ideal starting point because everyone agrees they in
 
 Formal semantic theories have long recognized this gradience. Degree-based approaches [@klein_semantics_1980; @bierwisch_semantics_1989; @kamp_two_1975; @kennedy_projecting_1999; @kennedy_scale_2005; @kennedy_vagueness_2007; @barker_dynamics_2002] analyze gradable adjectives as expressing relations to contextual thresholds:
 
-- *tall* is true of $x$ if height($x$) $\geq d_\text{tall}$ (context)
+- *tall* is true of $x$ if $\ct{height}(x) \geq d_\text{tall}$ (context)
 
 The threshold $d_\text{tall}$ varies with context—what counts as tall for a basketball player differs from tall for a child. But even within a fixed context, speakers show gradient judgments about borderline cases.
 
@@ -174,11 +232,15 @@ A predicate is *factive* if it triggers inferences about its complement that pro
 (@exm-love-negative) Jo doesn't love that Mo left.  
 (@exm-love-question) Does Jo love that Mo left?
 
-But when @white_role_2018 and @degen_are_2022 collected projection judgments at scale, they found continuous variation [@xue_correlation_2011; @smith_projection_2011; @djarv_prosodic_2017 also observe similar patterns]. No clear line separates factive from non-factive predicates. Mean projection ratings vary continuously from *pretend* (lowest) to *be annoyed* (highest).
+But when @white_role_2018 (discussed above) and @degen_are_2022 collected projection judgments at scale, they found continuous variation [@xue_correlation_2011; @smith_projection_2011; @djarv_prosodic_2017 also observe similar patterns]. Qualitatively, @degen_are_2022 argue that there is no clear line separates factive from non-factive predicates. Mean projection ratings vary continuously from *pretend* (lowest) to *be annoyed* (highest).
 
-![Aggregate factivity measures from MegaVeridicality dataset, showing continuous variation in projection ratings across predicates under positive and negative environments](images/veridicality_factivity.pdf){width=500}
+![Aggregate factivity measures from @degen_are_2022, showing continuous variation in projection ratings across predicates under questioning.](plots/projection_no_fact_means.pdf){width=500}
 
-This gradience poses a theoretical challenge [@simons_observations_2007; @simons_what_2010; @simons_best_2017; @tonhauser_how_2018]. In this case study, we'll consider two hypotheses that PDS allows us to state precisely and test against the data:
+This gradience poses a theoretical challenge [@simons_observations_2007; @simons_what_2010; @simons_best_2017; @tonhauser_how_2018]. 
+
+@kane_intensional_2022 later showed that this gradience is likely due to task effects. They demonstrate that when one applies a clustering model to these data that accounts for noise due to various factors, many of the standard subclasses of factives pop out. Some of these subclasses–e.g. the cognitive factives, which @karttunen_observations_1971 observes to not always give rise factivity–appear to themselves be associated with non-necessary factive inferences. 
+
+In this case study, we'll focus on understanding what gives rise to this gradience. We'll consider two hypotheses that PDS allows us to state precisely and test against the data collected by @degen_prior_2021, which uses the same experimental paradigm as @degen_are_2022:
 
 **The Fundamental Discreteness Hypothesis**: Factivity remains discrete; gradience reflects:
 - Multiple predicate senses (factive and non-factive variants)

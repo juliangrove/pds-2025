@@ -69,17 +69,19 @@ This is what motivates PDS - we need a framework that respects the insights of f
 ## Traditional semantic methodology
 
 **Acceptability judgments**: assess whether strings are well-formed in context 
-::: {.smaller}
-[@chomsky_syntactic_1957; @schütze_gramaticality_2016]
-:::
 
 ::: {.smaller}
+[@chomsky_syntactic_1957; see @schütze_gramaticality_2016]
+:::
+
 []{#exm-comitative-good}
 []{#exm-coordination-bad}
+
+::: {.smaller}
 - (@exm-comitative-good) What would you like with your coffee? ✓
 - (@exm-coordination-bad) #What would you like and your coffee? ✗
 ::: {.smaller}
-[@ross_constraints_1967; @sprouse_island_2021]
+[@ross_constraints_1967; see @sprouse_island_2021]
 :::
 :::
 
@@ -98,8 +100,9 @@ But as we'll see, when we scale up to hundreds of predicates and thousands of ju
 ## Traditional semantic methodology (cont.)
 
 **Inference judgments**: assess relationships between strings 
+
 ::: {.smaller}
-[@davis_semantics_2004]
+[see @davis_semantics_2004]
 :::
 
 ::: {.smaller}
