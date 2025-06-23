@@ -20,13 +20,365 @@ format:
 - Inference judgments arise from multiple causal factors, only one of which is semantic knowledge.
 - Traditional methodologies focus on small areas of the lexicon to support a given analysis (on the order of tens of examples), jeopardizing generalizations' validity.
 
+---
+
+## Semantic theory's success
+
+Decades of careful theoretical work have developed elegant formal systems that capture:
+
+- How complex meanings arise from systematic combination of simpler parts
+- Two fundamental types of speaker judgments:
+  - **Acceptability judgments**: whether strings are well-formed
+  - **Inference judgments**: what follows from what speakers say
+
+::: {.fragment}
+The field now stands at an exciting juncture—new experimental methods and computational modeling offer opportunities to test theories at unprecedented scale.
+:::
+
+---
+
+## Traditional semantic methodology
+
+### Two types of judgments
+
+**Acceptability judgments**: assess whether strings are well-formed in context
+
+::: {.smaller}
+- What would you like with your coffee? ✓
+- #What would you like and your coffee? ✗
+:::
+
+::: {.fragment}
+**Inference judgments**: assess relationships between strings
+
+::: {.smaller}
+- Jo loved that Mo left. ⟹ Mo left.
+:::
+:::
+
+---
+
+## Observational adequacy
+
+A core desideratum: predict acceptability and inference patterns for any string
+
+- Requires mapping vocabulary to abstractions that predict judgments parsimoniously
+- Abstractions may be discrete or continuous, simple or richly structured
+
+::: {.fragment}
+Through careful analysis, semanticists have identified powerful generalizations:
+
+- Predicates like *love*, *hate*, *be surprised*, *know* share properties
+- Their inferences survive under negation and questioning
+- Led to positing shared theoretical properties
+:::
+
+---
+
+## Descriptive adequacy
+
+Beyond observational adequacy: capturing data "in terms of significant generalizations that express underlying regularities"
+
+::: {.fragment}
+Two approaches:
+
+1. **Analysis-driven**: Start with observationally adequate analyses, extract constraints
+2. **Hypothesis-driven**: Begin with constrained formalisms, test empirical coverage
+:::
+
+::: {.fragment}
+PDS adopts the hypothesis-driven approach for semantics.
+:::
+
+---
+
+## Power and boundaries
+
+Traditional methods have yielded profound insights:
+
+- Semantic composition
+- Scope phenomena  
+- Discourse dynamics
+- Semantics-pragmatics interface
+
+::: {.fragment}
+### Natural boundaries
+
+- How well do generalizations from 5-10 predicates extend to thousands?
+- What factors beyond semantic knowledge influence judgments?
+- How does abstract knowledge produce concrete behavioral responses?
+:::
+
+---
+
 ## Experimental semantics and pragmatics
 
 - Methodologies like inference judgment tasks provide a way of studying larger areas of the lexicon, potentially improving the validity of semantic generalizations.
 
-
 ### Challenges
 
 - Generally, unclear how modeling constructs relate to semantic theory; i.e., what lexical semantic property is implicated and how it interacts with language-external factors.
-- In the setting of entire datasets, this question becomes one about gradience: what theoretical constructs underlie the relevant distributions of judgments?-
+- In the setting of entire datasets, this question becomes one about gradience: what theoretical constructs underlie the relevant distributions of judgments?
   - Thus little progress on the first challenge for the traditional view.
+
+---
+
+## The experimental turn
+
+Experimental semantics brings behavioral experimentation to questions about meaning.
+
+### Scaling semantic investigation
+
+- Traditional methods: handful of predicates
+- Experimental approaches: entire lexical domains
+- Example: MegaAttitude project
+  - Hundreds of predicates
+  - Multiple contexts and inference types
+  - Reveals subtle patterns difficult to see traditionally
+
+---
+
+## Teasing apart contributing factors
+
+Experimental methods investigate multiple factors influencing inference judgments:
+
+- **Semantic knowledge**: core meanings of expressions
+- **World knowledge**: prior beliefs about plausibility
+- **Contextual factors**: discourse context and QUD
+- **Individual differences**: variation in interpretation
+- **Response strategies**: how participants use rating scales
+
+::: {.fragment}
+Rather than confounds, these are windows into cognitive processes underlying semantic interpretation.
+:::
+
+---
+
+## Making linking hypotheses explicit
+
+Experimental approaches force us to make explicit:
+
+- The link between semantic representations and behavioral responses
+- What cognitive processes produce judgments?
+- How do abstract representations map onto scale responses?
+
+::: {.fragment}
+This is a substantive theoretical question—different linking hypotheses make different predictions about response patterns.
+:::
+
+---
+
+## Understanding gradience
+
+One striking finding: the pervasiveness of gradient judgments
+
+- Even where traditional approaches assume categorical distinctions
+- Examples: gradable adjectives (expected) vs. factivity (puzzling)
+
+::: {.fragment}
+Understanding gradience is crucial for theories connecting formal semantics to behavioral data.
+:::
+
+---
+
+## A taxonomy of uncertainty
+
+Two fundamental types producing gradience:
+
+::: {style="font-size: 90%;"}
+```
+Sources of Gradience
+├── Resolved (Type-Level) Uncertainty
+│   ├── Ambiguity
+│   │   ├── Lexical (e.g., "run" = locomote vs. manage)
+│   │   ├── Syntactic (e.g., attachment ambiguities)
+│   │   └── Semantic (e.g., scope ambiguities)
+│   └── Discourse Status
+│       └── QUD (Question Under Discussion)
+└── Unresolved (Token-Level) Uncertainty
+    ├── Vagueness (e.g., height threshold for "tall")
+    ├── World knowledge (e.g., likelihood of facts)
+    └── Task effects
+        ├── Response strategies
+        └── Response error
+```
+:::
+
+---
+
+## Resolved uncertainty
+
+Multiple discrete possibilities—speakers choose among interpretations
+
+**Example**: "My uncle is running the race"
+- *run* = locomotion or management?
+- "How likely is it that my uncle has good managerial skills?"
+  - Locomotion interpretation → ~0.2
+  - Management interpretation → ~0.8
+  - Population average → ~0.5 (mixture of discrete interpretations)
+
+::: {.fragment}
+Uncertainty is "resolved" because once interpretation is fixed, inference follows determinately.
+:::
+
+---
+
+## Unresolved uncertainty
+
+Persists even after fixing all ambiguities
+
+**Example**: "My uncle is tall"
+- No ambiguity about *tall*'s meaning
+- Speakers uncertain about height threshold
+- Classic vagueness—inherently gradient application conditions
+
+::: {.fragment}
+World knowledge creates another layer: even knowing someone runs races, uncertainty remains about speed, endurance, likelihood of finishing.
+:::
+
+---
+
+## Why this distinction matters
+
+Type of uncertainty has profound implications:
+
+- **Resolved uncertainty** → discrete representations with probabilistic selection
+- **Unresolved uncertainty** → gradient representations or probabilistic reasoning within fixed meanings
+
+::: {.fragment}
+Different phenomena may involve different types:
+- Vagueness: unresolved (inherently uncertain application)
+- Factivity: puzzling—resolved ambiguity or unresolved projection?
+:::
+
+---
+
+## Case studies: Testing theory at scale
+
+Two case studies exemplifying different aspects of the framework:
+
+### Case Study 1: Vagueness and gradable adjectives
+- Ideal starting point—everyone agrees they involve gradient uncertainty
+- *tall*, *expensive*, *old* lack sharp boundaries
+
+### Case Study 2: Factivity and projection
+- Traditional theory treats as discrete
+- Experimental data reveals pervasive gradience
+- A theoretical puzzle
+
+---
+
+## Case Study 1: Vagueness
+
+Formal theories have long recognized gradience in adjectives:
+
+**Degree-based approaches**:
+- *tall* is true of $x$ if height($x$) $≥ d_{\text{tall}}$(context)
+- Threshold varies with context
+- Even within fixed context, gradient judgments about borderline cases
+
+::: {.fragment}
+Recent experimental work reveals additional complexity:
+- **Relative adjectives** (*tall*, *wide*): maximum gradience
+- **Absolute adjectives** (*clean*, *dry*): different threshold distributions
+- **Minimum vs. maximum standard**: asymmetric patterns
+:::
+
+---
+
+## Case Study 2: Factivity
+
+Traditional theory: predicates either trigger presuppositions or they don't
+
+**Example**: *love* appears factive
+- Jo loves that Mo left. ⟹ Mo left.
+- Jo doesn't love that Mo left. ⟹ Mo left.
+- Does Jo love that Mo left? ⟹ Mo left.
+
+::: {.fragment}
+### The puzzle
+
+@white_role_2018 and @degen_are_2022 found continuous variation:
+- No clear line between factive and non-factive predicates
+- Mean projection ratings vary continuously
+- *pretend* (lowest) to *be annoyed* (highest)
+:::
+
+---
+
+## Factivity: Two hypotheses
+
+::: {style="text-align: center;"}
+![](images/veridicality_factivity.pdf){width=400}
+:::
+
+**Fundamental Discreteness**: Factivity discrete; gradience from:
+- Multiple predicate senses
+- Structural ambiguity
+- Contextual variation
+
+**Fundamental Gradience**: No discrete property exists
+- Gradient degrees of complement truth support
+
+---
+
+## The need for new frameworks
+
+These case studies illustrate what we need:
+
+**Maintain Compositionality**
+- Derive meanings compositionally
+- Preserve formal semantic insights
+- Can't abandon compositionality for gradience
+
+::: {.fragment}
+**Model Uncertainty Explicitly**
+- Represent resolved and unresolved uncertainty
+- Show how they interact during interpretation
+:::
+
+::: {.fragment}
+**Make Linking Hypotheses Precise**
+- Explicit theories of representation → behavior
+- What processes intervene between meaning and slider?
+:::
+
+::: {.fragment}
+**Enable Quantitative Evaluation**
+- Testable predictions about response distributions
+- Different theories comparable using standard metrics
+:::
+
+---
+
+## Moving forward
+
+Existing computational approaches (e.g., RSA) attempt to bridge formal semantics with probabilistic reasoning.
+
+::: {.fragment}
+### Challenges with existing approaches
+
+- Face difficulties maintaining modularity
+- Often blur semantics/pragmatics distinction
+- Connection to traditional theory somewhat opaque
+:::
+
+::: {.fragment}
+This motivates Probabilistic Dynamic Semantics—a framework that:
+- Preserves semantic insights
+- Adds probabilistic tools for gradient behavioral data
+- Maintains theoretical commitments while enabling quantitative tests
+:::
+
+---
+
+## Summary
+
+- Traditional semantics has achieved remarkable success
+- Experimental methods open new opportunities
+- Gradience poses theoretical challenges
+- Need frameworks that bridge theory and data
+
+::: {.fragment}
+Next: How Rational Speech Act models attempt this bridge, and what PDS can add.
+:::
