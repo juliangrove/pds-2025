@@ -15,7 +15,7 @@ format:
 
 ## The phenomenon
 
-While gradience in adjectives arises from well-understood sources, factivity presents a deeper puzzle.
+While gradience in adjectives arises from reasonably well-understood sources, factivity presents a deeper puzzle.
 
 ::: {.incremental}
 - **Traditional view**: Predicates either trigger presuppositions or they don't
