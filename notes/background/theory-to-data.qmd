@@ -1,7 +1,35 @@
 ---
-title: "The bridge from theory to data: understanding adequacy in linguistic theory"
+title: "The bridge from theory to data"
 bibliography: ../../pds.bib
+format:
+  html:
+    css: ../styles.css
+    html-math-method: mathjax
+    mathjax-config:
+      loader: {load: ['[tex]/bussproofs','[tex]/bbox','[tex]/colorbox']}
+      tex:
+        packages: {'[+]': ['bussproofs','bbox','colorbox']}
 ---
+
+::: {.hidden}
+$$
+\newcommand{\expr}[3]{\begin{array}{c}
+#1 \\
+\bbox[lightblue,5px]{#2}
+\end{array} ⊢ #3}
+\newcommand{\ct}[1]{\bbox[font-size: 0.8em]{\mathsf{#1}}}
+\newcommand{\updct}[1]{\ct{upd\_#1}}
+\newcommand{\abbr}[1]{\bbox[transform: scale(0.95)]{\mathtt{#1}}}
+\newcommand{\pure}[1]{\bbox[border: 1px solid orange]{\bbox[border: 4px solid transparent]{#1}}}
+\newcommand{\return}[1]{\bbox[border: 1px solid black]{\bbox[border: 4px solid transparent]{#1}}}
+\def\P{\mathtt{P}}
+\def\Q{\mathtt{Q}}
+\def\True{\ct{T}}
+\def\False{\ct{F}}
+\def\ite{\ct{if\_then\_else}}
+\def\Do{\abbr{do}}
+$$
+:::
 
 Semantic theory has achieved remarkable success in characterizing the compositional structure of natural language meaning. Through decades of careful theoretical work, semanticists have developed elegant formal systems that capture how complex meanings arise from the systematic combination of simpler parts. These theories explain two fundamental types of judgments that speakers make: *acceptability judgments* about whether strings are well-formed, and *inference judgments* about what follows from what speakers say.
 
@@ -93,7 +121,7 @@ We can illustrate this using the MegaAttitude datasets.
 @fig-veridicality shows veridicality judgments collected by @white_role_2018 as part of their MegaVeridicality dataset.
 
 
-![Veridicality judgments collected by @white_role_2018 as part of their MegaVeridicality dataset.](plots/veridicality_factivity.png){#fig-veridicality width=500}
+![Veridicality judgments collected by @white_role_2018 as part of their MegaVeridicality dataset.](plots/veridicality_factivity.png){#fig-veridicality width=750}
 
 One thing @white_role_2018 note is the apparent gradience in these measures.
 This gradience presents a challenge if we want to use these measures to evaluate generalizations about the relationship between two properties.
@@ -106,14 +134,14 @@ For instance, say we are interested in understanding the relationship betwen fac
 One way of deriving a factivity measure from the MegaVeridicality dataset is to take the max along both dimensions, as shown in @fig-derived-factivity.
 The idea here is that, it will give rise to veridicality inferences with both positive and negative matrix polarity.
 
-![One way of deriving a factivity measure from the MegaVeridicality dataset.](plots/derived_factivity_measure.png){#fig-derived-factivity width=500}
+![One way of deriving a factivity measure from the MegaVeridicality dataset.](plots/derived_factivity_measure.png){#fig-derived-factivity width=750}
 
 Now let's suppose we're interested in generalizations about the relationship between two measures.
 For instance, maybe want to evaluate the relationship between factivity and neg-raising, where we might tend to suspect that factives are not neg-raisers.
 
 @fig-negraising-factivity shows a comparison of the measure of neg(ation)-raising from the MegaNegRaising dataset collected by @an_lexical_2020 and the derived factivity measure from the MegaVeridicality dataset collected by @white_role_2018.
 
-![A comparison of the measure of neg(ation)-raising from the MegaNegRaising dataset collected by @an_lexical_2020 and the derived factivity measure from the MegaVeridicality dataset collected by @white_role_2018.](plots/negraising_factivity.png){#fig-negraising-factivity width=500}
+![A comparison of the measure of neg(ation)-raising from the MegaNegRaising dataset collected by @an_lexical_2020 and the derived factivity measure from the MegaVeridicality dataset collected by @white_role_2018.](plots/negraising_factivity.png){#fig-negraising-factivity width=750}
 
 The challenge is that, once we move to relating continuous measures, rather than categorical distinctions, we don't know what the relationship between measures should look like in any particular case.
 To illustrate, let's consider another example.
@@ -123,15 +151,15 @@ To evaluate this hypothesis, we might try to derive a measure of belief inferenc
 To this end, we can use the MegaIntensionality dataset collected by @kane_intensional_2022.
 @fig-belief shows a measure of belief inferences and @fig-desire shows a measure of desire inferences.
 
-![A measure of belief inferences from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/belief.png){#fig-belief width=500}
+![A measure of belief inferences from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/belief.png){#fig-belief width=750}
 
 And @fig-desire-belief shows a comparison of the desire and belief measures.
 
-![A measure of desire inferences from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/desire.png){#fig-desire width=500}
+![A measure of desire inferences from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/desire.png){#fig-desire width=750}
 
 @fig-desire-belief show the relationship between these two measures.
 
-![A comparison of the desire and belief measures from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/desire_belief.png){#fig-desire-belief width=500}
+![A comparison of the desire and belief measures from the MegaIntensionality dataset collected by @kane_intensional_2022.](plots/desire_belief.png){#fig-desire-belief width=750}
 
 There are two main takeaways from this example.
 First, the generalization proposed by@anand_factivity_2014 is indeed supported by the data.
@@ -234,7 +262,7 @@ A predicate is *factive* if it triggers inferences about its complement that pro
 
 But when @white_role_2018 (discussed above) and @degen_are_2022 collected projection judgments at scale, they found continuous variation [@xue_correlation_2011; @smith_projection_2011; @djarv_prosodic_2017 also observe similar patterns]. Qualitatively, @degen_are_2022 argue that there is no clear line separates factive from non-factive predicates. Mean projection ratings vary continuously from *pretend* (lowest) to *be annoyed* (highest).
 
-![Aggregate factivity measures from @degen_are_2022, showing continuous variation in projection ratings across predicates under questioning.](plots/projection_no_fact_means.pdf){width=500}
+![Aggregate factivity measures from @degen_are_2022, showing continuous variation in projection ratings across predicates under questioning.](plots/projection_no_fact_means.pdf){width=750}
 
 This gradience poses a theoretical challenge [@simons_observations_2007; @simons_what_2010; @simons_best_2017; @tonhauser_how_2018]. 
 
