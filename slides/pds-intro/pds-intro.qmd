@@ -480,12 +480,14 @@ data Type = At Atom
 
 ---
 
-## Hindley-Milner style polymorphism:
+## Hindley-Milner style polymorphism
 
+::: {.fragment}
 Good:
 
 - $λx^{α}.x^{α} : α → α$ \ \  🥰
 - $λx^{α → β}, y^{α}.x(y)^{β} : (α → β) → α → β$ \ \  🥰
+:::
 
 ::: {.fragment}
 Bad:
@@ -531,6 +533,21 @@ $$
 
 ---
 
+## Typing rules
+
+### $→\mathtt{E}$
+
+<br>
+$$
+\begin{prooftree}
+\AxiomC{$Γ ⊢ t : α → β$}
+\AxiomC{$Γ ⊢ u : α$}
+\RightLabel{${→}\mathtt{E}$}\BinaryInfC{$Γ ⊢ t(u) : β$}
+\end{prooftree}
+$$
+
+---
+
 ## Haskell: vanilla terms
 
 ```haskell
@@ -559,10 +576,12 @@ type Constant = Either String Double
 
 ## Deriving meanings
 
+::: {.fragment}
 ### Type homomorphism
 
 - $\small ⟦np⟧ = e \hspace{2cm} ⟦n⟧ = e → ι → t \hspace{2cm} ⟦s⟧ = ι → t$ <br>
 - $\small ⟦b / a⟧ = ⟦b \backslash a⟧ = ⟦a⟧ → ⟦b⟧$
+:::
 
 ::: {.fragment}
 ### Example: application
@@ -678,55 +697,55 @@ data Term = Var VarName           -- Variables.
 
 ---
 
-## The probability monad
+<!-- ## The probability monad -->
 
-$$\small
-\begin{array}{c}
-\textit{Left identity} & \textit{Right identity} & \textit{Associativity} \\[1mm]
-\begin{array}{l}
-x ∼ \pure{v} \\
-k
-\end{array}\ \ =\ \ k[v/x] 
-& \begin{array}{l}
-x ∼ m \\
-\pure{x}
-\end{array}\ \ =\ \ m 
-& \begin{array}{l}
-y ∼ \left(\begin{array}{l}
-x ∼ m \\
-n
-\end{array}\right) \\
-o
-\end{array}\ \ =\ \ \begin{array}{l}
-x ∼ m \\
-y ∼ n \\
-o
-\end{array}
-\end{array}
-$$
+<!-- $$\small -->
+<!-- \begin{array}{c} -->
+<!-- \textit{Left identity} & \textit{Right identity} & \textit{Associativity} \\[1mm] -->
+<!-- \begin{array}{l} -->
+<!-- x ∼ \pure{v} \\ -->
+<!-- k -->
+<!-- \end{array}\ \ =\ \ k[v/x]  -->
+<!-- & \begin{array}{l} -->
+<!-- x ∼ m \\ -->
+<!-- \pure{x} -->
+<!-- \end{array}\ \ =\ \ m  -->
+<!-- & \begin{array}{l} -->
+<!-- y ∼ \left(\begin{array}{l} -->
+<!-- x ∼ m \\ -->
+<!-- n -->
+<!-- \end{array}\right) \\ -->
+<!-- o -->
+<!-- \end{array}\ \ =\ \ \begin{array}{l} -->
+<!-- x ∼ m \\ -->
+<!-- y ∼ n \\ -->
+<!-- o -->
+<!-- \end{array} -->
+<!-- \end{array} -->
+<!-- $$ -->
 
-::: {.fragment}
+<!-- ::: {.fragment} -->
 
-### Example (associativity)
+<!-- ### Example (associativity) -->
 
-$$
-\begin{array}{l}
-y ∼ \left(\begin{array}{l}
-x ∼ \abbr{Normal}(0, 1) \\
-\abbr{Normal}(x, 1)
-\end{array}\right) \\
-o
-\end{array} \ \ =\ \ 
-\begin{array}{l}
-x ∼ \abbr{Normal}(0, 1) \\
-y ∼ \abbr{Normal}(x, 1) \\
-o
-\end{array}
-$$
+<!-- $$ -->
+<!-- \begin{array}{l} -->
+<!-- y ∼ \left(\begin{array}{l} -->
+<!-- x ∼ \abbr{Normal}(0, 1) \\ -->
+<!-- \abbr{Normal}(x, 1) -->
+<!-- \end{array}\right) \\ -->
+<!-- o -->
+<!-- \end{array} \ \ =\ \  -->
+<!-- \begin{array}{l} -->
+<!-- x ∼ \abbr{Normal}(0, 1) \\ -->
+<!-- y ∼ \abbr{Normal}(x, 1) \\ -->
+<!-- o -->
+<!-- \end{array} -->
+<!-- $$ -->
 
-:::
+<!-- ::: -->
 
----
+<!-- --- -->
 
 ### Mother
 
@@ -920,6 +939,35 @@ h_{b} ∼ \abbr{Normal}(0, 1) \\
 $$
 
 - Encodes uncertainty about Jo's height and Bo's height.
+:::
+
+---
+
+## States
+
+Some state-sensitive constants:
+
+$$
+\begin{align*}
+\ct{CG} &: σ → \P ι \\
+\end{align*}
+$$
+
+::: {.fragment}
+$$
+\begin{align*}
+\ct{QUD} &: \Q ι α σ → α → ι → t
+\end{align*}
+$$
+:::
+
+::: {.fragment}
+$$
+\begin{align*}
+\updct{CG} &: \P ι → σ → σ \\
+\updct{QUD} &: (α → ι → t) → σ → \Q ι α σ 
+\end{align*}
+$$
 :::
 
 ---
