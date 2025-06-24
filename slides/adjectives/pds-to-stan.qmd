@@ -1,5 +1,5 @@
 ---
-title: "Stan/Adjectives"
+title: "From PDS to Stan"
 bibliography: ../../pds.bib
 format:
   revealjs:
@@ -10,6 +10,26 @@ format:
       tex:
         packages: {'[+]': ['bussproofs','bbox','colorbox']}
 ---
+
+::: {.hidden}
+$$
+\newcommand{\expr}[3]{\begin{array}{c}
+#1 \\
+\bbox[lightblue,5px]{#2}
+\end{array} ⊢ #3}
+\newcommand{\ct}[1]{\bbox[font-size: 0.8em]{\mathsf{#1}}}
+\newcommand{\updct}[1]{\ct{upd\_#1}}
+\newcommand{\abbr}[1]{\bbox[transform: scale(0.95)]{\mathtt{#1}}}
+\newcommand{\pure}[1]{\bbox[border: 1px solid orange]{\bbox[border: 4px solid transparent]{#1}}}
+\newcommand{\return}[1]{\bbox[border: 1px solid black]{\bbox[border: 4px solid transparent]{#1}}}
+\def\P{\mathtt{P}}
+\def\Q{\mathtt{Q}}
+\def\True{\ct{T}}
+\def\False{\ct{F}}
+\def\ite{\ct{if\_then\_else}}
+\def\Do{\abbr{do}}
+$$
+:::
 
 # Probabilistic programs in Stan
 
@@ -28,33 +48,57 @@ PDS automates the translation from compositional semantics to statistical kernel
 
 ---
 
-## PDS outputs and kernel models
+## The compilation challenge
 
-PDS produces a **kernel model**—the semantic core from lexical/compositional semantics
-
-::: {.fragment}
-### In practice
-
-::: {style="font-size: 85%;"}
-- **Highlighted lines** = kernel model from PDS (semantic core)
-- **Non-highlighted lines** = analyst additions (random effects, priors)
+::: {.incremental}
+- **Abstract semantic theory**: λ-terms, type theory, compositional rules
+- **Concrete statistical models**: Parameters, likelihoods, inference
+- **The gap**: Need to make linking hypotheses explicit
 :::
 
-```stan {.line-numbers highlight="2,5"}
+::: {.fragment}
+PDS bridges this gap by automating the core translation while leaving room for statistical expertise
+:::
+
+---
+
+## What PDS produces
+
+PDS outputs a **kernel model**—the semantic core from lexical/compositional semantics
+
+::: {.fragment}
+### Example: Kernel vs Full Model
+
+::: {.columns}
+::: {.column width="45%"}
+**PDS Kernel:**
+```stan
 model {
-  mu_guess ~ normal(0.0, 1.0);      // PDS kernel
-  sigma_e ~ beta(2, 10);            // Analyst addition
-  z_epsilon_guess ~ std_normal();   // Analyst addition
-  y ~ normal(mu_guess, sigma_e);    // PDS kernel (modified)
+  w ~ normal(0.0, 1.0);
+  target += normal_lpdf(y | w, sigma);
 }
 ```
+:::
+
+::: {.column width="45%"}
+**Full Model:**
+```stan {code-line-numbers="2,5"}
+model {
+  w ~ normal(0.0, 1.0);          // PDS
+  sigma_e ~ beta(2, 10);         // Analyst
+  z_eps ~ std_normal();          // Analyst
+  target += normal_lpdf(y | w + eps, sigma_e);
+}
+```
+:::
+:::
 :::
 
 ---
 
 ## Why Stan?
 
-Stan is a probabilistic programming language for statistical inference
+Stan is a probabilistic programming language designed for statistical inference
 
 ::: {.incremental}
 - **Declarative**: We specify probability models, not procedures
@@ -66,178 +110,254 @@ Stan is a probabilistic programming language for statistical inference
 
 ---
 
-## The PDS implementation
-
-From `Grammar.Lexica.SynSem.Adjectives`:
-
-```haskell
-"tall" -> [ SynSem {
-    syn = AP,
-    sem = ty tau (lam s (purePP (lam x (lam i 
-      (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-       (sCon "d_tall" @@ s))))) @@ s))
-} ]
-```
-
-::: {.fragment}
-### Key components
-
-- `sCon "height"`: measure function
-- `sCon "d_tall"`: contextual threshold
-- `sCon "(≥)"`: comparison relation
-- Type: $(e → (i → t))$
-:::
-
----
-
-## Theoretical insights encoded
-
-The lexical entry captures:
-
-1. **Syntactic type**: `AP` (adjective phrase)
-2. **Semantic computation**:
-   - Takes discourse state `s` (with thresholds)
-   - Returns function from entities to propositions
-   - True when entity's measure exceeds threshold
-
-::: {.fragment}
-This implements degree-based semantics (@kennedy_vagueness_2007)
-:::
-
----
-
-## Structure of a Stan program
-
-Stan programs have a specific architecture:
+## Stan's block structure - Part 1
 
 ```stan
 data {
-  // What we observe
+  // What we observe from experiments
+  int<lower=1> N;           // number of observations
+  vector[N] y;              // responses
 }
+
 parameters {
-  // What we want to infer
+  // What we want to learn
+  real mu;                  // mean parameter
+  real<lower=0> sigma;      // standard deviation
 }
+```
+
+::: {.fragment}
+Clear separation between what's given and what's inferred
+:::
+
+---
+
+## Stan's block structure - Part 2
+
+```stan
 transformed parameters {
-  // Derived quantities
+  // Derived from parameters
+  real precision = 1 / sigma^2;  // for convenience
 }
+
 model {
-  // Priors and likelihood
-}
-generated quantities {
-  // Post-inference computations
+  // How data relates to parameters
+  mu ~ normal(0, 10);      // prior
+  sigma ~ exponential(1);   // prior
+  y ~ normal(mu, sigma);    // likelihood
 }
 ```
 
 ---
 
-## Mapping lambda-terms to Stan code
-
-### The challenge
-
-Several theoretical issues arise in translation:
+## Why this structure matters
 
 ::: {.incremental}
-1. **Higher-order functions**: Degree questions involve functions over functions
-2. **Dynamic effects**: Free variables resolved dynamically
-3. **Anaphora resolution**: Dependencies create static compilation challenges
-:::
-
-::: {.fragment}
-Each approach has trade-offs—marginalization, fixing resolution, or parameter expansion.
+- **Separates observed from inferred**: Makes assumptions explicit
+- **Enables optimization**: Stan knows what can be precomputed
+- **Forces clarity**: Must specify every relationship
+- **Matches PDS philosophy**: Declarative, not procedural
 :::
 
 ---
 
-## Case study: Scale norming
+# Case Study: Norming Model
 
-Let's implement a baseline model for "How tall is Jo?"
+## Our first example
 
-### The experiment
-
-- Participants see items with adjectives
-- Provide slider responses (0 to 1)
-- We model: What degree does each item have?
+::: {.incremental}
+- **Question**: "How tall is Jo?"
+- **Task**: Participants report degrees on scales
+- **Goal**: Infer the "true" degree for each item
+:::
 
 ::: {.fragment}
-```csv
-participant,item,response
-1,"tall_high",0.82
-1,"wide_low",0.34
+This seemingly simple task will reveal the complexity of the PDS-to-Stan pipeline
+:::
+
+---
+
+## The experimental data
+
+```{style="font-size: 85%;"}
+| participant | item | adjective | condition | response |
+|-------------|------|-----------|-----------|----------|
+| 1 | tall_high | tall | high | 0.82 |
+| 1 | wide_low | wide | low | 0.34 |
+| 1 | expensive_mid | expensive | mid | 0.62 |
+| 1 | full_high | full | high | 1.00 |
 ```
+
+::: {.fragment}
+- **Items** = adjective × condition pairs
+- **Responses** on 0-1 scale (slider)
+- **Challenge**: Handle boundary responses (0s and 1s)
 :::
 
 ---
 
-## The data block
+## Building the data block - counts
 
 ```stan
 data {
   int<lower=1> N_item;        // number of items
   int<lower=1> N_participant; // number of participants  
   int<lower=1> N_data;        // number of data points
+```
+
+::: {.fragment}
+### Why constraints?
+
+- `<lower=1>` ensures valid data
+- Helps Stan optimize algorithms
+- Catches errors early
+:::
+
+---
+
+## Handling boundary responses
+
+```stan
+  // Censoring at boundaries
+  int<lower=1> N_0;           // number of 0s
+  int<lower=1> N_1;           // number of 1s
+```
+
+::: {.fragment}
+### Why separate these?
+
+- Slider endpoints are special
+- 0 might mean "even less than 0"
+- 1 might mean "even more than 1"
+- Censored data needs special treatment
+:::
+
+---
+
+## Response data and indexing
+
+```stan
+  vector<lower=0, upper=1>[N_data] y; // responses in (0,1)
   
-  // Boundary responses (censored)
-  int<lower=1> N_0;           // responses at 0
-  int<lower=1> N_1;           // responses at 1
-  
-  // Actual responses
-  vector<lower=0, upper=1>[N_data] y;
-  
-  // Indexing arrays
+  // Which item/participant for each response
   array[N_data] int<lower=1, upper=N_item> item;
   array[N_data] int<lower=1, upper=N_participant> participant;
 }
 ```
 
+::: {.fragment}
+These arrays are lookup tables: `item[5] = 3` means the 5th response is about item #3
+:::
+
 ---
 
-## The parameters block
+## Parameters: What we want to learn
 
 ```stan
 parameters {
-  // SEMANTIC PARAMETERS
-  vector<lower=0, upper=1>[N_item] mu_guess;  // degree for each item
+  // Semantic parameters - what PDS cares about
+  vector[N_item] mu_guess;    // degree for each item
+```
+
+::: {.fragment}
+This is the core semantic content: each item has a "true" degree on its scale
+:::
+
+---
+
+## Random effects structure
+
+```stan
+  // How much people vary
+  real<lower=0> sigma_epsilon_guess;
   
-  // RESPONSE NOISE
-  real<lower=0> sigma_e;                       // measurement error
+  // Each person's deviation (z-scores)
+  vector[N_participant] z_epsilon_guess;
+```
+
+::: {.fragment}
+### Non-centered parameterization
+
+- Separate scale (`sigma`) from standardized deviations (`z`)
+- Helps Stan's algorithms converge
+- Mathematically equivalent but computationally superior
+:::
+
+---
+
+## Measurement and censoring
+
+```stan
+  real<lower=0,upper=1> sigma_e;  // response noise
   
-  // RANDOM EFFECTS
-  real<lower=0> sigma_epsilon_guess;          // participant variation
-  vector[N_participant] z_epsilon_guess;       // z-scores
+  // True values for censored data
+  array[N_0] real<upper=0> y_0;    // true values for 0s
+  array[N_1] real<lower=1> y_1;    // true values for 1s
 }
 ```
 
 ::: {.fragment}
-Note the separation: semantic parameters vs. statistical machinery
+We infer what the "true" values might have been beyond scale boundaries
+:::
+
+---
+
+## Transformed parameters
+
+```stan
+transformed parameters {
+  // Convert z-scores to actual effects
+  vector[N_participant] epsilon_guess = 
+    sigma_epsilon_guess * z_epsilon_guess;
+```
+
+::: {.fragment}
+If `sigma = 0.2` and `z[3] = 1.5`, then participant 3 gives responses 0.3 units higher than average
+:::
+
+---
+
+## Computing predictions
+
+```stan
+  vector[N_data] guess;
+  for (i in 1:N_data) {
+    guess[i] = mu_guess[item[i]] + 
+               epsilon_guess[participant[i]];
+  }
+}
+```
+
+::: {.fragment}
+### Example trace
+- Response i: item 5, participant 3
+- `mu_guess[5] = 0.7` (item's degree)
+- `epsilon_guess[3] = 0.1` (participant's adjustment)
+- `guess[i] = 0.7 + 0.1 = 0.8`
 :::
 
 ---
 
 ## The model block
 
-```stan {.line-numbers highlight="6,13"}
+```stan
 model {
-  // PRIORS (analyst-added)
+  // Priors
   sigma_epsilon_guess ~ exponential(1);
-  sigma_e ~ beta(2, 10);
-  
-  // FIXED EFFECTS (PDS kernel)
-  mu_guess ~ normal(0.0, 1.0);
-  
-  // RANDOM EFFECTS (analyst-added)
   z_epsilon_guess ~ std_normal();
   
-  // LIKELIHOOD (PDS kernel with modifications)
-  y[i] ~ normal(mu_guess[item[i]] + epsilon_guess[participant[i]], 
-                sigma_e);
+  // Likelihood
+  for (i in 1:N_data) {
+    y[i] ~ normal(guess[i], sigma_e);
+  }
 }
 ```
 
 ---
 
-## PDS compilation example
+# PDS to Stan Compilation
 
-PDS code for scale norming:
+## PDS code for degree questions
 
 ```haskell
 s1' = termOf $ getSemantics @Adjectives 1 
@@ -248,129 +368,554 @@ discourse' = ty tau $ assert s1' >>> ask q1'
 ```
 
 ::: {.fragment}
-This generates the kernel:
-
-```stan
-model {
-  w ~ normal(0.0, 1.0);          // degree parameter
-  target += normal_lpdf(y | w, sigma);  // likelihood
-}
-```
+This seemingly simple code triggers a complex compilation process
 :::
 
 ---
 
-## Degree questions in PDS
-
-Special lexical entry for degree questions:
+## Special lexical entry for degrees
 
 ```haskell
--- Degree-question version
 "tall" -> [ SynSem {
-    syn = (S :\: NP) :/: (S :/: NP :/: Deg),
-    sem = ty tau (lam s (purePP (lam f (lam x (lam i 
-      (f @@ (sCon "height" @@ i @@ x) @@ x @@ i)))))
+  syn = (S :\: NP) :/: (S :/: NP :/: Deg),
+  sem = ty tau (lam s (purePP (lam f (lam x (lam i 
+    (f @@ (sCon "height" @@ i @@ x) @@ x @@ i)))))
 } ]
 ```
 
 ::: {.fragment}
-"How" provides the degree-extracting function:
+- Takes a degree-to-proposition function `f`
+- Applies it to the entity's height
+- Special syntax for degree questions
+:::
+
+---
+
+## The 'how' operator
 
 ```haskell
 "how" -> [ SynSem {
-    syn = S :/: (S :\: Deg),
-    sem = ty tau (purePP (lam p (lam i 
-      (Return (iota (lam d (p @@ d @@ i)))))))
+  syn = S :/: (S :\: Deg),
+  sem = ty tau (purePP (lam p (lam i 
+    (Return (iota (lam d (p @@ d @@ i)))))))
 } ]
 ```
+
+::: {.fragment}
+The $\iota$ (iota) operator extracts the unique degree satisfying the predicate
 :::
 
 ---
 
-## Delta rules and simplification
+## Initial semantic representation
 
-PDS applies delta rules to simplify complex λ-terms:
+After parsing "how tall is Jo?":
 
+$$\ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))$$
+
+::: {.fragment}
+This complex λ-term needs simplification before it can become Stan code
+:::
+
+---
+
+## Delta rules: What are they?
+
+Delta rules are partial functions that simplify terms while preserving meaning
+
+::: {.incremental}
+- Type: `Term -> Maybe Term`
 - Preserve semantic equivalence
-- Enable different computational strategies
-- Critical for tractable Stan code
-
-::: {.fragment}
-Example: From nested lambdas to simple degree extraction
-
-$$\text{how}(\text{tall}(jo)) \xrightarrow{\delta} \text{height}(jo)$$
+- Enable computational tractability
+- Defined in [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html)
 :::
 
 ---
 
-## Model 2: Vagueness and imprecision
+## The indices delta rule
 
-More sophisticated model capturing theoretical distinctions:
-
-- **Vagueness**: uncertainty about standards
-- **Imprecision**: tolerance around thresholds
+```haskell
+indices :: DeltaRule
+indices = \case
+  Height (UpdHeight f _) -> Just (f @@ j)
+  Height i               -> Just (lookupHeight i j)
+  _                      -> Nothing
+```
 
 ::: {.fragment}
-### New parameters
+Extracts the height value from the discourse state for entity j
+:::
+
+---
+
+## First reduction step
+
+Apply the indices rule:
+
+$$\ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))$$
+
+::: {.fragment}
+$$\downarrow \text{ indices}$$
+
+$$\ct{Return}(\iota(\lambda d[h = d]))$$
+
+where $h$ is Jo's actual height at index $i$
+:::
+
+---
+
+## Iota extraction
+
+The $\iota$ operator finds the unique value satisfying the equation:
+
+$$\ct{Return}(\iota(\lambda d[h = d]))$$
+
+::: {.fragment}
+$$\downarrow \text{ iota}$$
+
+$$\ct{Return}(h)$$
+
+Final form: just the height value wrapped in Return
+:::
+
+---
+
+## Key transformations
+
+::: {.incremental}
+1. **Degree extraction → Parameter inference**
+   - $\iota(\lambda d[...])$ becomes a Stan parameter to infer
+
+2. **Functions → Arrays**
+   - $\ct{height} : \iota \to e \to r$ becomes `height[person]`
+
+3. **Monadic structure → Target**
+   - `Return` values become parameters or data
+   - Bind operations become likelihood statements
+:::
+
+---
+
+## PDS kernel output
 
 ```stan
-parameters {
-  vector<lower=0, upper=1>[N_item] d;    // item degrees
-  real<lower=0> epsilon;                 // global vagueness
-  vector<lower=0>[N_adjective] epsilon_adj;  // adj-specific
+model {
+  w ~ normal(0.0, 1.0);
+  target += normal_lpdf(y | w, sigma);
+}
+```
+
+::: {.fragment}
+::: {style="font-size: 85%;"}
+Actual PDS output: `model { w ~ normal(0.0, 1.0); target += normal_lpdf(y | w, sigma); }`
+:::
+
+- `w` = degree parameter
+- Prior on degrees + likelihood of observations
+:::
+
+---
+
+## From kernel to full model
+
+```stan {code-line-numbers="2,6"}
+model {
+  mu_guess ~ normal(0.0, 1.0);      // PDS kernel
+  sigma_epsilon_guess ~ exponential(1);  // Analyst
+  sigma_e ~ beta(2, 10);            // Analyst
+  z_epsilon_guess ~ std_normal();   // Analyst
+  y ~ normal(mu_guess[item] + epsilon_guess[participant], 
+             sigma_e);              // PDS kernel + modifications
+}
+```
+
+---
+
+# Gradable Adjectives and Vagueness
+
+## From degrees to judgments
+
+New question: "Is Jo tall?"
+
+::: {.incremental}
+- No longer asking for a degree
+- Binary judgment with vagueness
+- Requires comparing degree to threshold
+- **Vagueness** = threshold uncertainty
+:::
+
+---
+
+## PDS entry for 'tall'
+
+```haskell
+"tall" -> [ SynSem {
+  syn = AP,
+  sem = ty tau (lam s (purePP (lam x (lam i 
+    (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+     (sCon "d_tall" @@ s))))) @@ s))
+} ]
+```
+
+::: {.fragment}
+Different from degree-question version!
+:::
+
+---
+
+## Semantic components
+
+::: {.incremental}
+- $\ct{height}$ : $\iota \to e \to r$
+  - Maps entities to their heights
+- $\ct{d\_tall}$ : $\sigma \to r$  
+  - Extracts threshold from discourse state
+- $\ct{(≥)}$ : $r \to r \to t$
+  - Comparison operator
+:::
+
+---
+
+## Initial representation
+
+"Jo is tall" parses to:
+
+$$\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$$
+
+::: {.fragment}
+We need to reduce this step by step using delta rules
+:::
+
+---
+
+## The states delta rule
+
+```haskell
+states :: DeltaRule
+states = \case
+  D_tall (UpdD_tall d _) -> Just d
+  D_tall s               -> Just (lookupD_tall s)
+  _                      -> Nothing
+```
+
+::: {.fragment}
+Extracts the threshold for "tall" from the discourse state
+:::
+
+---
+
+## Step-by-step reduction
+
+Extract threshold:
+
+$$\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$$
+
+::: {.fragment}
+$$\downarrow \text{ states}$$
+
+$$\ct{(≥)}(\ct{height}(i)(j))(d)$$
+
+where $d$ is the contextual threshold for tallness
+:::
+
+---
+
+## Continue reduction
+
+Extract height:
+
+$$\ct{(≥)}(\ct{height}(i)(j))(d)$$
+
+::: {.fragment}
+$$\downarrow \text{ indices}$$
+
+$$\ct{(≥)}(h)(d)$$
+
+where $h$ is Jo's height
+:::
+
+---
+
+## Arithmetic rule
+
+```haskell
+arithmetic :: DeltaRule
+arithmetic = \case
+  GE (DCon x) (DCon y) -> Just (if x >= y then Tr else Fa)
+  GE x y               -> Nothing  -- can't reduce symbolic
+  _                    -> Nothing
+```
+
+::: {.fragment}
+Without concrete values, the comparison stays symbolic
+:::
+
+---
+
+## Probabilistic structure
+
+Since we can't reduce symbolically, wrap in distributions:
+
+```haskell
+d ~ Normal(mu, sigma)      -- threshold distribution
+h ~ Normal(mu_h, sigma_h)  -- height distribution
+Return((≥)(h, d))          -- comparison
+```
+
+::: {.fragment}
+This captures vagueness through threshold uncertainty
+:::
+
+---
+
+## Monadic compilation
+
+The bind operator sequences computations:
+
+```stan
+target += normal_lpdf(d | mu, sigma);
+target += normal_lpdf(h | mu_h, sigma_h);
+target += bernoulli_lpmf(y | h >= d);
+```
+
+::: {.fragment}
+Each line adds to the log probability
+:::
+
+---
+
+## PDS compilation details
+
+**Input PDS:**
+```haskell
+s1 = termOf $ getSemantics @Adjectives 1 ["jo", "is", "tall"]
+discourse = ty tau $ assert s1
+```
+
+::: {.fragment}
+**Kernel output:**
+```stan
+model {
+  mu ~ normal(0.5, 0.2);      // threshold location
+  sigma ~ exponential(5);      // vagueness
+  target += normal_cdf_log(d | mu, sigma);
 }
 ```
 :::
 
 ---
 
+# Likelihood Judgments
+
+## Metalinguistic judgments
+
+"How likely is Jo tall?"
+
+::: {.incremental}
+- Not binary true/false
+- Gradient likelihood judgment
+- Requires probabilistic reasoning
+- Marginalizes over uncertainty
+:::
+
+---
+
+## The likely operator
+
+```haskell
+"likely" -> [ SynSem {
+  syn = S :/: S,
+  sem = ty tau (lam s (purePP (lam p (lam i 
+    (Return (normalCDF (p @@ i) 0.5 0.1))))))
+} ]
+```
+
+::: {.fragment}
+Maps propositions to probabilities via `normalCDF`
+:::
+
+---
+
+## Probabilistic delta rules
+
+```haskell
+probabilities :: DeltaRule
+probabilities = \case
+  NormalCDF Tr mu sigma  -> Just (normalCDF 1.0 mu sigma)
+  NormalCDF Fa mu sigma  -> Just (normalCDF 0.0 mu sigma)
+  NormalCDF (GE x y) _   -> Nothing  -- stays symbolic
+  _                      -> Nothing
+```
+
+---
+
+## Marginalization insight
+
+Key idea: marginalize over uncertainty
+
+::: {.incremental}
+- If $h \sim N(\mu_h, \sigma_h)$ (height)
+- And $d \sim N(\mu_d, \sigma_d)$ (threshold)
+- Then $P(h \geq d)$ has a closed form!
+:::
+
+---
+
+## Marginalization delta rule
+
+```haskell
+marginalize :: DeltaRule
+marginalize = \case
+  Let x (Normal mu_x sigma_x) 
+    (Let y (Normal mu_y sigma_y) 
+      (Return (GE (Var x) (Var y)))) ->
+        Just (Return (NormalCDF 0 (mu_x - mu_y) 
+                       (sqrt (sigma_x^2 + sigma_y^2))))
+  _ -> Nothing
+```
+
+---
+
+## Compiled to Stan
+
+```stan
+real p = normal_cdf((mu_h - mu_d) / 
+                    sqrt(sigma_h^2 + sigma_d^2) | 0, 1);
+target += normal_lpdf(y | p, 0.1);
+```
+
+::: {.fragment}
+The probability of "tall" becomes a parameter itself
+:::
+
+---
+
+# Relative vs Absolute Standards
+
+## Theoretical distinction
+
+::: {.columns}
+::: {.column width="45%"}
+**Relative adjectives**
+- "tall": varies by context
+- Basketball player vs child
+- Standard shifts dramatically
+:::
+
+::: {.column width="45%"}
+**Absolute adjectives**
+- "full": anchored to endpoint
+- Glass is full or not
+- Standard relatively fixed
+:::
+:::
+
+---
+
+## Relative adjective entry
+
+```haskell
+"tall" -> [ SynSem {
+  sem = ... (sCon "d_tall" @@ s @@ 
+            (sCon "context" @@ i)) ...
+} ]
+```
+
+::: {.fragment}
+Threshold depends on context - extra argument!
+:::
+
+---
+
+## Absolute adjective entry
+
+```haskell
+"full" -> [ SynSem {
+  sem = ... (sCon "d_full" @@ s) ...
+} ]
+```
+
+::: {.fragment}
+Fixed threshold - no context dependence
+:::
+
+---
+
+## Different delta rules
+
+```haskell
+-- Context-dependent (relative)
+contextual = \case
+  D_tall ctx (UpdD_tall f s) -> Just (f @@ ctx)
+  
+-- Fixed (absolute)
+fixed = \case
+  D_full (UpdD_full d s) -> Just d
+```
+
+---
+
+## Mixture model insight
+
+Discrete semantics → gradient behavior
+
+$$P(\text{response}) = \pi \cdot P(\text{relative}) + (1-\pi) \cdot P(\text{absolute})$$
+
+::: {.fragment}
+- $\pi$ = probability of relative interpretation
+- Learn which interpretation dominates
+- Different adjectives may have different $\pi$
+:::
+
+---
+
+# Summary
+
 ## The complete pipeline
 
-::: {style="text-align: center;"}
+```{style="text-align: center;"}
+Semantic theory (λ-terms)
+     ↓ Delta rules
+Simplified form
+     ↓ Compilation
+Kernel model (Stan)
+     ↓ Augmentation
+Full statistical model
 ```
-Compositional Semantics (Haskell)
-           ↓
-      PDS Compilation
-           ↓
-    Kernel Model (Stan)
-           ↓
-   Analyst Augmentation
-           ↓
-    Full Statistical Model
-           ↓
-      Inference & Testing
-```
-:::
 
 ---
 
 ## Key insights
 
-### Theoretical
-
-- Maintains compositionality while adding probabilistic structure
-- Separates semantic core from statistical machinery
-- Forces explicit linking hypotheses
-
-::: {.fragment}
-### Practical
-
-- PDS automates theory-to-kernel translation
-- Analysts add domain-specific structure
-- Gap between kernel and implementation = active research
+::: {.incremental}
+- **Delta rules** bridge theory and computation
+- **Kernel models** isolate semantic content
+- **Augmentation** adds statistical machinery
+- **Compilation** embodies linking hypotheses
 :::
 
 ---
 
-## Summary
+## What we've covered
 
-- Stan provides the computational framework for testing semantic theories
-- PDS translates λ-terms to statistical kernels
-- The translation forces us to be explicit about:
-  - Semantic competence vs. performance
-  - Linking hypotheses
-  - Statistical assumptions
+::: {.incremental}
+- **Degree inference** via iota operator
+- **Vagueness** as threshold uncertainty
+- **Likelihood** via marginalization
+- **Relative/absolute** via context dependence
+:::
+
+---
+
+## Future directions
+
+::: {.incremental}
+- **Automated augmentation**: Add random effects automatically
+- **Verified compilation**: Prove delta rules preserve semantics
+- **Richer kernels**: Output mixture models directly
+- **Community growth**: Contribute lexical entries, delta rules
+:::
 
 ::: {.fragment}
-Next: How this approach handles a more challenging phenomenon—factivity
+Next: How this approach handles factivity—where gradience poses even deeper puzzles
 :::
