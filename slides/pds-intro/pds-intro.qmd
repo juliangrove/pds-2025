@@ -871,21 +871,29 @@ $$
 
 ---
 
-## Intensionality
-
-$$
-\begin{align*}
-\ct{see}(\updct{see}(p)(i)) &= p \\
-\ct{see}(\updct{ling}(p)(i)) &= \ct{see}(i)
-\end{align*}
-$$
+## How intensional constants interact
 
 ::: {.fragment}
 $$
-\begin{align*}
-\ct{ling}(\updct{ling}(p)(i)) &= p \\
-\ct{ling}(\updct{see}(p)(i)) &= \ct{ling}(i)
-\end{align*}
+\ct{see}(\updct{see}(p)(i)) = p \\
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{see}(\updct{ling}(p)(i)) = \ct{see}(i)
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{ling}(\updct{ling}(p)(i)) = p \\
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{ling}(\updct{see}(p)(i)) = \ct{ling}(i)
 $$
 
 - Can be seen as a theory of states and locations.
@@ -947,57 +955,73 @@ $$
 
 Some state-sensitive constants:
 
-$$
-\begin{align*}
-\ct{CG} &: σ → \P ι \\
-\end{align*}
-$$
-
 ::: {.fragment}
 $$
-\begin{align*}
-\ct{QUD} &: \Q ι α σ → α → ι → t
-\end{align*}
+\ct{CG} : σ → \P ι \\
 $$
 :::
 
 ::: {.fragment}
 $$
-\begin{align*}
-\updct{CG} &: \P ι → σ → σ \\
-\updct{QUD} &: (α → ι → t) → σ → \Q ι α σ 
-\end{align*}
+\updct{CG} : \P ι → σ → σ \\
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{QUD} : \Q ι α σ → α → ι → t
+$$
+:::
+
+::: {.fragment}
+$$
+\updct{QUD} : (α → ι → t) → σ → \Q ι α σ 
 $$
 :::
 
 ---
 
-## States
+## Haskell: the $\Q$ constructor
+
+<br><br>
+```haskell
+-- | Arrows, products, and probabilistic types, as well as (a) abstract types
+-- representing the addition of a new Q, and (b) type variables for encoding
+-- polymorphism.
+data Type = At Atom
+          | Type :→ Type
+          | Unit
+          | Type :× Type
+          | P Type
+          | Q Type Type Type
+          | TyVar String
+  deriving (Eq)
+```
+
+---
+
+## How stateful constants interact
 
 $$
-\begin{align*}
-\ct{CG}(\updct{CG}(cg)(s)) &= cg \\
-\ct{CG}(\updct{QUD}(q)(s)) &= \ct{CG}(s)
-\end{align*}
+\ct{CG}(\updct{CG}(cg)(s)) = cg
 $$
 
 ::: {.fragment}
 $$
-\begin{align*}
-\ct{QUD}(\updct{QUD}(q)(s)) &= q \\
-\ct{QUD}(\updct{CG}(cg)(s)) &= \ct{QUD}(s)
-\end{align*}
+\ct{CG}(\updct{QUD}(q)(s)) = \ct{CG}(s)
 $$
 :::
 
 ::: {.fragment}
-
-### A "blank" starting state
-
 $$
-\ct{ϵ} : σ
+\ct{QUD}(\updct{QUD}(q)(s)) = q \\
 $$
+:::
 
+::: {.fragment}
+$$
+\ct{QUD}(\updct{CG}(cg)(s)) = \ct{QUD}(s)
+$$
 :::
 
 ---
@@ -1046,44 +1070,44 @@ k(x)(s^{\prime})
 $$
 :::
 
----
+<!-- ## Parameterized monad laws -->
 
-## Parameterized monad laws
+<!-- $$\small -->
+<!-- \begin{array}{c} -->
+<!-- \textit{Left identity} & \textit{Right identity} \\[1mm] -->
+<!-- \begin{array}{rl} -->
+<!-- \Do_{p, p, q} & x ← \return{v}_{p} \\ -->
+<!-- & k(x) -->
+<!-- \end{array}\ \ =\ \ \ k(v) -->
+<!-- & \begin{array}{rl} -->
+<!-- \Do_{p, q, q} & x ← m \\ -->
+<!-- & \return{x}_{q} -->
+<!-- \end{array} \ \ =\ \ \ m -->
+<!-- \end{array} -->
+<!-- $$ -->
 
-$$\small
-\begin{array}{c}
-\textit{Left identity} & \textit{Right identity} \\[1mm]
-\begin{array}{rl}
-\Do_{p, p, q} & x ← \return{v}_{p} \\
-& k(x)
-\end{array}\ \ =\ \ \ k(v)
-& \begin{array}{rl}
-\Do_{p, q, q} & x ← m \\
-& \return{x}_{q}
-\end{array} \ \ =\ \ \ m
-\end{array}
-$$
+<!-- ::: {.fragment} -->
+<!-- $$\small -->
+<!-- \begin{array}{c} -->
+<!-- \textit{Associativity} \\[1mm] -->
+<!-- \begin{array}{rl} -->
+<!-- \Do_{p, r, s} & y ← \left(\begin{array}{rl} -->
+<!-- 	\Do_{p, q, r} & x ← m \\ -->
+<!-- 	& n(x) -->
+<!-- 	\end{array}\right) \\ -->
+<!-- 	& o(y) -->
+<!-- \end{array}\ \ =\ \ \begin{array}{rl} -->
+<!-- 	\Do_{p, q, s} & x ← m \\ -->
+<!-- 	& \begin{array}{rl}  -->
+<!-- 		\Do_{q, r, s} & y ← n(x) \\ -->
+<!-- 		& o(y) -->
+<!-- 	\end{array} -->
+<!-- \end{array} -->
+<!-- \end{array} -->
+<!-- $$ -->
+<!-- ::: -->
 
-::: {.fragment}
-$$\small
-\begin{array}{c}
-\textit{Associativity} \\[1mm]
-\begin{array}{rl}
-\Do_{p, r, s} & y ← \left(\begin{array}{rl}
-	\Do_{p, q, r} & x ← m \\
-	& n(x)
-	\end{array}\right) \\
-	& o(y)
-\end{array}\ \ =\ \ \begin{array}{rl}
-	\Do_{p, q, s} & x ← m \\
-	& \begin{array}{rl} 
-		\Do_{q, r, s} & y ← n(x) \\
-		& o(y)
-	\end{array}
-\end{array}
-\end{array}
-$$
-:::
+<!-- --- -->
 
 ---
 
@@ -1194,35 +1218,6 @@ $$
 $$
 :::
 
-::: {.fragment}
-### Corollary
-$$
-\begin{align*}
-\updct{QUD} &: (α → ι → t) → σ → \Q ι α σ \\
-\ct{QUD} &: \Q ι α σ → α → ι → t
-\end{align*}
-$$
-:::
-
----
-
-## Haskell: the $\Q$ constructor
-
-<br><br>
-```haskell
--- | Arrows, products, and probabilistic types, as well as (a) abstract types
--- representing the addition of a new Q, and (b) type variables for encoding
--- polymorphism.
-data Type = At Atom
-          | Type :→ Type
-          | Unit
-          | Type :× Type
-          | P Type
-          | Q Type Type Type
-          | TyVar String
-  deriving (Eq)
-```
-
 ---
 
 ## Responding to a question
@@ -1251,11 +1246,13 @@ $$
 
 ---
 
-## Delta-rules
+## How do we actually compute this stuff?
 
-How do we actually compute stuff?
+<br>
 
 ::: {.fragment}
+Delta-rules.
+
 ```haskell
 -- | The type of Delta-rules.
 type DeltaRule = Term -> Maybe Term
@@ -1335,8 +1332,9 @@ observations = \case
 ### Note
 
 - Delta-rules are in principle open ended!
-  - Might incorporate more sophisticated algorithms for simplifying representations of probability distributions.
-  - Might incorporate theorem provers.
+  - You just need to show that they're sound.
+  - Might incorporate more sophisticated means of simplifying representations of probability distributions.
+  - Might incorporate theorem provers (so, sound-ish, perhaps).
 
 ---
 
