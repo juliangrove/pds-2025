@@ -9,6 +9,7 @@ website:
     style: docked
     search: true
     contents:
+    - about.qmd
     - index.qmd
     - section: "Background"
       contents:
@@ -30,14 +31,13 @@ website:
       - pds-intro/delta-rules.qmd
     - section: "Vagueness and imprecision"
       contents:
-      - adjectives/adjectives-intro.qmd
-      - adjectives/pds-to-stan.qmd
+      - adjectives/index.qmd
     - section: "Factivity inferences"
       contents:
       - factivity/factivity.qmd
     - section: "Modeling the question prompt"
       contents:
-      - qud/qud.qmd
+      - qud/index.qmd
 
 format:
   html:
@@ -47,5 +47,5 @@ format:
     toc: true
     code-tools: true
 
-filters:
-  - line-highlight
+# filters:
+  # - line-highlight
