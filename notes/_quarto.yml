@@ -13,7 +13,13 @@ website:
     - index.qmd
     - section: "Background"
       contents:
-      - background/index.qmd
+      - background/traditional-methodology.qmd
+      - background/experimental-turn.qmd
+      - background/understanding-gradience.qmd
+      - case-studies.qmd
+      - new-frameworks.qmd
+      - theoretically-oriented-approach.qmd
+      - setting-stage.qmd
     - section: "Introduction to PDS"
       contents:
       - pds-intro/index.qmd
