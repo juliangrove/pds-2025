@@ -31,11 +31,13 @@ $$
 $$
 :::
 
+Through our exploration of gradable adjectives, we've seen how PDS transforms semantic theory into testable statistical models. From simple degree inference through complex mixture models, each step has revealed how delta rules bridge abstract semantics and empirical data.
+
 This work opens several avenues for development:
 
 1. **Automated augmentation**: Currently, analysts manually add statistical structure to kernel models. Future versions of PDS could automate common augmentations like random effects and hierarchical priors.
 
-2. **Formally verified compilation**: Delta rules could be accompanied by formal proofs in Agda or Coq, ensuring soundness while enabling powerful transformations.
+2. **Formally verified compilation**: Delta rules could be accompanied by formal proofs in [Agda](https://agda.readthedocs.io/en/latest/getting-started/what-is-agda.html) or [Coq](https://coq.inria.fr/), ensuring soundness while enabling generic transformations.
 
 3. **Richer kernel models**: Extending PDS to output mixture models, censoring mechanisms, and other statistical structures that directly encode semantic theories.
 

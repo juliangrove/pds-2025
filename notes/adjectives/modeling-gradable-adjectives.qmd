@@ -31,11 +31,13 @@ $$
 $$
 :::
 
+Having established how to infer degrees, we now turn to the core phenomenon of vagueness in gradable adjectives. How do speakers judge whether someone counts as *tall* given inherent threshold uncertainty?
+
 To understand how Stan works and how we can use it to test semantic theories, let's work through three models of increasing complexity. We'll start with a baseline norming model that will serve as our introduction to Stan's structure and syntax. Each model will demonstrate how PDS translates semantic theory into statistical kernels, which we then augment for real-world data analysis.
 
 ## The PDS implementation: Gradable adjectives
 
-Before diving into Stan code, let's examine how gradable adjectives are represented in PDS. From the Haskell codebase ([`Grammar.Lexica.SynSem.Adjectives`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Adjectives.html)), here's the lexical entry for "tall":
+Before diving into Stan code, let's examine how gradable adjectives are represented in PDS. From the Haskell codebase ([`Grammar.Lexica.SynSem.Adjectives`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Adjectives.html)), here's the lexical entry for *tall*:
 
 ```haskell
 "tall" -> [ SynSem {
@@ -47,12 +49,13 @@ Before diving into Stan code, let's examine how gradable adjectives are represen
 ```
 
 This Haskell implementation directly encodes the formal semantics $⟦\text{tall}⟧$ presented in the previous section. The key components map as follows:
+
 - `sCon "height"` implements the measure function
 - `sCon "d_tall"` extracts the contextual threshold from the discourse state
 - `sCon "(≥)"` implements the comparison relation
 - The lambda abstractions mirror the semantic type $(e → (i → t))$
 
-This lexical entry encodes several key theoretical insights:
+This lexical entry encodes several key components:
 
 1. **Syntactic type**: `AP` indicates this is an adjective phrase
 2. **Semantic computation**: The meaning is a function that:
@@ -65,4 +68,105 @@ This lexical entry encodes several key theoretical insights:
    - $\ct{d\_tall}$: Extracts the threshold for "tall" from the discourse state (type: $\sigma \to r$)
    - $\ct{(≥)}$: Comparison operator (type: $r \to r \to t$)
 
-This implements @kennedy_vagueness_2007's degree-based semantics, where gradable adjectives denote relations between degrees and contextually determined thresholds. The use of the discourse state for threshold storage captures the context-sensitivity of standards.
+This implements degree-based semantics of @kennedy_vagueness_2007, where gradable adjectives denote relations between degrees and contextually determined thresholds. The use of the discourse state for threshold storage captures the context-sensitivity of standards.
+
+### Delta rules for threshold comparisons
+
+The semantics of gradable adjectives involves comparing degrees to contextual thresholds. In PDS, this computation is implemented through a series of delta rules defined in [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html).
+
+Consider the proposition "Jo is tall". After parsing and semantic composition, we obtain:
+
+$$
+\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))
+$$
+
+The delta rules transform this step by step. First, the `states` rule extracts the threshold:
+
+```haskell
+-- | Computes functions on states.
+states :: DeltaRule
+states = \case
+  D_tall (UpdD_tall d _) -> Just d
+  D_tall s               -> Just (lookupD_tall s)
+  _                      -> Nothing
+```
+
+This gives us $\ct{(≥)}(\ct{height}(i)(j))(d)$ where $d$ is the contextual threshold for tallness.
+
+Next, the `indices` rule extracts Jo's height:
+
+```haskell
+-- | Computes functions on indices.
+indices :: DeltaRule
+indices = \case
+  Height (UpdHeight f _) -> Just (f @@ j)
+  Height i               -> Just (lookupHeight i j)
+  _                      -> Nothing
+```
+
+yielding $\ct{(≥)}(h)(d)$ where $h$ is Jo's height.
+
+Finally, the `arithmetic` rule performs the comparison:
+
+```haskell
+-- | Performs comparison operations.
+arithmetic :: DeltaRule
+arithmetic = \case
+  GE (DCon x) (DCon y) -> Just (if x >= y then Tr else Fa)
+  GE x y               -> Nothing  -- Can't reduce symbolic comparisons
+  _                    -> Nothing
+```
+
+The result is either $\ct{T}$ or $\ct{F}$—a truth value that can be used in probabilistic computations.
+
+### Monadic structure and probabilistic computation
+
+The monadic structure of PDS becomes crucial when we move from deterministic to probabilistic judgments. The bind operator allows us to sequence probabilistic computations:
+
+$$
+\begin{array}{l}
+d ∼ \ct{Normal}(\mu, \sigma) \\
+h ∼ \ct{Normal}(\mu_h, \sigma_h) \\
+\ct{Return}(\ct{(≥)}(h, d))
+\end{array}
+$$
+
+This compiles to Stan's target increment:
+
+```stan
+target += normal_lpdf(d | mu, sigma);
+target += normal_lpdf(h | mu_h, sigma_h);
+target += bernoulli_lpmf(y | h >= d);
+```
+
+::: {.callout-note title="PDS Compilation Details"}
+**Input PDS:**
+```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
+s1 = termOf $ getSemantics @Adjectives 1 ["jo", "is", "tall"]
+discourse = ty tau $ assert s1
+adjectivesExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond prior) discourse
+```
+
+**Delta reductions:**
+
+1. Parse "jo is tall" → $\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$
+2. Apply `states` rule → $\ct{(≥)}(\ct{height}(i)(j))(d)$
+3. Apply `indices` rule → $\ct{(≥)}(h)(d)$
+4. Comparison remains symbolic (can't reduce without concrete values)
+5. Wrap in probabilistic structure for vagueness
+
+**Kernel output:**^[Actual PDS output: `model { mu ~ normal(0.5, 0.2); sigma ~ exponential(5); target += normal_cdf_log(d | mu, sigma); }`]
+```stan
+model {
+  // FIXED EFFECTS
+  mu ~ normal(0.5, 0.2);      // threshold location
+  sigma ~ exponential(5);      // vagueness
+  
+  // LIKELIHOOD
+  target += normal_cdf_log(d | mu, sigma);
+}
+```
+:::
+
+This model captures basic vagueness through probabilistic thresholds. But how do speakers reason about the likelihood of such judgments? This brings us to our next model.

@@ -31,7 +31,12 @@ website:
     - section: "Vagueness and imprecision"
       contents:
       - adjectives/adjectives-intro.qmd
-      - adjectives/pds-to-stan.qmd
+      - adjectives/compiling-kernel-models.qmd
+      - adjectives/norming-model.qmd
+      - adjectives/modeling-gradable-adjectives.qmd
+      - adjectives/modeling-vagueness-and-imprecision.qmd
+      - adjectives/modeling-relative-and-absolute-standards.qmd
+      - adjectives/future-directions.qmd
     - section: "Factivity inferences"
       contents:
       - factivity/factivity.qmd

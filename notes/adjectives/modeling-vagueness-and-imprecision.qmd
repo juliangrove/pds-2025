@@ -31,6 +31,8 @@ $$
 $$
 :::
 
+Real speakers don't just make binary judgments—they can also reason about the likelihood that a gradable adjective applies. This requires extending our framework to handle probabilistic metalinguistic judgments.
+
 Now that we understand Stan's structure and how to translate from PDS, let's implement a more sophisticated model that captures the theoretical distinction between vagueness (uncertainty about standards) and imprecision (tolerance around thresholds).
 
 ## Theoretical motivation
@@ -39,7 +41,7 @@ As we discussed earlier, gradable adjectives involve comparing an item's degree 
 
 ## PDS to Stan
 
-For the likelihood judgment "how likely is it that Jo is tall?", we use the bare adjective entry (type AP) rather than the degree-question version. The PDS code is:
+For the likelihood judgment *how likely is it that Jo is tall?*, we use the bare adjective entry (type AP) rather than the degree-question version. The PDS code is:
 
 ```haskell
 q1''        = termOf $ getSemantics @Adjectives 0 ["how", "likely", "that", "jo", "is", "tall"]
@@ -48,6 +50,107 @@ likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond 
 ```
 
 This uses `likelihoodPrior` to set up distributions over thresholds and degrees, capturing the uncertainty inherent in vague predicates. The prior encodes our theoretical commitment to gradience in standards.
+
+### Delta rules for likelihood judgments
+
+Likelihood judgments introduce probabilistic reasoning directly into the semantics. The implementation uses helper functions from [`Lambda.Convenience`](https://juliangrove.github.io/pds/Lambda-Convenience.html) to construct probabilistic programs.
+
+Consider *How likely is Jo tall?* The compositional semantics yields:
+
+```haskell
+-- Likelihood operator from Grammar.Lexica.SynSem.Adjectives
+"likely" -> [ SynSem {
+    syn = S :/: S,
+    sem = ty tau (lam s (purePP (lam p (lam i 
+      (Return (normalCDF (p @@ i) 0.5 0.1)))))) @@ s)
+} ]
+```
+
+This introduces the `normalCDF` function, which computes the cumulative distribution function of a normal distribution. When applied to a proposition about gradable adjectives, we get terms like:
+
+$$
+\ct{Return}(\ct{normalCDF}(\ct{(≥)}(h)(d), 0.5, 0.1))
+$$
+
+The delta rules handle this in stages. First, the comparison reduces to a truth value as shown earlier. However, in the probabilistic setting, we don't get a concrete $\ct{T}$ or $\ct{F}$, but rather a probabilistic comparison.
+
+The `probabilities` rule then applies:
+
+```haskell
+-- | Computes probabilities for certain probabilistic programs.
+probabilities :: DeltaRule
+probabilities = \case
+  NormalCDF Tr mu sigma  -> Just (normalCDF 1.0 mu sigma)
+  NormalCDF Fa mu sigma  -> Just (normalCDF 0.0 mu sigma)
+  -- For probabilistic comparisons, we need the full distribution
+  NormalCDF (GE x y) mu sigma -> Nothing  -- Can't reduce further
+  _                      -> Nothing
+```
+
+In the probabilistic case, the comparison remains symbolic, leading to:
+
+$$
+\ct{Return}(\ct{normalCDF}(\ct{(≥)}(h, d), 0.5, 0.1))
+$$
+
+This compiles to Stan code that computes the probability of the comparison being true:
+
+```stan
+real p = normal_cdf(h - d | 0, sqrt(sigma_h^2 + sigma_d^2));
+target += normal_lpdf(y | p, 0.1);
+```
+
+### Marginalizing over uncertainty
+
+A key idea is that likelihood judgments marginalize over uncertainty in both degrees and thresholds. The delta rules preserve this structure:
+
+```haskell
+-- | Marginalize over distributions
+marginalize :: DeltaRule
+marginalize = \case
+  Let x (Normal mu_x sigma_x) 
+    (Let y (Normal mu_y sigma_y) 
+      (Return (GE (Var x) (Var y)))) ->
+        Just (Return (NormalCDF 0 (mu_x - mu_y) 
+                       (sqrt (sigma_x^2 + sigma_y^2))))
+  _ -> Nothing
+```
+
+This shows how complex probabilistic reasoning can be captured through delta reduction.
+
+::: {.callout-note title="PDS Compilation Details"}
+**Input PDS:**
+```haskell
+-- Likelihood judgment
+s2 = termOf $ getSemantics @Adjectives 1 ["jo", "is", "likely", "tall"]
+discourse = ty tau $ assert s2
+likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond prior) discourse
+```
+
+**Delta reductions:**
+
+1. Parse "likely tall" → $\ct{normalCDF}(\ct{(≥)}(h, d), 0.5, 0.1)$
+2. Comparison remains inside CDF (can't evaluate without values)
+3. Wrap in monadic structure with distributions over h and d
+4. Marginalization rule applies to compute overall probability
+
+**Kernel output:**^[Actual PDS output: `model { mu_h ~ normal(0.6, 0.1); sigma_h ~ exponential(10); mu_d ~ normal(0.5, 0.1); sigma_d ~ exponential(10); real p = normal_cdf((mu_h - mu_d) / sqrt(sigma_h^2 + sigma_d^2) | 0, 1); target += normal_lpdf(y | p, 0.1); }`]
+```stan
+model {
+  // DEGREE PARAMETERS
+  mu_h ~ normal(0.6, 0.1);     // mean height
+  sigma_h ~ exponential(10);    // height uncertainty
+  
+  // THRESHOLD PARAMETERS  
+  mu_d ~ normal(0.5, 0.1);     // mean threshold
+  sigma_d ~ exponential(10);    // threshold uncertainty
+  
+  // LIKELIHOOD
+  real p = normal_cdf((mu_h - mu_d) / sqrt(sigma_h^2 + sigma_d^2) | 0, 1);
+  target += normal_lpdf(y | p, 0.1);
+}
+```
+:::
 
 PDS outputs this kernel model:^[Actual PDS output: `model { v ~ normal(0.0, 1.0); target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma); }`]
 
@@ -283,10 +386,13 @@ Let's trace through a specific example to see how this model works:
 
 5. **Response generation**: The participant's actual slider response is a noisy measurement of this semantic judgment, with noise `sigma_e`.
 
-This model implements several key theoretical insights:
+This model implements several key components:
+
 - **Vagueness as threshold uncertainty**: The `sigma_guess` parameter captures how fuzzy the boundary is
 - **Context sensitivity**: The `spread` parameters capture how standards shift across contexts
 - **Individual differences**: Participants can have systematically different thresholds
 - **Measurement error**: Slider responses are noisy measurements of semantic judgments
 
 The model thus operationalizes the theoretical distinctions introduced earlier while adding the statistical machinery needed for real experimental data.
+
+So far we've assumed all adjectives work the same way. But linguistic theory suggests a fundamental distinction between relative and absolute adjectives—a hypothesis we can capture with mixture models.

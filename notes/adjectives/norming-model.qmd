@@ -31,7 +31,9 @@ $$
 $$
 :::
 
-We'll start with a relativly simple model of the norming data that one might design as a means for analyzing that dataset. What we'll do is to build up the model block-by-block, explaining each line. Then, we'll turn to how we might analyze this experiment using PDS and show which components of this model correspond to the PDS kernel model and which are extensions by the analyst.
+Our first model addresses a fundamental question: how do we infer the degrees that gradable adjectives operate on? The norming study provides a clean test case where participants directly report degrees on scales.
+
+We'll start with a realistic model of the norming data that one might design as a means for analyzing that dataset. What we'll do is to build up the model block-by-block, explaining each line. Then, we'll turn to how we might analyze this experiment using PDS and show which components of this model correspond to the PDS kernel model and which are extensions by the analyst.
 
 ## Understanding the experimental setup
 
@@ -68,15 +70,17 @@ data {
   int<lower=1> N_item;        // number of items
   int<lower=1> N_participant; // number of participants  
   int<lower=1> N_data;        // number of data points
-}
+```
 
 These first lines declare basic counts. The syntax breaks down as:
+
 - `int`: This will be an integer (whole number)
 - `<lower=1>`: This integer must be at least 1 (no negative counts!)
 - `N_item`: The variable name (we'll use this throughout our program)
 - `// number of items`: A comment explaining what this represents
 
 Why do we need these constraints? Stan uses them to:
+
 1. Catch data errors early (if we accidentally pass 0 items, Stan will complain)
 2. Optimize its algorithms (knowing bounds helps the sampler work efficiently)
 
@@ -85,15 +89,15 @@ Next, we handle a subtle but important issue—boundary responses:
 ```stan
   int<lower=1> N_0;           // number of 0s
   int<lower=1> N_1;           // number of 1s
-}
+```
 
-Why separate these out? Slider responses of exactly 0 or 1 are "censored"—they might represent even more extreme judgments that the scale can't capture. We'll handle these specially, implementing insights from measurement theory.
+Why separate these out? Slider responses of exactly 0 or 1 are "censored"—they might represent even more extreme judgments that the scale can't capture. We'll handle these in a second.
 
-Now for the actual response data:
+For the actual response data:
 
 ```stan
   vector<lower=0, upper=1>[N_data] y; // response in (0, 1)
-}
+```
 
 This declares a vector (like an array) of length `N_data`, where each element must be between 0 and 1. Notice this is for responses *between* 0 and 1, not including the boundaries.
 
@@ -107,6 +111,7 @@ Finally, we need to map responses to items and participants:
   array[N_0] int<lower=1, upper=N_participant> participant_0;
   array[N_1] int<lower=1, upper=N_participant> participant_1;
 }
+```
 
 These arrays work like lookup tables. If `item[5] = 3`, then the 5th response in our data was about item #3. This indexing structure connects our flat data file to the hierarchical structure of our experiment.
 
@@ -124,7 +129,7 @@ After declaring our data, we declare the parameters—the unknown quantities we 
 parameters {
   // Fixed effects
   vector[N_item] mu_guess;
-}
+```
 
 This declares a vector of "guesses" (degrees) for each item. Why `mu_guess`? In statistics, μ (mu) traditionally denotes a mean or central tendency. These represent our best guess about each item's true degree on its scale—the theoretical degrees that the semantic analysis posits.
 
@@ -134,7 +139,7 @@ But people differ! We need random effects to capture individual variation:
   // Random effects
   real<lower=0> sigma_epsilon_guess;     // how much people vary
   vector[N_participant] z_epsilon_guess; // each person's deviation
-}
+```
 
 This uses a clever trick called "non-centered parameterization":
 - `sigma_epsilon_guess`: The overall amount of person-to-person variation
@@ -146,7 +151,7 @@ Next, measurement noise:
 
 ```stan
   real<lower=0,upper=1> sigma_e;  // response variability
-}
+```
 
 Even if two people agree on an item's degree, their slider responses might differ slightly. This parameter captures that noise.
 
@@ -157,6 +162,7 @@ Finally, those boundary responses:
   array[N_0] real<upper=0> y_0;  // true values for observed 0s
   array[N_1] real<lower=1> y_1;  // true values for observed 1s
 }
+```
 
 This is subtle but important. When someone gives a 0 response, their "true" judgment might be -0.1 or -0.5—we just can't see below 0. These parameters let Stan infer what those true values might have been @stevens_psychophysics_1975.
 
@@ -170,14 +176,14 @@ transformed parameters {
   vector[N_data] guess;
   vector[N_0] guess_0;
   vector[N_1] guess_1;
-}
+```
 
 First, we convert those z-scores to actual participant adjustments:
 
 ```stan
   // Non-centered parameterization
   epsilon_guess = sigma_epsilon_guess * z_epsilon_guess;
-}
+```
 
 If `sigma_epsilon_guess = 0.2` and participant 3 has `z_epsilon_guess[3] = 1.5`, then participant 3 tends to give responses 0.3 units higher than average.
 
@@ -186,7 +192,6 @@ Now we can compute predicted responses:
 ```stan
   for (i in 1:N_data) {
     guess[i] = mu_guess[item[i]] + epsilon_guess[participant[i]];
-  }
 ```
 
 Let's trace through one prediction:
@@ -249,7 +254,7 @@ For boundary responses, we use the latent values:
 }
 ```
 
-Remember, we're inferring `y_0` and `y_1` as parameters! Stan will sample plausible values that are consistent with both the model and the fact that we observed 0s and 1s.
+Remember: we're inferring `y_0` and `y_1` as parameters! Stan will sample plausible values that are consistent with both the model and the fact that we observed 0s and 1s.
 
 ### The `generated quantities` block
 
@@ -356,6 +361,7 @@ scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespon
 ```
 
 This code:
+
 1. Asserts that Jo is a soccer player (establishing context)
 2. Asks "how tall is Jo?" using the degree-argument version of the adjective
 3. Applies beta and delta reduction rules via `betaDeltaNormal`
@@ -397,6 +403,41 @@ Key delta rules for adjectives include:
 
 These rules transform the complex compositional semantics into simpler forms suitable for compilation to Stan. The transformation preserves the semantic content while making it computationally tractable.
 
+### Working through delta reductions
+
+Having seen the PDS code for degree questions, we now trace through how delta rules transform these complex λ-terms into forms suitable for Stan compilation. Delta rules, as introduced in [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html), are partial functions from terms to terms that implement semantic computations.
+
+For degree questions like "how tall is Jo?", the compositional semantics produces:
+
+$$
+\ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))
+$$
+
+This term undergoes several delta reductions. First, the `indices` rule extracts the height value from the discourse state:
+
+```haskell
+-- | Computes functions on indices.
+indices :: DeltaRule
+indices = \case
+  Height (UpdHeight f _) -> Just (f @@ j)
+  Height i               -> Just (lookupHeight i j)
+  _                      -> Nothing
+```
+
+Applied to our term, this yields:
+
+$$
+\ct{Return}(\iota(\lambda d[h = d]))
+$$
+
+where $h$ represents Jo's actual height at index $i$. The $\iota$ operator then extracts this unique value, giving us:
+
+$$
+\ct{Return}(h)
+$$
+
+This final form directly corresponds to the Stan parameter we need to infer—the degree on the height scale.
+
 ### From lambda terms to Stan parameters
 
 The challenge is translating abstract semantic computations into Stan's parameter space. This translation embodies our linking hypothesis between semantic competence and performance. Key transformations:
@@ -415,16 +456,45 @@ The challenge is translating abstract semantic computations into Stan's paramete
 
 4. **The monad becomes Stan's target**:
    - The $\Do$-notation structures sequential computation:
-   ```
-   \begin{array}[t]{rl}
-   \Do & x ← \ct{return}(5) \\
-       & y ← \ct{normal}(x, 1) \\
-       & \ct{return}(y)
-   \end{array}
-   ```
+     
+     $\begin{array}[t]{rl}
+     \Do & x ← \ct{return}(5) \\
+         & y ← \ct{normal}(x, 1) \\
+         & \ct{return}(y)
+     \end{array}$
+
    - This becomes contributions to Stan's log probability
 
 This translation embodies our linking hypothesis: semantic computations generate behavioral data through a noisy measurement process captured by `adjectivesRespond`.
+
+::: {.callout-note title="PDS Compilation Details"}
+**Input PDS:**
+```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
+s1'        = termOf $ getSemantics @Adjectives 1 ["jo", "is", "a", "soccer player"]
+q1'        = termOf $ getSemantics @Adjectives 0 ["how", "tall", "jo", "is"]
+discourse' = ty tau $ assert s1' >>> ask q1'
+scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse'
+```
+
+**Delta reductions:**
+
+1. Parse "how tall jo is" → $\ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))$
+2. Apply `indices` rule → $\ct{Return}(\iota(\lambda d[h = d]))$ 
+3. Apply iota extraction → $\ct{Return}(h)$
+4. Monadic structure maps to Stan parameter inference
+
+**Kernel output:**^[Actual PDS output: `model { w ~ normal(0.0, 1.0); target += normal_lpdf(y | w, sigma); }`]
+```stan
+model {
+  // FIXED EFFECTS
+  w ~ normal(0.0, 1.0);
+  
+  // LIKELIHOOD
+  target += normal_lpdf(y | w, sigma);
+}
+```
+:::
 
 ### The PDS kernel model
 
@@ -440,7 +510,7 @@ model {
 }
 ```
 
-This is the semantic core—it captures the essential degree-based semantics where `w` represents the degree on the height scale. But reality is complicated... we need random effects, the ability to model censored data, and proper indexing for multiple items and participants. This gap between the kernel model and a full statistical implementation represents ongoing research: how to get from here (PDS output) to here (actual implementation).
+This is the semantic core—it captures the essential degree-based semantics where `w` represents the degree on the height scale. But reality is complicated: we need random effects, the ability to model censored data, and proper indexing for multiple items and participants. This gap between the kernel model and a full statistical implementation represents ongoing research: how to get from here (PDS output) to here (actual implementation).
 
 The full model with analyst augmentations looks like:
 
@@ -462,3 +532,5 @@ model {
 ```
 
 Lines 6 and 13 (highlighted) show the kernel model from PDS. The unhighlighted portions add statistical machinery for real data: hierarchical priors, random effects, and indexed parameters. The kernel captures the core semantic computation—degrees on scales—while the augmentations handle the realities of experimental data.
+
+This baseline model establishes how PDS transforms degree questions into parameter inference. Next, we'll see how this extends to modeling the vagueness inherent in gradable adjective judgments.

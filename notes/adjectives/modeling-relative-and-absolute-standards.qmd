@@ -31,17 +31,120 @@ $$
 $$
 :::
 
-Our most sophisticated model implements the theoretical distinction between relative and absolute gradable adjectives. Some adjectives like "tall" use relative standards that shift with the comparison class, while others like "full" use absolute standards tied to scale endpoints.
+Our most sophisticated model implements the theoretical distinction between relative and absolute gradable adjectives. Some adjectives like *tall* use relative standards that shift with the comparison class, while others like *full* use absolute standards tied to scale endpoints.
 
 #### Theoretical motivation
 
 @kennedy_scale_2005 argues that gradable adjectives fall into two classes:
+
 - **Relative adjectives** (tall, expensive): Standards shift dramatically with context
 - **Absolute adjectives** (full, empty): Standards are anchored to scale endpoints
 
 This distinction has been supported experimentally by @syrett_meaning_2010. Our mixture model allows the data to reveal which interpretation strategy participants use.
 
-While PDS doesn't currently output mixture models directly, this represents a natural extension where semantic theory guides statistical model structure. The mixture implements the insight that the relative/absolute distinction might not be categorical but graded—a hypothesis that emerges naturally from the compositional framework.
+While PDS doesn't currently output mixture models directly, this represents a natural extension where semantic theory guides statistical model structure. The mixture implements the idea that the relative/absolute distinction might not be categorical but graded—a hypothesis that emerges naturally from the compositional framework.
+
+### Encoding relative and absolute standards in PDS
+
+The theoretical distinction between relative and absolute adjectives can be encoded directly in their lexical entries. Following the implementation in [`Grammar.Lexica.SynSem.Adjectives`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Adjectives.html), we can represent these two classes with different semantic structures.
+
+For relative adjectives, the degree depends on the context item:
+
+```haskell
+-- Relative adjective: degree varies by comparison class
+"tall" -> [ SynSem {
+    syn = AP,
+    sem = ty tau (lam s (purePP (lam x (lam i 
+      (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
+       (sCon "d_tall" @@ s @@ (sCon "context" @@ i)))))) @@ s))
+} ]
+```
+
+For absolute adjectives, the degree is fixed:
+
+```haskell
+-- Absolute adjective: degree anchored to scale endpoint
+"full" -> [ SynSem {
+    syn = AP,
+    sem = ty tau (lam s (purePP (lam x (lam i 
+      (sCon "(≥)" @@ (sCon "fullness" @@ i @@ x) @@ 
+       (sCon "d_full" @@ s))))) @@ s))
+} ]
+```
+
+The key difference lies in whether the threshold extractor takes a context argument. This semantic distinction motivates the mixture model structure—each response could result from either interpretation strategy.
+
+### Delta rules for relative vs absolute interpretations
+
+The delta rules must handle both types differently:
+
+```haskell
+-- | Context-dependent thresholds (relative)
+contextual :: DeltaRule
+contextual = \case
+  D_tall ctx (UpdD_tall f s) -> Just (f @@ ctx)
+  D_tall ctx s               -> Just (lookupD_tall s ctx)
+  _                          -> Nothing
+
+-- | Fixed thresholds (absolute)  
+fixed :: DeltaRule
+fixed = \case
+  D_full (UpdD_full d s) -> Just d
+  D_full s               -> Just (lookupD_full s)
+  _                      -> Nothing
+```
+
+These different extraction patterns lead to different dependencies in the statistical model:
+
+1. **Relative interpretation**: Degree varies with context
+   - Basketball players: $\ct{d\_tall}(s, \ct{basketball}) = 0.9$
+   - Children: $\ct{d\_tall}(s, \ct{children}) = 0.3$
+
+2. **Absolute interpretation**: Degree is constant
+   - All contexts: $\ct{d\_full}(s) = 0.95$
+
+### From discrete semantics to gradient behavior
+
+While the semantic distinction is categorical, the observed behavior is gradient. The mixture model captures this through uncertainty about which interpretation is active:
+
+$$
+P(\text{response} | \text{data}) = \pi \cdot P(\text{response} | \text{relative}) + (1-\pi) \cdot P(\text{response} | \text{absolute})
+$$
+
+where $\pi$ represents the probability of using the relative interpretation.
+
+This compilation strategy shows how discrete theoretical distinctions can generate gradient empirical patterns—a key idea in the PDS framework.
+
+::: {.callout-note title="Hypothetical PDS Compilation"}
+While PDS doesn't currently output mixture models directly, the compilation would follow this pattern:
+
+**Relative component:**
+```haskell
+relativeKernel = do
+  d_r <- lookupDegree item  -- item-specific degree
+  threshold <- lookupThreshold adjective context
+  return (d_r >= threshold)
+```
+
+**Absolute component:**
+```haskell  
+absoluteKernel = do
+  d_a <- lookupDegree adjective  -- adjective-specific degree
+  threshold <- lookupThreshold adjective
+  return (d_a >= threshold)
+```
+
+**Mixture:**
+```haskell
+mixtureKernel = do
+  which <- bernoulli pi
+  if which 
+    then relativeKernel
+    else absoluteKernel
+```
+
+This would compile to the Stan mixture model shown in the full implementation.
+:::
 
 #### Complete Stan code for the mixture model
 
@@ -277,9 +380,9 @@ Let's trace through how this model handles the adjective "tall" in different con
 1. **Theory-neutral**: The model doesn't assume which adjectives are relative or absolute—it learns from data
 2. **Graded membership**: Adjectives can be partially relative/absolute rather than categorical
 3. **Individual differences**: Different participants might use different interpretation strategies
-4. **Response-level inference**: We can identify which specific responses reflect which interpretation
+4. **Response-level inference**: We can probabilistically assess which specific responses reflect which interpretation
 
-This mixture approach implements the theoretical insight that the relative/absolute distinction might not be categorical but graded, with some adjectives showing mixed behavior [@kennedy_scale_2005]. It demonstrates how semantic theory can guide statistical model structure even when PDS doesn't yet output such complex models directly.
+This mixture approach implements the idea that the relative/absolute distinction might not be categorical but graded, with some adjectives showing mixed behavior [@kennedy_scale_2005]. It demonstrates how semantic theory can guide statistical model structure even when PDS doesn't yet output such complex models directly.
 
 ## Conclusion: From theory to implementation
 
@@ -289,7 +392,7 @@ Through these three models, we've seen how PDS translates abstract semantic theo
 2. **Model 2 (Vagueness)**: Showed how degree-based semantics with likelihood judgments becomes probabilistic computation
 3. **Model 3 (Mixture)**: Demonstrated how theoretical distinctions become statistical hypotheses
 
-The progression from PDS's kernel models to full Stan implementations reveals several key insights:
+The progression from PDS's kernel models to full Stan implementations encodes several key ideas:
 
 - **Kernel models capture semantics**: The highlighted portions of our Stan code directly implement semantic computations from compositional theory
 - **Augmentations handle reality**: Random effects, hierarchical structure, and measurement noise aren't semantic but are necessary for real data
