@@ -22,11 +22,16 @@ website:
     - section: "Introduction to probabilistic dynamic semantics"
       contents:
       - pds-intro/overview.qmd
-      - pds-intro/syntax-meaning-compositionality.qmd
-      - pds-intro/implementation.qmd
+      - pds-intro/ccg.qmd
+      - pds-intro/adding-probabilistic-types.qmd
+      - pds-intro/common-ground.qmd
+      - pds-intro/expressions-and-discourses.qmd
+      - pds-intro/constants.qmd
+      - pds-intro/delta-rules.qmd
     - section: "Vagueness and imprecision"
       contents:
-      - adjectives/adjectives.qmd
+      - adjectives/adjectives-intro.qmd
+      - adjectives/pds-to-stan.qmd
     - section: "Factivity inferences"
       contents:
       - factivity/factivity.qmd
