@@ -36,14 +36,14 @@ Compositional dynamic semantic theories often model utterance meanings as maps f
 	For a discussion of distributive vs. non-distributive variants of dynamic semantics, see, e.g., @charlow_where_2019.
 ]
 PDS inherits this functional view of utterances; 
-but following much work in the probabilistic semantics and pragmatics literature \citep[][i.a.]{van_benthem_dynamic_2009,lassiter_vagueness_2011,frank_predicting_2012,zeevat_implicit_2013,lassiter_adjectival_2017,bergen_pragmatic_2016}, it translates this idea into a probabilistic setting:
+but following much work in the probabilistic semantics and pragmatics literature [@van_benthem_dynamic_2009; @lassiter_vagueness_2011; @frank_predicting_2012; @zeevat_implicit_2013; @lassiter_adjectival_2017; @bergen_pragmatic_2016, i.a.], it translates this idea into a probabilistic setting:
 in PDS, utterances denote maps from discourse states to *probability distributions* over discourse states.
 Thus in comparison to traditional dynamic semantics, PDS introduces a weighting on discourse states, allowing one to model preferences for certain resolutions of ambiguity over others.
 
 ## Probability distributions as monadic values
 
 In and of itself, this extension is not novel.
-More novel is that we view probability distributions as *monadic values* that inhabit types arising from a *probability monad* (see, e.g., @giorgolo_one_2014, @bernardy_predicates_2019, @grove_probabilistic_2023).
+More novel is that we view probability distributions as *monadic values* that inhabit types arising from a *probability monad* [see, e.g., @giorgolo_one_2014; @bernardy_predicates_2019; @grove_probabilistic_2023].
 We formalize this view soon;
 but the gist is that viewing probability distributions this way allows PDS (i) to map linguistic expressions of a particular type to probability distributions over objects of that type so that the usual compositional structure of semantic analyses is retained;
 and thereby (ii) to compose probabilistic analyses with other analyses of, say, anaphora;

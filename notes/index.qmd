@@ -16,7 +16,7 @@ given a dataset involving some semantic phenomenon, and which exhibits certain s
 
 # Existing probabilistic approaches to meaning
 
-The ideas developed in this course build on and respond to existing probabilistic approaches to semantics and pragmatics, including those which use computational modeling to characterize inference [@zeevat_bayesian_2015;@franke_probabilistic_2016;@brasoveanu_computational_2020;@bernardy_bayesian_2022;@goodman_probabilistic_nodate].
+The ideas developed in this course build on and respond to existing probabilistic approaches to semantics and pragmatics, including those which use computational modeling to characterize inference [@zeevat_bayesian_2015;@franke_probabilistic_2016;@brasoveanu_computational_2020;@bernardy_bayesian_2022;@goodman_probabilistic_2016].
 Such models are motivated, in part, by the observation that linguistic inference tends to display substantial *gradience*, giving rise to quantitative patterns that traditional semantic theory has difficulty capturing.
 Meanwhile, they often aim to explain Gricean linguistic behavior [@grice_logic_1975] by regarding humans as Bayesian reasoners.
 Indeed, due to this emphasis on pragmatic principles, much modeling work blurs the semantics/pragmatics distinction, rendering the connection to traditional semantic theory somewhat opaque.
