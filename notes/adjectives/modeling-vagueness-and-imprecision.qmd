@@ -1,0 +1,292 @@
+---
+title: "Modeling vagueness and imprecision"
+bibliography: ../../pds.bib
+format:
+  html:
+    css: ../styles.css
+    html-math-method: mathjax
+    mathjax-config:
+      loader: {load: ['[tex]/bussproofs','[tex]/bbox','[tex]/colorbox']}
+      tex:
+        packages: {'[+]': ['bussproofs','bbox','colorbox']}
+---
+
+::: {.hidden}
+$$
+\newcommand{\expr}[3]{\begin{array}{c}
+#1 \\
+\bbox[lightblue,5px]{#2}
+\end{array} ⊢ #3}
+\newcommand{\ct}[1]{\bbox[font-size: 0.8em]{\mathsf{#1}}}
+\newcommand{\updct}[1]{\ct{upd\_#1}}
+\newcommand{\abbr}[1]{\bbox[transform: scale(0.95)]{\mathtt{#1}}}
+\newcommand{\pure}[1]{\bbox[border: 1px solid orange]{\bbox[border: 4px solid transparent]{#1}}}
+\newcommand{\return}[1]{\bbox[border: 1px solid black]{\bbox[border: 4px solid transparent]{#1}}}
+\def\P{\mathtt{P}}
+\def\Q{\mathtt{Q}}
+\def\True{\ct{T}}
+\def\False{\ct{F}}
+\def\ite{\ct{if\_then\_else}}
+\def\Do{\abbr{do}}
+$$
+:::
+
+Now that we understand Stan's structure and how to translate from PDS, let's implement a more sophisticated model that captures the theoretical distinction between vagueness (uncertainty about standards) and imprecision (tolerance around thresholds).
+
+## Theoretical motivation
+
+As we discussed earlier, gradable adjectives involve comparing an item's degree to a threshold, where both the threshold location and the comparison precision can vary.
+
+## PDS to Stan
+
+For the likelihood judgment "how likely is it that Jo is tall?", we use the bare adjective entry (type AP) rather than the degree-question version. The PDS code is:
+
+```haskell
+q1''        = termOf $ getSemantics @Adjectives 0 ["how", "likely", "that", "jo", "is", "tall"]
+discourse'' = ty tau $ assert s1' >>> ask q1''
+likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond likelihoodPrior) discourse''
+```
+
+This uses `likelihoodPrior` to set up distributions over thresholds and degrees, capturing the uncertainty inherent in vague predicates. The prior encodes our theoretical commitment to gradience in standards.
+
+PDS outputs this kernel model:^[Actual PDS output: `model { v ~ normal(0.0, 1.0); target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma); }`]
+
+```stan
+model {
+  // FIXED EFFECTS
+  v ~ normal(0.0, 1.0);
+  
+  // LIKELIHOOD
+  target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma);
+}
+```
+
+This kernel captures the semantic computation: the likelihood that Jo is tall depends on where Jo's height `v` falls relative to the threshold (here normalized to 0). The `normal_cdf` implements vagueness—there's no sharp cutoff but a gradual transition, exactly as the semantic theory predicts.
+
+But reality is complicated: we need to handle multiple adjectives, context effects, participant variation, and censored data. The full model with analyst augmentations:
+
+```stan {.line-numbers highlight="7,15"}
+model {
+  // PRIORS (analyst-added)
+  sigma_guess ~ exponential(5);
+  spread ~ exponential(1);
+  
+  // DEGREE PARAMETERS (PDS kernel)
+  // Each item has a degree on its scale
+  vector<lower=0, upper=1>[N_item] d;
+  
+  // PARTICIPANT EFFECTS (analyst-added)
+  sigma_epsilon_mu_guess ~ exponential(1);
+  z_epsilon_mu_guess ~ std_normal();
+  
+  // LIKELIHOOD
+  // Core semantic computation from PDS
+  response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
+  // Measurement model (analyst-added modification)
+  y[i] ~ normal(response_rel[i], sigma_e);
+}
+```
+
+The highlighted lines show PDS's semantic computation—comparing degrees to thresholds with vagueness. The unhighlighted code adds the statistical machinery needed for real experimental data. The point here is clear: ongoing research involves figuring out how to get from here (PDS output) to here (actual implementation) in a principled way.
+
+#### Data structure for vagueness experiments
+
+Our vagueness/imprecision data looks similar to the norming data but now tracks adjectives separately:
+
+| participant | item | item_number | adjective | adjective_number | scale_type | scale_type_number | condition | condition_number | response |
+|-------------|------|-------------|-----------|------------------|------------|-------------------|-----------|------------------|----------|
+| 1 | 9_high | 25 | quiet | 9 | absolute | 1 | high | 1 | 0.82 |
+| 1 | 4_low | 11 | wide | 4 | relative | 2 | low | 2 | 0.34 |
+| 1 | 5_mid | 15 | deep | 5 | relative | 2 | mid | 3 | 0.77 |
+
+The key difference: we now distinguish between items (specific adjective-condition pairs) and adjectives themselves. For example:
+- Item "9_high" = adjective "quiet" in the "high" condition
+- Item "4_low" = adjective "wide" in the "low" condition
+
+This structure lets us model properties that belong to adjectives (like how context-sensitive they are) separately from properties of specific items—a distinction motivated by the semantic theory.
+
+#### Complete Stan code for the vagueness model
+
+Here's the complete model with detailed explanations:
+
+```stan
+data {
+  // Basic counts
+  int<lower=1> N_item;         // number of items (adjective × condition)
+  int<lower=1> N_adjective;    // number of unique adjectives
+  int<lower=1> N_participant;  // number of participants
+  int<lower=1> N_data;         // responses in (0,1)
+  int<lower=1> N_0;            // boundary responses at 0
+  int<lower=1> N_1;            // boundary responses at 1
+  
+  // Response data
+  vector<lower=0, upper=1>[N_data] y;  // slider responses
+  
+  // NEW: Mapping structure
+  array[N_item] int<lower=1, upper=N_adjective> item_adj;  // which adjective for each item
+  
+  // Indexing arrays for responses
+  array[N_data] int<lower=1, upper=N_item> item;
+  array[N_0] int<lower=1, upper=N_item> item_0;
+  array[N_1] int<lower=1, upper=N_item> item_1;
+  array[N_data] int<lower=1, upper=N_adjective> adjective;
+  array[N_0] int<lower=1, upper=N_adjective> adjective_0;
+  array[N_1] int<lower=1, upper=N_adjective> adjective_1;
+  array[N_data] int<lower=1, upper=N_participant> participant;
+  array[N_0] int<lower=1, upper=N_participant> participant_0;
+  array[N_1] int<lower=1, upper=N_participant> participant_1;
+}
+
+parameters {
+  // SEMANTIC PARAMETERS
+  
+  // Each item has a degree on its scale
+  vector<lower=0, upper=1>[N_item] d;
+  
+  // Global vagueness: how fuzzy are threshold comparisons?
+  real<lower=0> sigma_guess;
+  
+  // Adjective-specific context sensitivity
+  vector<lower=0>[N_adjective] spread;
+  
+  // PARTICIPANT VARIATION
+  
+  // How much participants vary in their thresholds
+  real<lower=0> sigma_epsilon_mu_guess;
+  // Each participant's standardized deviation
+  vector[N_participant] z_epsilon_mu_guess;
+  
+  // RESPONSE NOISE
+  real<lower=0, upper=1> sigma_e;
+  
+  // CENSORED DATA
+  array[N_0] real<upper=0> y_0;  // latent values for 0s
+  array[N_1] real<lower=1> y_1;  // latent values for 1s
+}
+
+transformed parameters {
+  // Convert standardized participant effects to natural scale
+  vector[N_participant] epsilon_mu_guess = sigma_epsilon_mu_guess * z_epsilon_mu_guess;
+  
+  // STEP 1: Set up base thresholds for each item
+  vector[N_item] mu_guess0;
+  
+  // This assumes our data has 3 conditions per adjective in order:
+  // high (index 1), low (index 2), mid (index 3)
+  for (i in 0:(N_adjective-1)) {
+    // High condition: positive threshold shift
+    mu_guess0[3 * i + 1] = spread[i + 1];
+    // Low condition: negative threshold shift  
+    mu_guess0[3 * i + 2] = -spread[i + 1];
+    // Mid condition: no shift (baseline)
+    mu_guess0[3 * i + 3] = 0;
+  }
+  
+  // STEP 2: Transform thresholds to probability scale
+  vector<lower=0, upper=1>[N_data] mu_guess;
+  vector<lower=0, upper=1>[N_0] mu_guess_0;
+  vector<lower=0, upper=1>[N_1] mu_guess_1;
+  
+  // STEP 3: Compute predicted responses
+  vector<lower=0, upper=1>[N_data] response_rel;
+  vector<lower=0, upper=1>[N_0] response_rel_0;
+  vector<lower=0, upper=1>[N_1] response_rel_1;
+  
+  // For each response in (0,1)
+  for (i in 1:N_data) {
+    // Add participant adjustment to base threshold
+    real threshold_logit = mu_guess0[item[i]] + epsilon_mu_guess[participant[i]];
+    // Convert from logit scale to probability scale
+    mu_guess[i] = inv_logit(threshold_logit);
+    
+    // KEY SEMANTIC COMPUTATION:
+    // P(adjective applies) = P(degree > threshold)
+    // Using normal CDF for smooth threshold crossing
+    response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
+  }
+  
+  // Repeat for censored data
+  for (i in 1:N_0) {
+    mu_guess_0[i] = inv_logit(mu_guess0[item_0[i]] + epsilon_mu_guess[participant_0[i]]);
+    response_rel_0[i] = 1 - normal_cdf(d[item_0[i]] | mu_guess_0[i], sigma_guess);
+  }
+  
+  for (i in 1:N_1) {
+    mu_guess_1[i] = inv_logit(mu_guess0[item_1[i]] + epsilon_mu_guess[participant_1[i]]);
+    response_rel_1[i] = 1 - normal_cdf(d[item_1[i]] | mu_guess_1[i], sigma_guess);
+  }
+}
+
+model {
+  // PRIORS
+  
+  // Vagueness: smaller values = more precise thresholds
+  sigma_guess ~ exponential(5);
+  
+  // Context effects: how much standards shift
+  spread ~ exponential(1);
+  
+  // Participant variation
+  sigma_epsilon_mu_guess ~ exponential(1);
+  z_epsilon_mu_guess ~ std_normal();
+  
+  // LIKELIHOOD
+  
+  // Observed responses are noisy measurements of semantic judgments
+  for (i in 1:N_data) {
+    y[i] ~ normal(response_rel[i], sigma_e);
+  }
+  
+  // Censored responses
+  for (i in 1:N_0) {
+    y_0[i] ~ normal(response_rel_0[i], sigma_e);
+  }
+  
+  for (i in 1:N_1) {
+    y_1[i] ~ normal(response_rel_1[i], sigma_e);
+  }
+}
+
+generated quantities {
+  // Log-likelihood for model comparison
+  vector[N_data] ll;
+  
+  for (i in 1:N_data) {
+    ll[i] = normal_lpdf(y[i] | response_rel[i], sigma_e);
+  }
+  
+  // We could also compute other quantities of interest:
+  // - Average vagueness per adjective
+  // - Predicted responses for new items
+  // - Posterior predictive checks
+}
+```
+
+#### How the model components map to semantic theory
+
+Let's trace through a specific example to see how this model works:
+
+1. **Item degree**: Suppose we're modeling "tall" in the high condition. The parameter `d[item["tall_high"]]` might be 0.85, representing that basketball players (high condition) have high degrees on the height scale.
+
+2. **Adjective spread**: The parameter `spread["tall"]` might be 2.0, meaning "tall" is highly context-sensitive—its threshold shifts dramatically between conditions. This captures the context-dependency that the discourse state mechanism models.
+
+3. **Threshold computation**: 
+   - Base threshold (logit scale): `mu_guess0["tall_high"] = spread["tall"] = 2.0`
+   - Participant adjustment: Say participant 5 has `epsilon_mu_guess[5] = -0.3`
+   - Final threshold (logit): `2.0 + (-0.3) = 1.7`
+   - Final threshold (probability): `inv_logit(1.7) ≈ 0.85`
+
+4. **Semantic judgment**:
+   - The crucial computation: `response_rel = 1 - normal_cdf(0.85 | 0.85, sigma_guess)`
+   - If `sigma_guess = 0.1` (precise threshold), this gives ≈ 0.5
+   - If `sigma_guess = 0.3` (vague threshold), the response is more variable
+
+5. **Response generation**: The participant's actual slider response is a noisy measurement of this semantic judgment, with noise `sigma_e`.
+
+This model implements several key theoretical insights:
+- **Vagueness as threshold uncertainty**: The `sigma_guess` parameter captures how fuzzy the boundary is
+- **Context sensitivity**: The `spread` parameters capture how standards shift across contexts
+- **Individual differences**: Participants can have systematically different thresholds
+- **Measurement error**: Slider responses are noisy measurements of semantic judgments
+
+The model thus operationalizes the theoretical distinctions introduced earlier while adding the statistical machinery needed for real experimental data.
