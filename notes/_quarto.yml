@@ -34,7 +34,7 @@ website:
       - adjectives/index.qmd
     - section: "Factivity inferences"
       contents:
-      - factivity/factivity.qmd
+      - factivity/index.qmd
     - section: "Modeling the question prompt"
       contents:
       - qud/index.qmd
