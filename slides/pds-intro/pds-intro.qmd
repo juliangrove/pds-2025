@@ -424,20 +424,22 @@ data Cat = NP | N | S  -- atomic categories
 
 An expression:
 
-$$
+$$\Large
 \begin{align*}
-  \expr{s}{m}{c}
+  \expr{\textit{dog}}{λx, i.\ct{dog}(i)(x)}{n}
 \end{align*}
 $$
 
-- $s$ is a string.
-- $m$ is a meaning (reprented in the λ-calculus)
-- $c$ is a CCG category
+- $\textit{dog}$ is a string.
+- $λx, i.\ct{dog}(i)(x)$ is a meaning (reprented in the λ-calculus).
+  - Its type is $e → ι → t$.
+- $n$ is a CCG category.
 
 ---
 
-## Semantic types
+## Semantic types (in detail)
 
+::: {.fragment}
 ### Atomic types
 
 $$
@@ -445,6 +447,7 @@ $$
 A \Coloneqq e ∣ t
 \end{align*}
 $$
+:::
 
 ::: {.fragment}
 ### Complex types
@@ -474,9 +477,21 @@ data Type = At Atom
 ```
 
 - Note the type variables!
-- Hindley-Milner style polymorphism:
-  - $λx.x : α → α$ \ \  🥰
-  - $λf.f(λy.y)(f(λx, y.x))$ \ \  🙁
+
+---
+
+## Hindley-Milner style polymorphism:
+
+Good:
+
+- $λx^{α}.x^{α} : α → α$ \ \  🥰
+- $λx^{α → β}, y^{α}.x(y)^{β} : (α → β) → α → β$ \ \  🥰
+
+::: {.fragment}
+Bad:
+
+- $λf^{α → t}.f(λy^{β}.y^{β}) ∧ f(λx^{β}, y^{γ}.x^{γ})$ \ \  🙁
+:::
 
 ---
 
@@ -553,9 +568,9 @@ type Constant = Either String Double
 ### Example: application
 
 (@ex-every-linguist)
-$$ \scriptsize
-\frac{\expr{\textit{every}}{λp, q, i.∀y.p(y)(i) → q(y)(i)}{s}/(s\backslash np)/ n \hspace{1cm} \expr{\textit{linguist}}{λx, i.\ct{ling}(i)(x)}{n}}{
-\expr{\textit{every linguist}}{λq, i.∀y.\ct{ling}(i)(y) → q(y)(i)}{s}/(s\backslash np)
+$$\scriptsize
+\frac{\expr{\textit{every}}{λp^{e → ι → t}, q^{e → ι → t}, i^{ι}.(∀y.p(y)(i) → q(y)(i))^{t}}{s}/(s\backslash np)/ n \hspace{1cm} \expr{\textit{linguist}}{λx^{e}, i^{ι}.(\ct{ling}(i)(x))^{t}}{n}}{
+\expr{\textit{every linguist}}{λq^{e → ι → t}, i^{ι}.(∀y.\ct{ling}(i)(y) → q(y)(i))^{t}}{s}/(s\backslash np)
 }>
 $$
 :::
@@ -566,10 +581,10 @@ $$
 
 (@ex-every-linguist-saw)
 $$ \scriptsize
-\frac{\expr{\textit{every linguist}}{λq, i.∀y.\ct{ling}(i)(y) → q(y)(i)}{s}/ (s\backslash np)
+\frac{\expr{\textit{every linguist}}{λq^{e → ι → t}, i^{ι}.(∀y.\ct{ling}(i)(y) → q(y)(i))^{t}}{s}/ (s\backslash np)
 \hspace{1cm}
-\expr{\textit{saw}}{λx, y, i.\ct{see}(i)(x)(y)}{s}\backslash np/ np}{
-\expr{\textit{every linguist saw}}{λx, i.∀y.\ct{ling}(i)(y) → \ct{see}(i)(x)(y)}{s}/ np
+\expr{\textit{saw}}{λx^{e}, y^{e}, i^{ι}.(\ct{see}(i)(x)(y))^{t}}{s}\backslash np/ np}{
+\expr{\textit{every linguist saw}}{λx^{e}, i^{ι}.(∀y.\ct{ling}(i)(y) → \ct{see}(i)(x)(y))^{t}}{s}/ np
 }{>}\textbf{B}
 $$
 
@@ -577,11 +592,13 @@ $$
 
 ## Adding probabilistic types
 
+::: {.fragment}
 ### New atomic types
 
 $$
 A \Coloneqq e ∣ t ∣ r
 $$
+:::
 
 ::: {.fragment}
 ### New complex types
@@ -616,8 +633,9 @@ data Type = At Atom
 
 ---
 
-## A couple more typing rules
+## Probabilistic typing rules
 
+<br><br>
 $$
 \begin{array}{c}
 \begin{prooftree}
@@ -960,7 +978,7 @@ $$
 ::: {.fragment}
 $$
 \begin{align*}
-\return{v}_{σ}\ \ &=\ \ λs.\pure{⟨v, s⟩}
+\return{v}_{σ}\ \ &=\ \ λs.\pure{⟨v, s⟩} : ℙ^{σ}_{σ}
 \end{align*}
 $$
 :::
@@ -969,13 +987,13 @@ $$
 $$
 \begin{align*}
 \begin{array}{rl}
-\Do_{σ, σ^{\prime}, σ^{\prime\prime}} & x ← m \\
-& k(x)
+\Do_{σ, σ^{\prime}, σ^{\prime\prime}} & x ← m : ℙ^{σ}_{σ^{\prime}} \\
+& k(x) : ℙ^{σ^{\prime}}_{σ^{\prime\prime}}
 \end{array}\ \ 
 &=\ \ λs.\left(\begin{array}{l}
 ⟨x, s^{\prime}⟩ ∼ m(s) \\
 k(x)(s^{\prime})
-\end{array}\right)
+\end{array}\right) : ℙ^{σ}_{σ^{\prime\prime}}
 \end{align*}
 $$
 :::
@@ -1082,23 +1100,29 @@ $$
 
 ### Making an assertion
 
-
 $$
 \begin{align*}
-  \abbr{assert} &: ℙ^{σ}_{σ^{\prime}} (ι → t) → ℙ^{σ}_{σ^{\prime}} ⋄ \\
-  \abbr{assert}(φ) &= \begin{array}[t]{rl}
-	\Do & p ← φ \\
-		& s ← \abbr{get} \\
-		& c ← \return{\ct{CG}(s)} \\
-		& c^{\prime} ← \return{\left(\begin{array}{l}
-		i ∼ c \\
-		\ct{observe}(p(i)) \\
-		\pure{i}
-		\end{array}\right)} \\
-		& \abbr{put}(\updct{CG}(c^{\prime})(s))
-	\end{array}
+\abbr{assert} &: ℙ^{σ}_{σ^{\prime}} (ι → t) → ℙ^{σ}_{σ^{\prime}} ⋄
 \end{align*}
 $$
+
+::: {.fragment}
+$$
+\begin{align*}
+\abbr{assert}(⟦\textit{Jo is tall}⟧) &= \begin{array}[t]{rl}
+\Do & p^{ι → t} ← ⟦\textit{Jo is tall}⟧^{ℙ^{σ}_{σ} (ι → t)} \\
+& s ← \abbr{get} \\
+& c ← \return{\ct{CG}(s)} \\
+& c^{\prime} ← \return{\left(\begin{array}{l}
+i ∼ c \\
+\ct{observe}(p(i)) \\
+\pure{i}
+\end{array}\right)} \\
+& \abbr{put}(\updct{CG}(c^{\prime})(s))
+\end{array}
+\end{align*}
+$$
+:::
 
 ---
 
@@ -1106,15 +1130,21 @@ $$
 
 $$
 \begin{align*}
-  \abbr{ask} &: ℙ^{σ}_{σ^{\prime}} (α → ι → t) → ℙ^{σ}_{\Q ι α σ^{\prime}} ⋄ \\
-  \abbr{ask}(κ) &= \begin{array}[t]{rl}
-	\Do & q ← κ \\
-		& s ← \abbr{get} \\
-		& \abbr{put}(\updct{QUD}(q)(s))
-	\end{array}
+\abbr{ask} &: ℙ^{σ}_{σ^{\prime}} (α → ι → t) → ℙ^{σ}_{\Q ι α σ^{\prime}} ⋄
 \end{align*}
 $$
 
+::: {.fragment}
+$$
+\begin{align*}
+\abbr{ask}(⟦\textit{how tall?}⟧) &= \begin{array}[t]{rl}
+\Do & q^{r → ι → t} ← ⟦\textit{how tall?}⟧^{ℙ^{σ}_{σ}(r → ι → t)} \\
+& s ← \abbr{get} \\
+& \abbr{put}(\updct{QUD}(q)(s))
+\end{array}
+\end{align*}
+$$
+:::
 
 ::: {.fragment}
 ### Corollary
