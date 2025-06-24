@@ -1209,7 +1209,7 @@ Thank you! Questions before we move to RSA?
 Models
 :::
 <br>
-[@frank_predicting_2012;@goodman_pragmatic_2016; among many others].
+[@frank_predicting_2012; @goodman_pragmatic_2016, among many others].
 <br><br>
 [See @degen_rational_2023 for a recent overview of RSA and associated literature.]{.fragment}
 
