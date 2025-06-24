@@ -1,5 +1,5 @@
 ---
-title: "The bridge from theory to data"
+title: "From theory to data"
 bibliography: ../../pds.bib
 format:
   html:
@@ -41,7 +41,7 @@ Probabilistic Dynamic Semantics (PDS) aims to provide a systematic bridge betwee
 
 Semanticists study the systematic relationships between linguistic expressions and the inferences they support. The field's methodology centers on two types of judgments:
 
-**Acceptability judgments** assess whether strings are well-formed relative to a language and in a particular context of use [@chomsky_syntactic_1957; see @schütze_gramaticality_2016]. []{#exm-comitative-good} []{#exm-coordination-bad} For example, in a context where a host asks what a guest wants with coffee, (@exm-comitative-good) is clearly acceptable, while (@exm-coordination-bad) is not [@ross_constraints_1967, see @sprouse_island_2021]:
+**Acceptability judgments** assess whether strings are well-formed relative to a language and in a particular context of use [see @schütze_gramaticality_2016 and references therein]. []{#exm-comitative-good} []{#exm-coordination-bad} For example, in a context where a host asks what a guest wants with coffee, (@exm-comitative-good) is clearly acceptable, while (@exm-coordination-bad) is not [@ross_constraints_1967, see @sprouse_island_2021 and references therein]:
 
 (@exm-comitative-good) What would you like with your coffee?
 (@exm-coordination-bad) #What would you like and your coffee?
@@ -65,10 +65,10 @@ Beyond observational adequacy lies *descriptive adequacy*: capturing data "in te
 
 The history of generative syntax illustrates two approaches to achieving descriptive adequacy:
 
-1. **Analysis-driven**: Start with observationally adequate analyses in expressive formalisms, then extract generalizations as constraints
-2. **Hypothesis-driven**: Begin with constrained formalisms (like CCG or minimalist grammars) and test their empirical coverage
+1. **Analysis-driven**: Start with observationally adequate analyses in expressive formalisms, then extract generalizations as constraints [see @chomsky_conditions_1973 for a paradigm example of this approach and @baroni_proper_2022; @pavlick_symbols_2023 for more recent examples from the deep learning literature].
+2. **Hypothesis-driven**: Begin with constrained formalisms (like CCG or minimalist grammars) and test their empirical coverage [see @stabler_derivational_1997, @steedman_syntactic_2000 for paradigm examples of this approach].
 
-The hypothesis-driven approach, which PDS adopts for semantics, aims to delineate phenomena through representational constraints. This becomes crucial when developing models that both accord with theoretical assumptions and can be evaluated quantitatively [@baroni_proper_2022; @pavlick_symbols_2023].
+The hypothesis-driven approach, which PDS adopts for semantics, aims to delineate phenomena through representational constraints. This becomes crucial when developing models that both accord with theoretical assumptions and can be evaluated quantitatively.
 
 ### The Power and Natural Boundaries of Traditional Methods
 

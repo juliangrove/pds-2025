@@ -1,5 +1,5 @@
 ---
-title: "Understanding gradience: a taxonomy of uncertainty"
+title: "Understanding gradience"
 bibliography: ../../pds.bib
 format:
   html:
@@ -31,7 +31,7 @@ $$
 $$
 :::
 
-One of the most striking findings from experimental semantics is the pervasiveness of gradience in aggregated measures. While semanticists have long recognized the existence of gradience in some domains–e.g. gradable adjectives–we often assume categorical distinctions in other domains–e.g. factivity. And even where traditional approaches assume categorical distinctions, experimental methods often reveal continuous variation. For the reasons laid out above,understanding this gradience is crucial for developing theories that connect formal semantics to behavioral data.
+One of the most striking findings from experimental semantics and pragmatics is the pervasiveness of gradience in aggregated measures.^[In this course, we will focus mainly on gradience in aggregated inference judgments, but there is a deep literature on gradience in acceptability judgments within the experimental syntax literature [@bard_magnitude_1996; @keller_gradience_2000; @sorace_gradience_2005; @sprouse_continuous_2007; @sprouse_validation_2011; @featherston_magnitude_2005; @featherston_data_2007; @gibson_weak_2010; @gibson_need_2013; @sprouse_empirical_2013; @sprouse_comparison_2013; @schutze_judgment_2014; @lau_grammaticality_2017; @sprouse_colorless_2018].] While semanticists have long recognized the existence of gradience in some domains–e.g. gradable adjectives–we often assume categorical distinctions in other domains–e.g. factivity. And even where traditional approaches assume categorical distinctions, experimental methods often reveal continuous variation. For the reasons laid out above, understanding this gradience is crucial for developing theories that connect formal semantics to behavioral data.
 
 ### Examples of Potentially Unexpected Gradience
 

@@ -1,5 +1,5 @@
 ---
-title: "The experimental turn: new opportunities for semantic theory"
+title: "The experimental turn"
 bibliography: ../../pds.bib
 format:
   html:
