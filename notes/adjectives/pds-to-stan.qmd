@@ -379,7 +379,7 @@ generated quantities {
 }
 ```
 
-This baseline model treats each item as having an inherent degree along the relevant scale, with participants providing noisy measurements of these degrees. The censoring approach handles the common issue of responses at the boundaries (0 and 1) of the slider scale—implementing @lassiter_measurement_2013's approach to gradable adjective semantics.
+This baseline model treats each item as having an inherent degree along the relevant scale, with participants providing noisy measurements of these degrees. The censoring approach handles the common issue of responses at the boundaries (0 and 1) of the slider scale—implementing the approach of @lassiter_context_2013 to gradable adjective semantics.
 
 #### What we've learned about Stan
 
@@ -820,7 +820,7 @@ Our most sophisticated model implements the theoretical distinction between rela
 - **Relative adjectives** (tall, expensive): Standards shift dramatically with context
 - **Absolute adjectives** (full, empty): Standards are anchored to scale endpoints
 
-This distinction has been supported experimentally by @syrett_meaning_2010 and @toledo_absolute_2013. Our mixture model allows the data to reveal which interpretation strategy participants use.
+This distinction has been supported experimentally by @syrett_meaning_2010. Our mixture model allows the data to reveal which interpretation strategy participants use.
 
 While PDS doesn't currently output mixture models directly, this represents a natural extension where semantic theory guides statistical model structure. The mixture implements the insight that the relative/absolute distinction might not be categorical but graded—a hypothesis that emerges naturally from the compositional framework.
 
@@ -1060,7 +1060,7 @@ Let's trace through how this model handles the adjective "tall" in different con
 3. **Individual differences**: Different participants might use different interpretation strategies
 4. **Response-level inference**: We can identify which specific responses reflect which interpretation
 
-This mixture approach implements the theoretical insight that the relative/absolute distinction might not be categorical but graded, with some adjectives showing mixed behavior [@mcnally_scale_2013]. It demonstrates how semantic theory can guide statistical model structure even when PDS doesn't yet output such complex models directly.
+This mixture approach implements the theoretical insight that the relative/absolute distinction might not be categorical but graded, with some adjectives showing mixed behavior [@kennedy_scale_2005]. It demonstrates how semantic theory can guide statistical model structure even when PDS doesn't yet output such complex models directly.
 
 ## Conclusion: From theory to implementation
 
@@ -1089,4 +1089,4 @@ This work opens several avenues for development:
 
 4. **Community contributions**: The modular design of PDS invites researchers to contribute new lexical entries, delta rules, and compilation strategies.
 
-Building on the PDS framework introduced in [previous sections](../pds-intro/overview.html), we've seen how computational tools can bridge the gap between formal semantic theory and experimental data. These models provide the foundation for understanding factivity—where gradience poses even deeper theoretical puzzles that we'll explore in the next section.
+Building on the PDS framework introduced in [previous sections](../pds-intro/overview.qmd), we've seen how computational tools can bridge the gap between formal semantic theory and experimental data. These models provide the foundation for understanding factivity—where gradience poses even deeper theoretical puzzles that we'll explore in the next section.
