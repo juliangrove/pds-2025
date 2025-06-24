@@ -9,7 +9,6 @@ website:
     style: docked
     search: true
     contents:
-    - about.qmd
     - index.qmd
     - section: "Background"
       contents:
@@ -20,18 +19,25 @@ website:
       - background/new-frameworks.qmd
       - background/theoretically-oriented-approach.qmd
       - background/setting-stage.qmd
-    - section: "Introduction to PDS"
+    - section: "Introduction to probabilistic dynamic semantics"
       contents:
-      - pds-intro/index.qmd
-    - section: "Gradable adjectives"
+      - pds-intro/overview.qmd
+      - pds-intro/ccg.qmd
+      - pds-intro/adding-probabilistic-types.qmd
+      - pds-intro/common-ground.qmd
+      - pds-intro/expressions-and-discourses.qmd
+      - pds-intro/constants.qmd
+      - pds-intro/delta-rules.qmd
+    - section: "Vagueness and imprecision"
       contents:
-      - adjectives/index.qmd
+      - adjectives/adjectives-intro.qmd
+      - adjectives/pds-to-stan.qmd
     - section: "Factivity inferences"
       contents:
-      - factivity/index.qmd
+      - factivity/factivity.qmd
     - section: "Modeling the question prompt"
       contents:
-      - qud/index.qmd
+      - qud/qud.qmd
 
 format:
   html:
@@ -40,3 +46,6 @@ format:
     css: styles.css
     toc: true
     code-tools: true
+
+filters:
+  - line-highlight
