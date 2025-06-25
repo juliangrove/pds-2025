@@ -4,8 +4,8 @@ project:
   render:
     # - "background/background.qmd"
     # - "background/rsa.qmd"
-    - "pds-intro/pds-intro.qmd"
-    # - "adjectives/adjectives.qmd"
+    # - "pds-intro/pds-intro.qmd"
+    - "adjectives/adjectives-intro.qmd"
     # - "factivity/factivity.qmd"
     # - "qud/qud.qmd"
  
