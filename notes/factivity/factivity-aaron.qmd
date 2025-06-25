@@ -116,10 +116,8 @@ For the discrete-factivity hypothesis, we can derive projection judgments using:
 -- Define the discourse: "Jo knows that Bo is a linguist"
 expr1 = ["jo", "knows", "that", "bo", "is", "a", "linguist"]
 expr2 = ["how", "likely", "that", "bo", "is", "a", "linguist"]
-parses1 = interpretations @Factivity expr1 0
-parses2 = interpretations @Factivity expr2 0
-s1 = sem (head (getList parses1))
-q1 = sem (head (getList parses2))
+s1 = getSemantics @Factivity 0 expr1
+q1 = getSemantics @Factivity 0 expr2
 discourse = ty tau $ assert s1 >>> ask q1
 
 -- Compile to Stan using factivityPrior and factivityRespond
@@ -145,27 +143,19 @@ The `ITE` (if-then-else) creates a discrete choice: either the speaker interpret
 To accommodate this contextual variation, the prior over states must be updated:
 
 ```haskell
-factivityPrior = let' x (LogitNormal 0 1) 
-                 (let' y (LogitNormal 0 1) 
-                 (let' z (LogitNormal 0 1) 
-                 (Return (UpdCG (let' b (Bern x) 
-                               (let' c (Bern y) 
-                               (let' d (Bern z) 
-                               (Return (UpdTauKnow b 
-                                       (UpdLing (lam x c) 
-                                       (UpdEpi (lam x (lam p d)) _0))))))) 
-                         ϵ))))
+-- From Grammar.Lexica.SynSem.Factivity  
+factivityPrior = let' x (LogitNormal 0 1) (let' y (LogitNormal 0 1) (let' z (LogitNormal 0 1) (let' b (Bern x) (Return (UpdCG (let' c (Bern y) (let' d (Bern z) (Return (UpdLing (lam x c) (UpdEpi (lam x (lam p d)) _0))))) (UpdTauKnow b ϵ)))))
 ```
 
 The delta rules must also be modified to handle the contextual factivity parameter:
 
 ```haskell
--- Computes functions on indices
-indices :: DeltaRule
-indices = \case
+-- From Lambda.Delta: Computes functions on states
+states :: DeltaRule
+states = \case
   TauKnow (UpdTauKnow b _) -> Just b
-  TauKnow (UpdEpi _ s)     -> Just (TauKnow s)
-  TauKnow (UpdLing _ s)    -> Just (TauKnow s)
+  TauKnow (UpdCG _ s)      -> Just (TauKnow s)
+  TauKnow (UpdQUD _ s)     -> Just (TauKnow s)
   -- ... other cases
 ```
 

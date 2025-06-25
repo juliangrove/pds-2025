@@ -177,6 +177,26 @@ Gradient model substantially outperforms discrete (ΔELPD = 442.3)
 
 ---
 
+## PDS compilation process
+
+```haskell
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Factivity
+expr1 = ["jo", "knows", "that", "bo", "is", "a", "linguist"]
+expr2 = ["how", "likely", "that", "bo", "is", "a", "linguist"]
+s1 = getSemantics @Factivity 0 expr1
+q1 = getSemantics @Factivity 0 expr2
+discourse = ty tau $ assert s1 >>> ask q1
+
+-- Compile to Stan using factivityPrior and factivityRespond
+factivityExample = asTyped tau (betaDeltaNormal deltaRules . factivityRespond factivityPrior) discourse
+```
+
+::: {.fragment}
+This process transforms compositional semantics into Stan kernel models
+:::
+
+---
+
 ## The Stan implementation
 
 Key factivity-specific components:

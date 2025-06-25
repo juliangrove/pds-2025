@@ -51,11 +51,8 @@ For the scale-norming task, we first assert that Jo is a soccer player, then ask
 -- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
 expr1 = ["jo", "is", "a", "soccer", "player"]
 expr2 = ["how", "tall", "jo", "is"]
-parses1 = interpretations @Adjectives expr1 0
-parses2 = interpretations @Adjectives expr2 0
--- Extract semantic terms from parses
-s1 = sem (head (getList parses1))
-q1 = sem (head (getList parses2))
+s1 = getSemantics @Adjectives 0 expr1
+q1 = getSemantics @Adjectives 0 expr2
 discourse = ty tau $ assert s1 >>> ask q1
 scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse
 ```
@@ -79,10 +76,8 @@ For the likelihood judgment *how likely is it that Jo is tall?*, we use the bare
 -- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
 expr1 = ["jo", "is", "a", "soccer", "player"]
 expr2 = ["how", "likely", "is", "it", "that", "jo", "is", "tall"]
-parses1 = interpretations @Adjectives expr1 0
-parses2 = interpretations @Adjectives expr2 0
-s1 = sem (head (getList parses1))
-q1 = sem (head (getList parses2))
+s1 = getSemantics @Adjectives 0 expr1
+q1 = getSemantics @Adjectives 0 expr2
 discourse = ty tau $ assert s1 >>> ask q1
 likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond likelihoodPrior) discourse
 ```

@@ -693,8 +693,7 @@ Each line adds to the log probability
 ```haskell
 -- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
 expr = ["jo", "is", "tall"]
-parses = interpretations @Adjectives expr 0
-s1 = sem (head (getList parses))
+s1 = getSemantics @Adjectives 0 expr
 discourse = ty tau $ assert s1
 ```
 
@@ -705,6 +704,68 @@ model {
   mu ~ normal(0.5, 0.2);      // threshold location
   sigma ~ exponential(5);      // vagueness
   target += normal_cdf_log(d | mu, sigma);
+}
+```
+:::
+
+---
+
+# Scale-norming and Likelihood Models
+
+## Two core model types
+
+::: {.incremental}
+1. **Scale-norming**: "How tall is Jo?"
+   - Asks for degree on a scale
+   - Direct degree inference
+
+2. **Likelihood**: "How likely is it that Jo is tall?"
+   - Metalinguistic judgment
+   - Probabilistic reasoning about adjective application
+:::
+
+---
+
+## Scale-norming model
+
+```haskell
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
+expr1 = ["jo", "is", "a", "soccer", "player"]
+expr2 = ["how", "tall", "jo", "is"]
+s1 = getSemantics @Adjectives 0 expr1
+q1 = getSemantics @Adjectives 0 expr2
+discourse = ty tau $ assert s1 >>> ask q1
+```
+
+::: {.fragment}
+**PDS kernel output:**
+```stan
+model {
+  w ~ normal(0.0, 1.0);
+  target += normal_lpdf(y | w, sigma);
+}
+```
+:::
+
+---
+
+## Likelihood model
+
+```haskell
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
+expr1 = ["jo", "is", "a", "soccer", "player"] 
+expr2 = ["how", "likely", "is", "it", "that", "jo", "is", "tall"]
+s1 = getSemantics @Adjectives 0 expr1
+q1 = getSemantics @Adjectives 0 expr2
+discourse = ty tau $ assert s1 >>> ask q1
+```
+
+::: {.fragment}
+**PDS kernel output:**
+```stan
+model {
+  v ~ normal(0.0, 1.0);
+  target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma);
 }
 ```
 :::
