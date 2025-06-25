@@ -48,60 +48,35 @@ While PDS doesn't currently output mixture models directly, this represents a na
 
 The theoretical distinction between relative and absolute adjectives can be encoded directly in their lexical entries. Following the implementation in [`Grammar.Lexica.SynSem.Adjectives`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Adjectives.html), we can represent these two classes with different semantic structures.
 
-For relative adjectives, the degree depends on the context item:
+The theoretical distinction between relative and absolute adjectives suggests different semantic structures. However, the current PDS implementation in Grammar.Lexica.SynSem.Adjectives does not include separate entries for relative vs. absolute adjectives.
+
+The actual "tall" entry from PDS is:
 
 ```haskell
--- Relative adjective: degree varies by comparison class
+-- From Grammar.Lexica.SynSem.Adjectives (lines 45-48)
 "tall" -> [ SynSem {
     syn = AP,
-    sem = ty tau (lam s (purePP (lam x (lam i 
-      (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-       (sCon "d_tall" @@ s @@ (sCon "context" @@ i)))))) @@ s))
+    sem = ty tau (lam s (purePP (lam x (lam i (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ (sCon "d_tall" @@ s)))) @@ s))
 } ]
 ```
 
-For absolute adjectives, the degree is fixed:
+Note that this does not include context-dependent thresholds. The mixture model presented here represents a theoretical extension showing how such distinctions could be implemented.
+
+### Theoretical extensions for relative vs absolute interpretations
+
+While not implemented in the current PDS codebase, the theoretical distinction between relative and absolute adjectives would require different delta rules. The actual delta rules in Lambda.Delta handle state updates as follows:
 
 ```haskell
--- Absolute adjective: degree anchored to scale endpoint
-"full" -> [ SynSem {
-    syn = AP,
-    sem = ty tau (lam s (purePP (lam x (lam i 
-      (sCon "(≥)" @@ (sCon "fullness" @@ i @@ x) @@ 
-       (sCon "d_full" @@ s))))) @@ s))
-} ]
+-- From Lambda.Delta (lines 153-169)
+states :: DeltaRule
+states = \case
+  DTall   (UpdDTall d _)   -> Just d
+  DTall   (UpdCG _ s)      -> Just (DTall s)
+  DTall   (UpdQUD _ s)     -> Just (DTall s)
+  -- ... other cases
 ```
 
-The key difference lies in whether the threshold extractor takes a context argument. This semantic distinction motivates the mixture model structure—each response could result from either interpretation strategy.
-
-### Delta rules for relative vs absolute interpretations
-
-The delta rules must handle both types differently:
-
-```haskell
--- | Context-dependent thresholds (relative)
-contextual :: DeltaRule
-contextual = \case
-  D_tall ctx (UpdD_tall f s) -> Just (f @@ ctx)
-  D_tall ctx s               -> Just (lookupD_tall s ctx)
-  _                          -> Nothing
-
--- | Fixed thresholds (absolute)  
-fixed :: DeltaRule
-fixed = \case
-  D_full (UpdD_full d s) -> Just d
-  D_full s               -> Just (lookupD_full s)
-  _                      -> Nothing
-```
-
-These different extraction patterns lead to different dependencies in the statistical model:
-
-1. **Relative interpretation**: Degree varies with context
-   - Basketball players: $\ct{d\_tall}(s, \ct{basketball}) = 0.9$
-   - Children: $\ct{d\_tall}(s, \ct{children}) = 0.3$
-
-2. **Absolute interpretation**: Degree is constant
-   - All contexts: $\ct{d\_full}(s) = 0.95$
+This shows how thresholds like `DTall` are extracted from the discourse state, but there's no built-in mechanism for context-dependent thresholds. The mixture model below represents a hypothetical extension showing how relative/absolute distinctions could lead to different statistical dependencies.
 
 ### From discrete semantics to gradient behavior
 

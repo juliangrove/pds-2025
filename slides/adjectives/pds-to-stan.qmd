@@ -357,13 +357,12 @@ model {
 
 # PDS to Stan Compilation
 
-## PDS code for degree questions
+## PDS code structure
 
 ```haskell
-s1' = termOf $ getSemantics @Adjectives 1 
-      ["jo", "is", "a", "soccer player"]
-q1' = termOf $ getSemantics @Adjectives 0 
-      ["how", "tall", "jo", "is"]
+-- Example using actual PDS functions
+-- assert, ask, (>>>) from Lambda.Convenience
+-- ty from Lambda.Types
 discourse' = ty tau $ assert s1' >>> ask q1'
 ```
 
@@ -373,48 +372,32 @@ This seemingly simple code triggers a complex compilation process
 
 ---
 
-## Special lexical entry for degrees
-
-```haskell
-"tall" -> [ SynSem {
-  syn = (S :\: NP) :/: (S :/: NP :/: Deg),
-  sem = ty tau (lam s (purePP (lam f (lam x (lam i 
-    (f @@ (sCon "height" @@ i @@ x) @@ x @@ i)))))
-} ]
-```
-
-::: {.fragment}
-- Takes a degree-to-proposition function `f`
-- Applies it to the entity's height
-- Special syntax for degree questions
-:::
-
----
-
 ## The 'how' operator
 
 ```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
 "how" -> [ SynSem {
-  syn = S :/: (S :\: Deg),
-  sem = ty tau (purePP (lam p (lam i 
-    (Return (iota (lam d (p @@ d @@ i)))))))
-} ]
+  syn = Qdeg :/: (S :/: AP) :/: (AP :\: Deg),
+  sem = ty tau (purePP (lam x (lam y (lam z (y @@ (x @@ z))))))
+  }
+, SynSem {
+  syn = Qdeg :/: (S :\: Deg),
+  sem = ty tau (purePP (lam x x))
+  } ]
 ```
 
 ::: {.fragment}
-The $\iota$ (iota) operator extracts the unique degree satisfying the predicate
+These entries handle degree questions in the compositional semantics
 :::
 
 ---
 
 ## Initial semantic representation
 
-After parsing "how tall is Jo?":
-
-$$\ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))$$
+The compositional semantics for degree questions involves extracting degree information from the discourse state.
 
 ::: {.fragment}
-This complex λ-term needs simplification before it can become Stan code
+The delta rules will transform these complex semantic representations into simpler forms
 :::
 
 ---
@@ -435,10 +418,16 @@ Delta rules are partial functions that simplify terms while preserving meaning
 ## The indices delta rule
 
 ```haskell
+-- From Lambda.Delta module
 indices :: DeltaRule
 indices = \case
-  Height (UpdHeight f _) -> Just (f @@ j)
-  Height i               -> Just (lookupHeight i j)
+  Height (UpdHeight p _) -> Just p
+  Height (UpdSocPla _ i) -> Just (Height i)
+  SocPla (UpdSocPla p _) -> Just p
+  SocPla (UpdHeight _ i) -> Just (SocPla i)
+  Ling   (UpdLing p _)   -> Just p
+  Ling   (UpdEpi _ i)    -> Just (Ling i)
+  Ling   (UpdSocPla _ i) -> Just (Ling i)
   _                      -> Nothing
 ```
 
@@ -448,34 +437,20 @@ Extracts the height value from the discourse state for entity j
 
 ---
 
-## First reduction step
+## Delta reduction process
 
-Apply the indices rule:
+The indices rule extracts values from the discourse state:
 
-$$\ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))$$
-
-::: {.fragment}
-$$\downarrow \text{ indices}$$
-
-$$\ct{Return}(\iota(\lambda d[h = d]))$$
-
-where $h$ is Jo's actual height at index $i$
-:::
-
----
-
-## Iota extraction
-
-The $\iota$ operator finds the unique value satisfying the equation:
-
-$$\ct{Return}(\iota(\lambda d[h = d]))$$
+```haskell
+-- From Lambda.Delta
+indices :: DeltaRule
+indices = \case
+  Height (UpdHeight p _) -> Just p
+  -- ... other cases
+```
 
 ::: {.fragment}
-$$\downarrow \text{ iota}$$
-
-$$\ct{Return}(h)$$
-
-Final form: just the height value wrapped in Return
+Through a series of delta reductions, complex semantic terms are simplified to forms that can be compiled to Stan parameters
 :::
 
 ---
@@ -483,8 +458,8 @@ Final form: just the height value wrapped in Return
 ## Key transformations
 
 ::: {.incremental}
-1. **Degree extraction → Parameter inference**
-   - $\iota(\lambda d[...])$ becomes a Stan parameter to infer
+1. **Degree questions → Parameter inference**
+   - Questions about degrees become Stan parameters to infer
 
 2. **Functions → Arrays**
    - $\ct{height} : \iota \to e \to r$ becomes `height[person]`
@@ -549,12 +524,15 @@ New question: "Is Jo tall?"
 ## PDS entry for 'tall'
 
 ```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
 "tall" -> [ SynSem {
+  syn = AP :\: Deg,
+  sem = ty tau (purePP (lam d (lam x (lam i (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ d)))))
+  }
+, SynSem {
   syn = AP,
-  sem = ty tau (lam s (purePP (lam x (lam i 
-    (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-     (sCon "d_tall" @@ s))))) @@ s))
-} ]
+  sem = ty tau (lam s (purePP (lam x (lam i (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ (sCon "d_tall" @@ s)))) @@ s))
+  } ]
 ```
 
 ::: {.fragment}
@@ -591,11 +569,16 @@ We need to reduce this step by step using delta rules
 ## The states delta rule
 
 ```haskell
+-- From Lambda.Delta module
 states :: DeltaRule
 states = \case
-  D_tall (UpdD_tall d _) -> Just d
-  D_tall s               -> Just (lookupD_tall s)
-  _                      -> Nothing
+  DTall   (UpdDTall d _)   -> Just d
+  DTall   (UpdCG _ s)      -> Just (DTall s)
+  DTall   (UpdQUD _ s)     -> Just (DTall s)
+  CG      (UpdCG cg _)     -> Just cg
+  CG      (UpdDTall _ s)   -> Just (CG s)
+  CG      (UpdQUD _ s)     -> Just (CG s)
+  _                        -> Nothing
 ```
 
 ::: {.fragment}
@@ -639,15 +622,35 @@ where $h$ is Jo's height
 ## Arithmetic rule
 
 ```haskell
+-- From Lambda.Delta module  
 arithmetic :: DeltaRule
 arithmetic = \case
-  GE (DCon x) (DCon y) -> Just (if x >= y then Tr else Fa)
-  GE x y               -> Nothing  -- can't reduce symbolic
-  _                    -> Nothing
+  Add t u      -> case t of
+                    Zero -> Just u
+                    x@(DCon _) -> case u of
+                                    Zero       -> Just x
+                                    y@(DCon _) -> Just (x + y)
+                                    _          -> Nothing
+                    t'         -> case u of
+                                    Zero -> Just t'
+                                    _    -> Nothing
+  Mult t u     -> case t of
+                     Zero       -> Just Zero
+                     One        -> Just u
+                     x@(DCon _) -> case u of
+                                     Zero       -> Just Zero
+                                     One        -> Just x
+                                     y@(DCon _) -> Just (x * y)
+                     t'         -> case u of
+                                     Zero -> Just Zero
+                                     One  -> Just t'
+                                     _    -> Nothing
+  Neg (DCon x) -> Just (dCon (-x))
+  _            -> Nothing
 ```
 
 ::: {.fragment}
-Without concrete values, the comparison stays symbolic
+Note: This rule handles arithmetic operations, not comparisons like GE
 :::
 
 ---
@@ -688,7 +691,10 @@ Each line adds to the log probability
 
 **Input PDS:**
 ```haskell
-s1 = termOf $ getSemantics @Adjectives 1 ["jo", "is", "tall"]
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
+expr = ["jo", "is", "tall"]
+parses = interpretations @Adjectives expr 0
+s1 = sem (head (getList parses))
 discourse = ty tau $ assert s1
 ```
 
@@ -723,15 +729,15 @@ model {
 ## The likely operator
 
 ```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
 "likely" -> [ SynSem {
-  syn = S :/: S,
-  sem = ty tau (lam s (purePP (lam p (lam i 
-    (Return (normalCDF (p @@ i) 0.5 0.1))))))
+  syn = S :\: Deg :/: S,
+  sem = ty tau (lam s (purePP (lam p (lam d (lam _' (sCon "(≥)" @@ (Pr (let' i (CG s) (Return (p @@ i)))) @@ d)))) @@ s))
 } ]
 ```
 
 ::: {.fragment}
-Maps propositions to probabilities via `normalCDF`
+Compares probability of proposition to a degree threshold
 :::
 
 ---
@@ -739,40 +745,29 @@ Maps propositions to probabilities via `normalCDF`
 ## Probabilistic delta rules
 
 ```haskell
+-- From Lambda.Delta module
 probabilities :: DeltaRule
 probabilities = \case
-  NormalCDF Tr mu sigma  -> Just (normalCDF 1.0 mu sigma)
-  NormalCDF Fa mu sigma  -> Just (normalCDF 0.0 mu sigma)
-  NormalCDF (GE x y) _   -> Nothing  -- stays symbolic
-  _                      -> Nothing
+  Pr (Return Tr)                                             -> Just 1
+  Pr (Return Fa)                                             -> Just 0
+  Pr (Bern x)                                                -> Just x
+  Pr (Disj x t u)                                            -> Just (x * Pr t + (1 - x) * Pr u)
+  Pr (Let v (Normal x y) (Return (GE t (Var v')))) | v' == v -> Just (NormalCDF x y t)
+  Pr (Let v (Normal x y) (Return (GE (Var v') t))) | v' == v -> Just (NormalCDF (- x) y t)
+  _                                                          -> Nothing
 ```
 
 ---
 
-## Marginalization insight
+## How probabilities handles marginalization
 
-Key idea: marginalize over uncertainty
-
-::: {.incremental}
-- If $h \sim N(\mu_h, \sigma_h)$ (height)
-- And $d \sim N(\mu_d, \sigma_d)$ (threshold)
-- Then $P(h \geq d)$ has a closed form!
-:::
-
----
-
-## Marginalization delta rule
+The `probabilities` rule can compute $P(X \geq y)$ when $X \sim N(\mu, \sigma)$:
 
 ```haskell
-marginalize :: DeltaRule
-marginalize = \case
-  Let x (Normal mu_x sigma_x) 
-    (Let y (Normal mu_y sigma_y) 
-      (Return (GE (Var x) (Var y)))) ->
-        Just (Return (NormalCDF 0 (mu_x - mu_y) 
-                       (sqrt (sigma_x^2 + sigma_y^2))))
-  _ -> Nothing
+Pr (Let v (Normal x y) (Return (GE t (Var v')))) | v' == v -> Just (NormalCDF x y t)
 ```
+
+This evaluates to the CDF of a normal distribution, which gives us the probability that a normally distributed variable exceeds a threshold.
 
 ---
 
@@ -815,6 +810,8 @@ The probability of "tall" becomes a parameter itself
 ## Relative adjective entry
 
 ```haskell
+-- Theoretical extension: context-dependent thresholds
+-- (not in current Adjectives.hs implementation)
 "tall" -> [ SynSem {
   sem = ... (sCon "d_tall" @@ s @@ 
             (sCon "context" @@ i)) ...
@@ -830,6 +827,8 @@ Threshold depends on context - extra argument!
 ## Absolute adjective entry
 
 ```haskell
+-- Example of absolute adjective (not in Adjectives.hs)
+-- Would have fixed threshold independent of context
 "full" -> [ SynSem {
   sem = ... (sCon "d_full" @@ s) ...
 } ]
@@ -840,18 +839,6 @@ Fixed threshold - no context dependence
 :::
 
 ---
-
-## Different delta rules
-
-```haskell
--- Context-dependent (relative)
-contextual = \case
-  D_tall ctx (UpdD_tall f s) -> Just (f @@ ctx)
-  
--- Fixed (absolute)
-fixed = \case
-  D_full (UpdD_full d s) -> Just d
-```
 
 ---
 
@@ -899,9 +886,9 @@ Full statistical model
 ## What we've covered
 
 ::: {.incremental}
-- **Degree inference** via iota operator
+- **Degree inference** from questions
 - **Vagueness** as threshold uncertainty
-- **Likelihood** via marginalization
+- **Likelihood** via probabilistic computation
 - **Relative/absolute** via context dependence
 :::
 

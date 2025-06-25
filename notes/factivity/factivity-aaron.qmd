@@ -112,10 +112,15 @@ Building on [the compilation pipeline introduced for adjectives](../adjectives/a
 For the discrete-factivity hypothesis, we can derive projection judgments using:
 
 ```haskell
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Factivity
 -- Define the discourse: "Jo knows that Bo is a linguist"
-s1         = termOf $ getSemantics @Factivity 1 ["jo", "knows", "that", "bo", "is", "a", "linguist"]
-q1         = termOf $ getSemantics @Factivity 1 ["how", "likely", "that", "bo", "is", "a", "linguist"]
-discourse  = ty tau $ assert s1 >>> ask q1
+expr1 = ["jo", "knows", "that", "bo", "is", "a", "linguist"]
+expr2 = ["how", "likely", "that", "bo", "is", "a", "linguist"]
+parses1 = interpretations @Factivity expr1 0
+parses2 = interpretations @Factivity expr2 0
+s1 = sem (head (getList parses1))
+q1 = sem (head (getList parses2))
+discourse = ty tau $ assert s1 >>> ask q1
 
 -- Compile to Stan using factivityPrior and factivityRespond
 factivityExample = asTyped tau (betaDeltaNormal deltaRules . factivityRespond factivityPrior) discourse
@@ -124,10 +129,11 @@ factivityExample = asTyped tau (betaDeltaNormal deltaRules . factivityRespond fa
 This compilation process involves several key components. First, the lexical entry for *know* branches based on discourse state:
 
 ```haskell
+-- From Grammar.Lexica.SynSem.Factivity
 "knows" -> [ SynSem {
     syn = S :\: NP :/: S,
     sem = ty tau (lam s (purePP (lam p (lam x (lam i 
-      (ITE (TauKnow i) 
+      (ITE (TauKnow s) 
            (And (epi i @@ x @@ p) (p @@ i))  -- factive: belief AND truth
            (epi i @@ x @@ p))))))            -- non-factive: belief only
       @@ s)

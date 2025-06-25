@@ -354,8 +354,14 @@ This baseline model treats each item as having an inherent degree along the rele
 So what components of the above model are derived from PDS? To answer this, we need to define our PDS model of the norming task itself. Here it is:
 
 ```haskell
-s1'        = termOf $ getSemantics @Adjectives 1 ["jo", "is", "a", "soccer player"]
-q1'        = termOf $ getSemantics @Adjectives 0 ["how", "tall", "jo", "is"]
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
+expr1 = ["jo", "is", "a", "soccer", "player"]
+expr2 = ["how", "tall", "jo", "is"]
+parses1 = interpretations @Adjectives expr1 0
+parses2 = interpretations @Adjectives expr2 0
+-- Extract semantic terms from parses
+s1' = sem (head (getList parses1))
+q1' = sem (head (getList parses2))
 discourse' = ty tau $ assert s1' >>> ask q1'
 scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse'
 ```
@@ -416,11 +422,12 @@ $$
 This term undergoes several delta reductions. First, the `indices` rule extracts the height value from the discourse state:
 
 ```haskell
--- | Computes functions on indices.
+-- | Computes functions on indices (from Lambda.Delta).
 indices :: DeltaRule
 indices = \case
-  Height (UpdHeight f _) -> Just (f @@ j)
-  Height i               -> Just (lookupHeight i j)
+  Height (UpdHeight p _) -> Just p
+  Height (UpdSocPla _ i) -> Just (Height i)
+  -- Additional cases handle other index updates
   _                      -> Nothing
 ```
 
@@ -470,9 +477,13 @@ This translation embodies our linking hypothesis: semantic computations generate
 ::: {.callout-note title="PDS Compilation Details"}
 **Input PDS:**
 ```haskell
--- From Grammar.Lexica.SynSem.Adjectives
-s1'        = termOf $ getSemantics @Adjectives 1 ["jo", "is", "a", "soccer player"]
-q1'        = termOf $ getSemantics @Adjectives 0 ["how", "tall", "jo", "is"]
+-- Example PDS processing pipeline
+-- Using actual functions from PDS:
+-- interpretations :: Expr -> Int -> ParseAs m  (from Grammar.Parser)
+-- ty :: Sig -> Term -> Typed  (from Lambda.Types)
+-- asTyped :: Sig -> (Term -> Term) -> Typed -> Typed  (from Lambda.Types)
+-- assert, ask :: Term -> Term  (from Lambda.Convenience)
+-- (>>>) :: Term -> Term -> Term  (from Lambda.Convenience)
 discourse' = ty tau $ assert s1' >>> ask q1'
 scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse'
 ```

@@ -41,130 +41,108 @@ As we discussed earlier, gradable adjectives involve comparing an item's degree 
 
 ## PDS to Stan
 
-For the likelihood judgment *how likely is it that Jo is tall?*, we use the bare adjective entry (type AP) rather than the degree-question version. The PDS code is:
+I think it's right to structure this section around (1) the scale-norming model, and (2) the likelihood models. Let me present these using actual PDS examples.
+
+### Scale-norming model
+
+For the scale-norming task, we first assert that Jo is a soccer player, then ask how tall Jo is:
 
 ```haskell
-q1''        = termOf $ getSemantics @Adjectives 0 ["how", "likely", "that", "jo", "is", "tall"]
-discourse'' = ty tau $ assert s1' >>> ask q1''
-likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond likelihoodPrior) discourse''
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
+expr1 = ["jo", "is", "a", "soccer", "player"]
+expr2 = ["how", "tall", "jo", "is"]
+parses1 = interpretations @Adjectives expr1 0
+parses2 = interpretations @Adjectives expr2 0
+-- Extract semantic terms from parses
+s1 = sem (head (getList parses1))
+q1 = sem (head (getList parses2))
+discourse = ty tau $ assert s1 >>> ask q1
+scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse
 ```
 
-This uses `likelihoodPrior` to set up distributions over thresholds and degrees, capturing the uncertainty inherent in vague predicates. The prior encodes our theoretical commitment to gradience in standards.
+PDS outputs the following kernel model:
 
-### Delta rules for likelihood judgments
-
-Likelihood judgments introduce probabilistic reasoning directly into the semantics. The implementation uses helper functions from [`Lambda.Convenience`](https://juliangrove.github.io/pds/Lambda-Convenience.html) to construct probabilistic programs.
-
-Consider *How likely is Jo tall?* The compositional semantics yields:
-
-```haskell
--- Likelihood operator from Grammar.Lexica.SynSem.Adjectives
-"likely" -> [ SynSem {
-    syn = S :/: S,
-    sem = ty tau (lam s (purePP (lam p (lam i 
-      (Return (normalCDF (p @@ i) 0.5 0.1)))))) @@ s)
-} ]
-```
-
-This introduces the `normalCDF` function, which computes the cumulative distribution function of a normal distribution. When applied to a proposition about gradable adjectives, we get terms like:
-
-$$
-\ct{Return}(\ct{normalCDF}(\ct{(≥)}(h)(d), 0.5, 0.1))
-$$
-
-The delta rules handle this in stages. First, the comparison reduces to a truth value as shown earlier. However, in the probabilistic setting, we don't get a concrete $\ct{T}$ or $\ct{F}$, but rather a probabilistic comparison.
-
-The `probabilities` rule then applies:
-
-```haskell
--- | Computes probabilities for certain probabilistic programs.
-probabilities :: DeltaRule
-probabilities = \case
-  NormalCDF Tr mu sigma  -> Just (normalCDF 1.0 mu sigma)
-  NormalCDF Fa mu sigma  -> Just (normalCDF 0.0 mu sigma)
-  -- For probabilistic comparisons, we need the full distribution
-  NormalCDF (GE x y) mu sigma -> Nothing  -- Can't reduce further
-  _                      -> Nothing
-```
-
-In the probabilistic case, the comparison remains symbolic, leading to:
-
-$$
-\ct{Return}(\ct{normalCDF}(\ct{(≥)}(h, d), 0.5, 0.1))
-$$
-
-This compiles to Stan code that computes the probability of the comparison being true:
-
-```stan
-real p = normal_cdf(h - d | 0, sqrt(sigma_h^2 + sigma_d^2));
-target += normal_lpdf(y | p, 0.1);
-```
-
-### Marginalizing over uncertainty
-
-A key idea is that likelihood judgments marginalize over uncertainty in both degrees and thresholds. The delta rules preserve this structure:
-
-```haskell
--- | Marginalize over distributions
-marginalize :: DeltaRule
-marginalize = \case
-  Let x (Normal mu_x sigma_x) 
-    (Let y (Normal mu_y sigma_y) 
-      (Return (GE (Var x) (Var y)))) ->
-        Just (Return (NormalCDF 0 (mu_x - mu_y) 
-                       (sqrt (sigma_x^2 + sigma_y^2))))
-  _ -> Nothing
-```
-
-This shows how complex probabilistic reasoning can be captured through delta reduction.
-
-::: {.callout-note title="PDS Compilation Details"}
-**Input PDS:**
-```haskell
--- Likelihood judgment
-s2 = termOf $ getSemantics @Adjectives 1 ["jo", "is", "likely", "tall"]
-discourse = ty tau $ assert s2
-likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond prior) discourse
-```
-
-**Delta reductions:**
-
-1. Parse "likely tall" → $\ct{normalCDF}(\ct{(≥)}(h, d), 0.5, 0.1)$
-2. Comparison remains inside CDF (can't evaluate without values)
-3. Wrap in monadic structure with distributions over h and d
-4. Marginalization rule applies to compute overall probability
-
-**Kernel output:**^[Actual PDS output: `model { mu_h ~ normal(0.6, 0.1); sigma_h ~ exponential(10); mu_d ~ normal(0.5, 0.1); sigma_d ~ exponential(10); real p = normal_cdf((mu_h - mu_d) / sqrt(sigma_h^2 + sigma_d^2) | 0, 1); target += normal_lpdf(y | p, 0.1); }`]
 ```stan
 model {
-  // DEGREE PARAMETERS
-  mu_h ~ normal(0.6, 0.1);     // mean height
-  sigma_h ~ exponential(10);    // height uncertainty
-  
-  // THRESHOLD PARAMETERS  
-  mu_d ~ normal(0.5, 0.1);     // mean threshold
-  sigma_d ~ exponential(10);    // threshold uncertainty
-  
-  // LIKELIHOOD
-  real p = normal_cdf((mu_h - mu_d) / sqrt(sigma_h^2 + sigma_d^2) | 0, 1);
-  target += normal_lpdf(y | p, 0.1);
+  w ~ normal(0.0, 1.0);
+  target += normal_lpdf(y | w, sigma);
 }
 ```
-:::
 
-PDS outputs this kernel model:^[Actual PDS output: `model { v ~ normal(0.0, 1.0); target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma); }`]
+This kernel captures the essential degree-based semantics where `w` represents the degree on the height scale. To handle real experimental data, we augment this kernel with hierarchical structure, random effects, and proper indexing for multiple items and participants.
+
+### Likelihood model
+
+For the likelihood judgment *how likely is it that Jo is tall?*, we use the bare adjective entry (type AP) rather than the degree-question version:
+
+```haskell
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
+expr1 = ["jo", "is", "a", "soccer", "player"]
+expr2 = ["how", "likely", "is", "it", "that", "jo", "is", "tall"]
+parses1 = interpretations @Adjectives expr1 0
+parses2 = interpretations @Adjectives expr2 0
+s1 = sem (head (getList parses1))
+q1 = sem (head (getList parses2))
+discourse = ty tau $ assert s1 >>> ask q1
+likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond likelihoodPrior) discourse
+```
+
+PDS outputs this kernel model:
 
 ```stan
 model {
-  // FIXED EFFECTS
   v ~ normal(0.0, 1.0);
-  
-  // LIKELIHOOD
   target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma);
 }
 ```
 
-This kernel captures the semantic computation: the likelihood that Jo is tall depends on where Jo's height `v` falls relative to the threshold (here normalized to 0). The `normal_cdf` implements vagueness—there's no sharp cutoff but a gradual transition, exactly as the semantic theory predicts.
+This kernel captures the semantic computation: the likelihood that Jo is tall depends on where Jo's height `v` falls relative to the threshold (here normalized to 0). The `normal_cdf` implements vagueness—there's no sharp cutoff but a gradual transition.
+
+### Delta rules for likelihood judgments
+
+Likelihood judgments introduce probabilistic reasoning directly into the semantics. Consider *How likely is Jo tall?* The compositional semantics yields:
+
+```haskell
+-- From Grammar.Lexica.SynSem.Adjectives
+"likely" -> [ SynSem {
+    syn = S :\: Deg :/: S,
+    sem = ty tau (lam s (purePP (lam p (lam d (lam _' 
+      (sCon "(≥)" @@ (Pr (let' i (CG s) (Return (p @@ i)))) @@ d)))) @@ s))
+} ]
+```
+
+This uses the `Pr` operator to compute the probability of a proposition, comparing it to a degree threshold. The `Pr` operator is defined in the signature (Lambda.Convenience) and reduced by the `probabilities` delta rule in Lambda.Delta.
+
+The delta rules for probabilistic judgments are more complex than shown here. In the actual implementation, the `Pr` operator computes probabilities through marginalization over the probabilistic state monad.
+
+When we have probabilistic comparisons like height vs threshold, both drawn from distributions, the system can compute the probability that one exceeds the other. If both are normally distributed:
+- $h \sim \mathcal{N}(\mu_h, \sigma_h)$ (height)
+- $d \sim \mathcal{N}(\mu_d, \sigma_d)$ (threshold)
+
+Then $P(h \geq d)$ can be computed using the fact that $h - d \sim \mathcal{N}(\mu_h - \mu_d, \sqrt{\sigma_h^2 + \sigma_d^2})$.
+
+This mathematical insight allows the compilation to Stan code that efficiently computes these probabilities:
+
+```stan
+real p = normal_cdf((mu_h - mu_d) / sqrt(sigma_h^2 + sigma_d^2) | 0, 1);
+target += normal_lpdf(y | p, sigma_response);
+```
+
+### Probabilistic computation in PDS
+
+A key aspect of likelihood judgments is how they handle uncertainty in both degrees and thresholds. In the actual PDS implementation (Lambda.Delta), the `probabilities` delta rule handles certain probabilistic computations:
+
+```haskell
+-- From Lambda.Delta (lines 142-150)
+probabilities :: DeltaRule
+probabilities = \case
+  Pr (Let v (Normal x y) (Return (GE t (Var v')))) | v' == v -> Just (NormalCDF x y t)
+  Pr (Let v (Normal x y) (Return (GE (Var v') t))) | v' == v -> Just (NormalCDF (- x) y t)
+  -- ... other cases
+```
+
+This handles the case where we compute the probability that a normally distributed variable exceeds (or is exceeded by) a threshold. When both degrees and thresholds are uncertain, the system computes the appropriate probabilistic comparison.
+
 
 But reality is complicated: we need to handle multiple adjectives, context effects, participant variation, and censored data. The full model with analyst augmentations:
 

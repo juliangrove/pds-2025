@@ -44,7 +44,7 @@ Before diving into Stan code, let's examine how gradable adjectives are represen
     syn = AP,
     sem = ty tau (lam s (purePP (lam x (lam i 
       (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ 
-       (sCon "d_tall" @@ s))))) @@ s))
+       (sCon "d_tall" @@ s)))) @@ s))
 } ]
 ```
 
@@ -83,12 +83,16 @@ $$
 The delta rules transform this step by step. First, the `states` rule extracts the threshold:
 
 ```haskell
--- | Computes functions on states.
+-- | Computes functions on states (from Lambda.Delta)
 states :: DeltaRule
 states = \case
-  D_tall (UpdD_tall d _) -> Just d
-  D_tall s               -> Just (lookupD_tall s)
-  _                      -> Nothing
+  DTall   (UpdDTall d _)   -> Just d
+  DTall   (UpdCG _ s)      -> Just (DTall s)
+  DTall   (UpdQUD _ s)     -> Just (DTall s)
+  CG      (UpdCG cg _)     -> Just cg
+  CG      (UpdDTall _ s)   -> Just (CG s)
+  CG      (UpdQUD _ s)     -> Just (CG s)
+  _                        -> Nothing
 ```
 
 This gives us $\ct{(≥)}(\ct{height}(i)(j))(d)$ where $d$ is the contextual threshold for tallness.
@@ -96,11 +100,13 @@ This gives us $\ct{(≥)}(\ct{height}(i)(j))(d)$ where $d$ is the contextual thr
 Next, the `indices` rule extracts Jo's height:
 
 ```haskell
--- | Computes functions on indices.
+-- | Computes functions on indices (from Lambda.Delta)
 indices :: DeltaRule
 indices = \case
-  Height (UpdHeight f _) -> Just (f @@ j)
-  Height i               -> Just (lookupHeight i j)
+  Height (UpdHeight p _) -> Just p
+  Height (UpdSocPla _ i) -> Just (Height i)
+  SocPla (UpdSocPla p _) -> Just p
+  SocPla (UpdHeight _ i) -> Just (SocPla i)
   _                      -> Nothing
 ```
 
@@ -109,12 +115,9 @@ yielding $\ct{(≥)}(h)(d)$ where $h$ is Jo's height.
 Finally, the `arithmetic` rule performs the comparison:
 
 ```haskell
--- | Performs comparison operations.
-arithmetic :: DeltaRule
-arithmetic = \case
-  GE (DCon x) (DCon y) -> Just (if x >= y then Tr else Fa)
-  GE x y               -> Nothing  -- Can't reduce symbolic comparisons
-  _                    -> Nothing
+-- | Note: In the actual Lambda.Delta implementation, the arithmetic rule
+-- | handles Add, Mult, and Neg operations, not comparisons.
+-- | GE comparisons stay symbolic and are handled by the probabilities rule.
 ```
 
 The result is either $\ct{T}$ or $\ct{F}$—a truth value that can be used in probabilistic computations.
@@ -142,8 +145,11 @@ target += bernoulli_lpmf(y | h >= d);
 ::: {.callout-note title="PDS Compilation Details"}
 **Input PDS:**
 ```haskell
--- From Grammar.Lexica.SynSem.Adjectives
-s1 = termOf $ getSemantics @Adjectives 1 ["jo", "is", "tall"]
+-- Example showing PDS processing of "jo is tall"
+-- Functions from Lambda modules:
+-- ty :: Sig -> Term -> Typed
+-- assert :: Term -> Term  
+-- asTyped :: Sig -> (Term -> Term) -> Typed -> Typed
 discourse = ty tau $ assert s1
 adjectivesExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond prior) discourse
 ```

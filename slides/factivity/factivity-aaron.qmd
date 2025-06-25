@@ -160,10 +160,11 @@ Gradient model substantially outperforms discrete (ΔELPD = 442.3)
 ### Discrete-factivity in PDS
 
 ```haskell
+-- From Grammar.Lexica.SynSem.Factivity
 "knows" -> [ SynSem {
     syn = S :\: NP :/: S,
     sem = ty tau (lam s (purePP (lam p (lam x (lam i 
-      (ITE (TauKnow i) 
+      (ITE (TauKnow s) 
            (And (epi i @@ x @@ p) (p @@ i))  -- factive
            (epi i @@ x @@ p))))))            -- non-factive
       @@ s)
