@@ -1,5 +1,5 @@
 ---
-title: "Vagueness and imprecision"
+title: "Vagueness"
 bibliography: ../../pds.bib
 format:
   revealjs:
@@ -112,35 +112,35 @@ inference patterns that do not fall into any traditional semantic classification
     
   
 
----
+<!-- --- -->
 
-## Imprecision
+<!-- ## Imprecision -->
 
-Kind of like vagueness:
+<!-- Kind of like vagueness: -->
 
-(@ex-theater)  The theater is [empty]{.gb-orange} tonight. [@kennedy_vagueness_2007]
+<!-- (@ex-theater)  The theater is [empty]{.gb-orange} tonight. [@kennedy_vagueness_2007] -->
 
-- True if the theater has five people when it usually has 300.
-  - *empty* is known as a [maximum standard absolute adjective]{.gb-orange}.
-    - The standard corresponds to complete emptiness. 
-  - Vague adjectives like *expensive*: [relative]{.gb-orange} adjectives. 
-    - The standard is determined relative to some context of use.
+<!-- - True if the theater has five people when it usually has 300. -->
+<!--   - *empty* is known as a [maximum standard absolute adjective]{.gb-orange}. -->
+<!--     - The standard corresponds to complete emptiness.  -->
+<!--   - Vague adjectives like *expensive*: [relative]{.gb-orange} adjectives.  -->
+<!--     - The standard is determined relative to some context of use. -->
 
----
+<!-- --- -->
 
-## What makes imprecision a [thing]{.gb-orange}?
+<!-- ## What makes imprecision a [thing]{.gb-orange}? -->
 
-How is it different from vagueness?
+<!-- How is it different from vagueness? -->
 	
-- Borderline cases can be eliminated.
-  - [Context:]{.gb-orange}
-	the theater needs to be completely empty for the cleaning crew to work… here, a single person can make a difference. 
-- Lack of sorites paradoxes.
-  - Premise 1: A theater with zero people in it is empty.
-  - Premise 2: If an empty theater had one more person in it, it would still be empty. 
-  - [Nope!]{.gb-orange}
+<!-- - Borderline cases can be eliminated. -->
+<!--   - [Context:]{.gb-orange} -->
+<!-- 	the theater needs to be completely empty for the cleaning crew to work… here, a single person can make a difference.  -->
+<!-- - Lack of sorites paradoxes. -->
+<!--   - Premise 1: A theater with zero people in it is empty. -->
+<!--   - Premise 2: If an empty theater had one more person in it, it would still be empty.  -->
+<!--   - [Nope!]{.gb-orange} -->
 
----
+<!-- --- -->
 
 ## Inference judgments
 
@@ -148,93 +148,63 @@ Ongoing work with Helena Aparicio (Cornell Linguistics):
 
 - Collect [scale norming]{.gb-orange} data. 
   - "X drank a coffee. Guess how [expensive]{.gb-orange} it was?" 
-  - "X drank a glass of wine. Guess how [full]{.gb-orange} it was?" 
 - Collect [adjectival inference]{.gb-orange} data. 
   - "X drank a coffee. How likely is it that it was [expensive]{.gb-orange}?" (vague) 
-  - "X drank a glass of wine. How likely is it that it was [full]{.gb-orange}?" (imprecise)
 
 ---
 
-## Modeling
-  Using the norming data to help model the adjectival inference data: 
-  
+## Modeling pipeline
 
-  - Assume that people make likelihood judgments based on their probabilistic estimate of where an object lands on the adjective's scale. \\ 
-    \hspace{1cm} ↝ We can model the distribution over estimates using \\
-    \hspace{15mm} the norming data.  
-  
+Using the norming data to help model the adjectival inference data: 
 
-  Steps:  
-  
-
-  - Construct a ``relative'' model, which allows the adjective's standard threshold to freely vary from - to -. 
-  - Construct an ``absolute'' model, which forces the standard threshold to be at the right endpoint of the scale, also allowing some imprecision (i.e., a pragmatic halo). 
-  - Combine the models into a single hierarchical model, allowing each adjective to determine a preference for one or the other.
-  
+- Assume that people make likelihood judgments based on their probabilistic estimate of where an object lands on the adjective's scale.<br> 
+- Then, we can model the distribution over these estimates *using* a model fit to the norming data.
 
 ---
 
 ## Norming task
-  Relative example \hfill Absolute example
-  
-    ![](images/expensive_norming.png){width=53mm}
-    ![](images/full_norming.png){width=53mm}
-  
-  
 
-  - 12 adjectives (six relative, six absolute)
-  - 3 possible contexts for each adjective (``high'', ``medium'', ``low'')
-  
+<br>
+<div style="text-align: center;">
+<img src="images/expensive_norming.png" style="width: 60%;">
+</div>
 
----
-
-## Norming model
-  
-    ![](images/norming_posteriors.pdf){width=115mm}
-  
-  \footnotesize
-  
-
-  - flat priors on the guesses
-  - normally distributed participant intercepts
-  - normal likelihood; endpoint responses modeled as censored data
-  
+- 6 relative adjectives
+- 3 possible contexts for each adjective ("high", "medium", "low")
 
 ---
 
 ## Adjectival inference task
 
-		Relative example \hfill Absolute example
-	
-![](images/expensive_test.png){width=53mm}
-![](images/full_test.png){width=53mm}
-  
-  
+<br>
+<div style="text-align: center;">
+<img src="images/expensive_test.png" style="width: 70%;">
+</div>
 
-  - Same 12 adjectives (six relative, six absolute)
-  - Same 3 possible contexts for each adjective (``high'', ``medium'', ``low'')
-  
+- Same 6 adjectives (six relative, six absolute)
+- Same 3 possible contexts for each adjective ("high", "medium", "low") 
 
 ---
 
 ## Adjectival inference data: by scale type
   
-    ![](images/adjectival_inference.pdf){width=115mm}
-  
+<br>
+<div style="text-align: center;">
+<img src="images/adjectival_inference.pdf" style="width: 70%;">
+</div>
 
 ---
 
 ## Adjectival inference data: by adjective
   
-    ![](images/adjectival_inference_by_adj.pdf){width=115mm}
+![](images/adjectival_inference_by_adj.pdf)
   
 
 ---
 
 ## Adjectival inference models
   
-    ![](images/blackboard.jpg){width=7cm}
-  
+![](images/blackboard.jpg)
 
 ---
 
