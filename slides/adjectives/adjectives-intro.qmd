@@ -1,5 +1,9 @@
 ---
+<<<<<<< HEAD
+title: "Vagueness"
+=======
 title: "From PDS to Stan"
+>>>>>>> notes-aaron-adjectives
 bibliography: ../../pds.bib
 format:
   revealjs:
@@ -31,396 +35,199 @@ $$
 $$
 :::
 
-## Gradable adjective semantics
-
-
-## Inferences
-  Semanticists are in the business of classifying linguistic inferences: 
-  
-
-  - \textbf{entailments}:
-    \emph{at-issue} meaning; what is implied \emph{literally} 
-    
-
-    - *the dog bit me* ↝ *something bit me* 
-    - If entailment is false, you have said something false! 
-    - Destroyed by negation: \\
-      *the dog didn't bite me* \(\not\leadsto\) *something bit me*
-     
-  - \textbf{presuppositions}:
-    backgrounded inferences 
-    
-
-    - *\uline{the dog} bit me* ↝ *there is a dog* 
-    - If presupposition is false, you have said something \emph{weird}! \\
-      
-    - \emph{Projects} past negation: \\
-      *the dog didn't bite me* ↝ *there is a dog*
-    
-  
-
----
-
 ## Studying inferences: big picture
-  Semantic inferences (e.g., entailments, presuppositions) are discrete:
-  they are turned on or off by linguistic expressions. \\ 
-  
-  Semantics studies such inferences in terms of [grammars]{.gb-orange}. \\ 
-  These are formal systems which: 
-  
 
-  - map individual words onto logical formulae of some kind; 
-  - put formulae for words together → get formulae for phrases; 
-  - yield theories of a significant chunk of an entire language\ldots \\ 
-    \ldots is an inference ``on'' or ``off'' for the expressions in that chunk.
-   
+::: {.fragment}
+Semantic inferences (e.g., entailments, presuppositions) are typically assumed to be [discrete]{.gb-orange}.
 
-  
-    \textbf{Vagueness makes this hard.}
-  
+- They are turned on or off by linguistic expressions.
+:::
 
+::: {.fragment}
+Semantic grammars model these inferences by:
+
+- mapping words and phrases onto logical formulae compositionally; 
+- determining if an inference "on" or "off" for the expressions of a significant chunk of the language.
+:::
+ 
 ---
 
-## Vagueness: adjectives
-  Vague adjectives:
-  *tall}, *wide*, \textit{expensive*, *happy}, \ldots \vspace{-2mm* 
-  
-  \ex[exno=1] \label{ex:coffee}
-  The coffee in Rome is \alert{expensive}. \hfill \parencite{kennedy_vagueness_2007}
-  \xe
-  
-  \begin{columns}
-    \begin{column}{0.65\columnwidth}
-      \onslide<3->{True if: \vspace{-2mm}}
-      
+## Vague adjectives
 
-      - \onslide<4->{the cost of coffee in Rome is as great as a salient threshold,
-          \alert{\(d\)}: \\
-          
-            \(c ≥ d\)
-          
-        }
-      - \onslide<5->{Maybe the cost of coffee is 3 euros.}
-      - \onslide<6->{\(d\) is \alert{vague}\ldots \\}
-        \onslide<7->{\ldots maybe it ranges somewhere from 2 euros to 4 euros.}
-      
-    \end{column}
-    \begin{column}{0.35\columnwidth}
-      \onslide<2->{![](images/coffee.jpg}){width=3cm}
-    \end{column}
-  \end{columns}
+- *tall*, *wide*, *expensive*, *happy*, ... 
+  
+(@ex-coffee) The coffee in Rome is [expensive]{.gb-orange}. [@kennedy_vagueness_2007]
+  
+- True if: the cost of coffee in Rome is as great as a salient threshold, [$d$]{.gb-orange}:
+  $$c ≥ d$$
+- Maybe the cost of coffee is 3 euros.
+- $d$ is [vague]{.gb-orange}... maybe it ranges somewhere from 2 euros to 4 euros.
 
 ---
 
 ## Vagueness: strange inference patterns
-  Vague adjectives such as *expensive* \vspace{-2mm} 
-  
 
-  - admit \alert{borderline cases}: 
-    
+Vague adjectives such as *expensive*
 
-    - Mud Blend: \$1.50/lb \xmark 
-    - Organic Kona: \$20/lb \checkmark 
-    - Swell Start Blend: \$9.25/lb ??
-     
-  - produce \alert{sorites paradoxes}:
-    \mbox{} \\
-    \mbox{} \\
-    \mbox{}
-  
-
----
-
-## Sorites: \$10
-  
-Is a \$10 cup of coffee expensive? \\ 
-    
-![](images/hands1.jpg){width=6cm}
-  
-
----
-
-## Sorites: \$9.99
-  
-Take \$0.01 away.  Is a \$9.99 cup of coffee expensive? \\ 
-    
-![](images/hands2.jpg){width=6cm}
-  
-
----
-
-## Sorites: \$9.98
-  
-Take \$0.01 away.  Is a \$9.98 cup of coffee expensive? \\ 
-    
-![](images/hands3.jpg){width=6cm}
-  
+- admit [borderline cases]{.gb-orange}: 
+  - Mud Blend: $1.50/lb \ \ 🙁
+  - Organic Kona: $20/lb \ \ 🥰
+  - Swell Start Blend: $9.25/lb ??
 
 ---
 
 ## Vagueness: strange inference patterns
-  Vague adjectives such as *expensive* \vspace{-2mm}
+
+- produce [sorites paradoxes]{.gb-orange}:
+
+---
+
+## Sorites: $10
   
+Is a $10 cup of coffee expensive? 
 
-  - admit \alert{borderline cases}:
-    
+::: {.fragment}
+![](images/hands1.jpg){width=800}
+:::
 
-    - Mud Blend: \$1.50/lb \xmark
-    - Organic Kona: \$20/lb \checkmark
-    - Swell Start Blend: \$9.25/lb ??
-    
-  - produce \alert{sorites paradoxes}: \\ 
-    Premise 1: A \$10 cup of coffee is expensive. \\ 
-    Premise 2: If an expensive cup of coffee were 1 cent cheaper, it would still be expensive. \\ 
-    Conclusion: \emph{Therefore}, a \alert{free} cup of coffee is expensive!
+---
+
+## Sorites: $9.99
+  
+Take $0.01 away. Is a $9.99 cup of coffee expensive? 
+
+::: {.fragment}
+![](images/hands2.jpg){width=800}
+:::
+
+---
+
+## Sorites: $9.98
+  
+Take $0.01 away. Is a $9.98 cup of coffee expensive? 
+
+::: {.fragment}
+![](images/hands3.jpg){width=800}
+:::
+
+---
+
+## Vagueness: strange inference patterns
+
+- produce [sorites paradoxes]{.gb-orange}: 
+  - Premise 1: A $10 cup of coffee is expensive. 
+  - Premise 2: If an expensive cup of coffee were 1 cent cheaper, it would still be expensive.
+  - Conclusion: *Therefore*, a [free]{.gb-orange} cup of coffee is expensive!
   
 
 ---
 
-## Why is this vagueness tricky to handle?
-  Borderline cases and sorites paradoxes: 
-  inference patterns that do not fall into any traditional semantic classification. 
+## Why tricky?
+Borderline cases and sorites paradoxes: 
+inference patterns that do not fall into any traditional semantic classification. 
 
-  
-
-  - Borderline cases:
-    things to which the adjective neither applies nor doesn't apply. 
-    
-
-    - The inference is not simply ``on'' or ``off''!
-     
-  - The sorites paradox: troublesome because \ldots 
-    
-
-    - inferences should be \textbf{closed under implication}: \\ 
-      if \$10 ↝ \$9.99, and \$9.99 ↝ \$9.98, then \$10.00 ↝ \$9.98. 
-    - *a \$10 cup is expensive* ↝ *a free cup is expensive*
+- Borderline cases:
+  things to which the adjective neither applies nor doesn't apply. 
+- The inference is not simply "on" or "off".
+- The sorites paradox: troublesome because... 
+  - inferences should be closed under implication: 
+	if $10 ↝ $9.99, and $9.99 ↝ $9.98, then $10.00 ↝ $9.98. 
+	- *a $10 cup is expensive* ↝ *a free cup is expensive*
     
   
+
+<!-- --- -->
+
+<!-- ## Imprecision -->
+
+<!-- Kind of like vagueness: -->
+
+<!-- (@ex-theater)  The theater is [empty]{.gb-orange} tonight. [@kennedy_vagueness_2007] -->
+
+<!-- - True if the theater has five people when it usually has 300. -->
+<!--   - *empty* is known as a [maximum standard absolute adjective]{.gb-orange}. -->
+<!--     - The standard corresponds to complete emptiness.  -->
+<!--   - Vague adjectives like *expensive*: [relative]{.gb-orange} adjectives.  -->
+<!--     - The standard is determined relative to some context of use. -->
+
+<!-- --- -->
+
+<!-- ## What makes imprecision a [thing]{.gb-orange}? -->
+
+<!-- How is it different from vagueness? -->
+	
+<!-- - Borderline cases can be eliminated. -->
+<!--   - [Context:]{.gb-orange} -->
+<!-- 	the theater needs to be completely empty for the cleaning crew to work… here, a single person can make a difference.  -->
+<!-- - Lack of sorites paradoxes. -->
+<!--   - Premise 1: A theater with zero people in it is empty. -->
+<!--   - Premise 2: If an empty theater had one more person in it, it would still be empty.  -->
+<!--   - [Nope!]{.gb-orange} -->
+
+<!-- --- -->
+
+## Inference judgments
+
+Ongoing work with Helena Aparicio (Cornell Linguistics):
+
+- Collect [scale norming]{.gb-orange} data. 
+  - "X drank a coffee. Guess how [expensive]{.gb-orange} it was?" 
+- Collect [adjectival inference]{.gb-orange} data. 
+  - "X drank a coffee. How likely is it that it was [expensive]{.gb-orange}?" (vague) 
 
 ---
 
-## Imprecision
-  Imprecision is kind of like vagueness:\vspace{-2mm}
-  \ex[exno=3] \label{ex:theater}
-  The theater is \alert{empty} tonight. \hfill \parencite{kennedy_vagueness_2007}
-  \xe \vspace{-9mm}
+## Modeling pipeline
 
-  True if the theater has five people when it usually has 300. \\
+Using the norming data to help model the adjectival inference data: 
 
-  
-
-  - *empty* is known as a \textbf{maximum standard \underline{absolute} adjective}.
-    
-
-    - The standard corresponds to complete emptiness.
-     
-  - Vague adjectives like *expensive*: \textbf{\underline{relative} adjectives}. 
-    
-
-    - The standard is determined relative to some context of use.
-    
-  
-
----
-
-## What makes imprecision a \emph{thing}?
-  How is it different from vagueness?
-  
-
-  - Borderline cases can be eliminated.
-    
-
-    - [Context:]{.gb-orange}
-      the theater needs to be completely empty for the cleaning crew to work… \\
-      … here, a single person can make a difference. 
-    
-  - Lack of sorites paradoxes.
-    
-
-    - Premise 1: A theater with zero people in it is empty. \\ 
-      Premise 2: If an empty theater had one more person in it, it would still be empty. \hfill [Nope!]{.gb-orange}
-    
-  
-
----
-
-## Characterizing vagueness and imprecision
-  A number of different approaches to vagueness and imprecision have been entertained over the years. 
-  
-
-  - Vagueness: 
-    
-
-    - \alert{Logical systems} with non-standard values for sentences:
-      ``True'', ``False'', but also ``Neither'' (for borderline cases) 
-    - \alert{Contextualist approaches}:
-      vague adjectives produce widely varying inferences which depend on the context of use. 
-    
-  - Imprecision: 
-    
-
-    - A prominent pragmatic approach \parencite{lasersohn_pragmatic_1999}: \\ 
-      a ``pragmatic halo'' surrounds the semantically fixed standard threshold. \\
-      \hspace{1cm} ↝ Error must be ``inside'' the halo. 
-    
-  
-
----
-
-## Characterizing vagueness and imprecision (cont'd)
-  
-
-  - Both vagueness and imprecision: 
-    
-
-    - \alert{Probabilistic approaches}:
-      people are implicitly performing probabilistic reasoning about whether or not the adjective applies to something. 
-      
-
-      - borderline cases:
-        \(∼0.5\) probability that adjective applies. 
-      - sorites reasoning:
-        `A ↝ B' really means \(P(B ∣ A)\) is \emph{high}.
-      
-     
-    % 
-      % \alert{General challenge}:
-      % how to make precise predictions while conforming to the constraints of logical formalisms?
-    % 
-  
-
----
-
-## Investigating vagueness and imprecision using inference judgments
-  Ongoing work with Helena Aparicio (Cornell Linguistics):  \vspace{-2mm}
-  
-
-  - let's see if a Bayesian model of inference judgment data can ``learn'' which adjectives are relative (vague) and which are absolute maximum standard (imprecise). 
-  
-  Plan: \vspace{-2mm} 
-  
-
-  - Collect \textbf{scale norming} data. 
-    
-
-    - ``X drank a coffee. Guess how \alert{expensive} it was?'' 
-    - ``X drank a glass of wine. Guess how \alert{full} it was?'' 
-    
-  - Collect \textbf{adjectival inference} data. 
-    
-
-    - ``X drank a coffee. How likely is it that it was \alert{expensive}?'' (vague) 
-    - ``X drank a glass of wine. How likely is it that it was \alert{full}?'' (imprecise)
-    
-  
-
----
-
-## Modeling
-  Using the norming data to help model the adjectival inference data: 
-  
-
-  - Assume that people make likelihood judgments based on their probabilistic estimate of where an object lands on the adjective's scale. \\ 
-    \hspace{1cm} ↝ We can model the distribution over estimates using \\
-    \hspace{15mm} the norming data.  
-  
-
-  Steps: \vspace{-2mm} 
-  
-
-  - Construct a ``relative'' model, which allows the adjective's standard threshold to freely vary from - to -. 
-  - Construct an ``absolute'' model, which forces the standard threshold to be at the right endpoint of the scale, also allowing some imprecision (i.e., a pragmatic halo). 
-  - Combine the models into a single hierarchical model, allowing each adjective to determine a preference for one or the other.
-  
+- Assume that people make likelihood judgments based on their probabilistic estimate of where an object lands on the adjective's scale.<br> 
+- Then, we can model the distribution over these estimates *using* a model fit to the norming data.
 
 ---
 
 ## Norming task
-  Relative example \hfill Absolute example
-  
-    ![](images/expensive_norming.png){width=53mm}
-    ![](images/full_norming.png){width=53mm}
-  
-  
 
-  - 12 adjectives (six relative, six absolute)
-  - 3 possible contexts for each adjective (``high'', ``medium'', ``low'')
-  
+<br>
+<div style="text-align: center;">
+<img src="images/expensive_norming.png" style="width: 60%;">
+</div>
 
----
-
-## Norming model
-  
-    ![](images/norming_posteriors.pdf){width=115mm}
-  
-  \footnotesize
-  
-
-  - flat priors on the guesses
-  - normally distributed participant intercepts
-  - normal likelihood; endpoint responses modeled as censored data
-  
+- 6 relative adjectives
+- 3 possible contexts for each adjective ("high", "medium", "low")
 
 ---
 
 ## Adjectival inference task
 
-		Relative example \hfill Absolute example
-	
-![](images/expensive_test.png){width=53mm}
-![](images/full_test.png){width=53mm}
-  
-  
+<br>
+<div style="text-align: center;">
+<img src="images/expensive_test.png" style="width: 70%;">
+</div>
 
-  - Same 12 adjectives (six relative, six absolute)
-  - Same 3 possible contexts for each adjective (``high'', ``medium'', ``low'')
-  
+- Same 6 adjectives (six relative, six absolute)
+- Same 3 possible contexts for each adjective ("high", "medium", "low") 
 
 ---
 
-## Adjectival inference data: by scale type
+## Adjectival inference data: aggregate
   
-    ![](images/adjectival_inference.pdf){width=115mm}
-  
+::: {style="text-align: center;"}
+![](images/relative.png){height=600}
+:::
 
 ---
 
 ## Adjectival inference data: by adjective
   
-    ![](images/adjectival_inference_by_adj.pdf){width=115mm}
-  
+::: {style="text-align: center;"}
+![](images/expensive.png){height=200}
+![](images/tall_wide.png){height=200}
+:::
+
+::: {style="text-align: center;"}
+![](images/deep.png){height=200}
+![](images/heavy_old.png){height=200}
+:::
 
 ---
-
-## Adjectival inference models
-  
-    ![](images/blackboard.jpg){width=7cm}
-  
-
----
-
-
-
-
-# Case study: vagueness and imprecision
-
-## Background on vagueness and imprecision
-
-# The data-collection pipeline
-
-## Scale norming
-
-## Likelihood inferences
-
-# Compositional semantics
-
-## Gradable adjectives
-
-## Scale-norming prompts
-
-## Likelihood prompts
-
-# Some implementation details
-
-## Delta rules

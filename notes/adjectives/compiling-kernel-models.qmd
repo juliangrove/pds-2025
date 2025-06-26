@@ -31,7 +31,7 @@ $$
 $$
 :::
 
-Having seen how gradable adjectives are represented in PDS's compositional semantics, we now turn to the practical challenge of implementing statistical models that test these semantic theories against experimental data. The translation from abstract semantic theory to concrete statistical models requires careful attention to how theoretical commitments manifest as computational procedures. This section demonstrates this translation through three increasingly sophisticated models: the first is a relatively simple model of the norming data we just discussed; the second two are models of the gradable adjectives data.
+Having seen how gradable adjectives are represented in PDS's compositional semantics, we now turn to the practical challenge of implementing statistical models that test these semantic theories against experimental data. The translation from abstract semantic theory to concrete statistical models requires careful attention to how theoretical commitments manifest as computational procedures. This section demonstrates this translation through two models: the first is a relatively simple model of the norming data we just discussed; the second is a model of the gradable adjectives data.
 
 ## Stan as an intermediary
 
@@ -47,6 +47,6 @@ Before diving into the implementation details, it's important to understand what
 
 This distinction is crucial: PDS automates the translation from compositional semantics to the core statistical model, while leaving room for analysts to add domain-specific statistical structure. As we'll see, this separation allows us to maintain theoretical clarity while building models sophisticated enough to handle real experimental data.
 
-We'll be showing prettified versions of what the system actually outputs. For every model block, we'll also provide the current system output in a footnote.
+We'll be showing prettified versions of what the system actually outputs. For every model block, we'll also provide the current system output in a footnote, in addition to the prettified version.
 
-With this understanding of kernel models and Stan's role, we can now examine specific implementations. We'll start with the simplest case—inferring degrees from norming data—before building up to more complex models of vagueness.
+With this understanding of kernel models and Stan's role, we can now examine specific implementations. We'll start with the simplest case—inferring degrees from norming data—before building up to a model of vagueness.
