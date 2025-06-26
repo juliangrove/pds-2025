@@ -160,10 +160,11 @@ Gradient model substantially outperforms discrete (ΔELPD = 442.3)
 ### Discrete-factivity in PDS
 
 ```haskell
+-- From Grammar.Lexica.SynSem.Factivity
 "knows" -> [ SynSem {
     syn = S :\: NP :/: S,
     sem = ty tau (lam s (purePP (lam p (lam x (lam i 
-      (ITE (TauKnow i) 
+      (ITE (TauKnow s) 
            (And (epi i @@ x @@ p) (p @@ i))  -- factive
            (epi i @@ x @@ p))))))            -- non-factive
       @@ s)
@@ -172,6 +173,26 @@ Gradient model substantially outperforms discrete (ΔELPD = 442.3)
 
 ::: {.fragment}
 `ITE` creates discrete choice based on `TauKnow` parameter
+:::
+
+---
+
+## PDS compilation process
+
+```haskell
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Factivity
+expr1 = ["jo", "knows", "that", "bo", "is", "a", "linguist"]
+expr2 = ["how", "likely", "that", "bo", "is", "a", "linguist"]
+s1 = getSemantics @Factivity 0 expr1
+q1 = getSemantics @Factivity 0 expr2
+discourse = ty tau $ assert s1 >>> ask q1
+
+-- Compile to Stan using factivityPrior and factivityRespond
+factivityExample = asTyped tau (betaDeltaNormal deltaRules . factivityRespond factivityPrior) discourse
+```
+
+::: {.fragment}
+This process transforms compositional semantics into Stan kernel models
 :::
 
 ---

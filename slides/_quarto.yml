@@ -6,6 +6,7 @@ project:
     # - "background/rsa.qmd"
     # - "pds-intro/pds-intro.qmd"
     - "adjectives/adjectives-intro.qmd"
+    - "adjectives/pds-to-stan.qmd"
     # - "factivity/factivity.qmd"
     # - "qud/qud.qmd"
  
