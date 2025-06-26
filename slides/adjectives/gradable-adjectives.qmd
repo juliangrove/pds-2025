@@ -461,7 +461,7 @@ q1'        = termOf $ getSemantics @Adjectives 0
              ["how", "tall", "jo", "is"]
 discourse' = ty tau $ assert s1' >>> ask q1'
 scaleNormingExample = asTyped tau 
-  (betaDeltaNormal deltaRules . 
+  (betaΔNormal δRules . 
    adjectivesRespond scaleNormingPrior) discourse'
 ```
 
@@ -506,36 +506,33 @@ The degree-argument version of adjectives enables degree questions
 
 For *how tall is Jo?*, composition yields:
 
-$$λd, i.\ct{height}(i)(j) ≥ d$$
+$$λd, i.\ct{height}(i)(\ct{j}) ≥ d$$
 
 ::: {.fragment}
 When $\abbr{respond}$ comes into the picture, some index $i^{\prime}$ is sampled from the common ground, and the maximal answer to the question is determined to be:
 
-$$\ct{max}(λd.\ct{height}(i^{\prime})(j) ≥ d)$$
+$$\ct{max}(λd.\ct{height}(i^{\prime})(\ct{j}) ≥ d)$$
 :::
 
 ---
 
-## delta-rules: What are they?
+## δ-rules: What are they?
 
-- delta-rules enable different semantic computations while preserving semantic equivalence
-- Formalism is strongly normalizing and confluent, so:
-  - Order of rule application doesn't affect the final result
-  - Our semantic theory remains consistent
+```haskell
+type DeltaRule = Term -> Maybe Term
+```
 
-::: {.incremental}
-- Type: `Term -> Maybe Term`
-- Preserve semantic equivalence
-- Enable computational tractability
-- Defined in [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html)
-:::
+- δ-rules enable different semantic computations while preserving semantic equivalence
+- Order of rule application doesn't affect the final result
+- They should be [sound]{.gb-orange}
+  - Meaning: the equalities they encode should be (mathematically) true equalities
 
 ---
 
-## The `indices` and `maxes` delta-rules
+## The `indices` and `maxes` δ-rules
 
 ```haskell {style="font-size: 80%;"}
--- From Lambda.Delta module
+-- From Lambda.Δ module
 indices :: DeltaRule
 indices = \case
   Height (UpdHeight p _) -> Just p
@@ -550,12 +547,14 @@ indices = \case
 Extracts values from the discourse state
 :::
 
+::: {.fragment}
 ```haskell
 maxes :: DeltaRule
 maxes = \case
    Max (Lam y (GE x (Var y'))) | y' == y -> Just x
    _                                     -> Nothing  
 ```
+:::
 
 ::: {.fragment}
 Extracts the unique degree satisfying the inequality
@@ -563,21 +562,19 @@ Extracts the unique degree satisfying the inequality
 
 ---
 
-## delta-reduction walkthrough
+## δ-reduction walkthrough
 
 For degree questions like *how tall is Jo?*, the compositional semantics produces:
-$$\ct{max}(λd.\ct{height}(i^{\prime})(j) ≥ d)$$
+$$\ct{max}(λd.\ct{height}(i^{\prime})(\ct{j}) ≥ d)$$
 
 ::: {.fragment}
 Apply `indices` rule to extract height:
-$$\ct{max}(λd.h ≥ d)$$
+$$\text{becomes}\,\,\, \ct{max}(λd.h ≥ d)$$
 where $h$ represents Jo's actual height at index $i$
 :::
 
 ::: {.fragment}
-Apply max extraction using the following delta-rule:
-$$h$$
-This final form directly corresponds to the Stan parameter we need to infer—the degree on the height scale.
+Apply max extraction using the following δ-rule: becomes $h$
 :::
 
 ---
@@ -588,8 +585,8 @@ This final form directly corresponds to the Stan parameter we need to infer—th
 - Translation embodies (some of) our linking hypothesis between semantic competence and performance
 
 ::: {.incremental}
-1. **Degree extraction becomes parameter inference**
-   - $\ct{max}(λd.\ct{height}(i)(j) ≥ d)$ → Infer parameter `height_jo`
+1. **Degree extraction feeds parameter inference**
+   - $\ct{max}(λd.\ct{height}(i)(\ct{j}) ≥ d)$ → Infer parameter `height_jo`
    - The unique degree satisfying the equation becomes a parameter to estimate
 
 :::
@@ -600,15 +597,15 @@ This final form directly corresponds to the Stan parameter we need to infer—th
 
 ::: {.fragment}
 2. **Functions become arrays**
-   - $\ct{height} : \iota \to e \to r$ → Array `height[person]`
-   - Function application → Array indexing
+   - $\ct{height} : \iota \to e \to r$: Array `height[person]`
+   - Function application: Array indexing
 
 3. **Propositions become probabilities**
-   - Truth values → Real numbers in [0,1]
-   - Logical operations → Probabilistic operations
+   - Truth values: Real numbers in [0,1]
+   - Logical operations: Probabilistic operations
 
-4. **The monad becomes Stan's target**
-   - The $\Do$-notation structures sequential computation
+4. **The probabilistic bind statements become Stan's target**
+   - The $∼$ structures sequential computation
    - This determines Stan's log probability
 :::
 
@@ -616,7 +613,7 @@ This final form directly corresponds to the Stan parameter we need to infer—th
 
 ## PDS kernel output
 
-The PDS system outputs the following kernel model:
+The PDS system outputs the following kernel model, given the semantic fragment:
 
 ```stan
 model {
@@ -628,13 +625,12 @@ model {
 }
 ```
 
-::: {.fragment}
-::: {style="font-size: 85%;"}
-Actual PDS output: `model { w ~ normal(0.0, 1.0); target += normal_lpdf(y | w, sigma); }`
-:::
+<!-- ::: {.fragment} -->
+<!-- ::: {style="font-size: 85%;"} -->
+<!-- Actual PDS output: `model { w ~ normal(0.0, 1.0); target += normal_lpdf(y | w, sigma); }` -->
+<!-- ::: -->
 
 Captures the essential degree-based semantics where `w` represents the degree on the height scale.
-:::
 
 ---
 
@@ -698,7 +694,7 @@ s1 = getSemantics @Adjectives 0 expr1
 q1 = getSemantics @Adjectives 0 expr2
 discourse = ty tau $ assert s1 >>> ask q1
 likelihoodExample = asTyped tau 
-  (betaDeltaNormal deltaRules . 
+  (betaΔNormal δRules . 
    adjectivesRespond likelihoodPrior) discourse
 ```
 
@@ -744,27 +740,27 @@ Compares probability of embedded proposition to a degree
 
 ---
 
-## delta-reduction for vagueness
+## δ-reduction for vagueness
 
 Starting with *Jo is tall*:
-$$\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$$
+$$\ct{(≥)}(\ct{height}(i)(\ct{j}))(\ct{d\_tall}(s))$$
 
 ::: {.fragment}
 Apply `states` rule to extract threshold:
-$$\ct{(≥)}(\ct{height}(i)(j))(d)$$
+$$\text{becomes}\,\,\,\ct{(≥)}(\ct{height}(i)(\ct{j}))(d)$$
 :::
 
 ::: {.fragment}
 Apply `indices` rule to extract height:
-$$\ct{(≥)}(h)(d)$$
+$$\text{becomes}\,\,\,\ct{(≥)}(h)(d)$$
 :::
 
 ---
 
-## The states delta-rule
+## The states δ-rule
 
 ```haskell {style="font-size: 75%;"}
--- From Lambda.Delta (lines 167-183)
+-- From Lambda.Δ (lines 167-183)
 states :: DeltaRule
 states = \case
   CG      (UpdCG cg _)     -> Just cg
@@ -780,10 +776,10 @@ states = \case
 
 ---
 
-## The probabilities delta-rule
+## The probabilities δ-rule
 
 ```haskell {style="font-size: 75%;"}
--- From Lambda.Delta (lines 156-164)
+-- From Lambda.Δ (lines 156-164)
 probabilities :: DeltaRule
 probabilities = \case
   Pr (Return Tr)         -> Just 1
@@ -804,8 +800,8 @@ probabilities = \case
 The system computes $P(h \geq d)$ when both are uncertain:
 
 ::: {.incremental}
-- $h \sim \mathcal{N}(\mu_h, \sigma_h)$ (height)
-- $d \sim \mathcal{N}(\mu_d, \sigma_d)$ (threshold)
+- $h \sim \ct{Normal}(\mu_h, \sigma_h)$ (height)
+- $d \sim \ct{Normal}(\mu_d, \sigma_d)$ (threshold)
 - Result: `normal_cdf` computation in Stan
 :::
 
@@ -856,29 +852,26 @@ transformed parameters {
 
 ---
 
+<!-- # Summary -->
 
+<!-- ## The complete pipeline -->
 
+<!-- ```{style="text-align: center;"} -->
+<!-- Semantic theory (λ-terms) -->
+<!--      ↓ δ-rules -->
+<!-- Simplified form -->
+<!--      ↓ Compilation -->
+<!-- Kernel model (Stan) -->
+<!--      ↓ Augmentation -->
+<!-- Full statistical model -->
+<!-- ``` -->
 
-# Summary
-
-## The complete pipeline
-
-```{style="text-align: center;"}
-Semantic theory (λ-terms)
-     ↓ delta-rules
-Simplified form
-     ↓ Compilation
-Kernel model (Stan)
-     ↓ Augmentation
-Full statistical model
-```
-
----
+<!-- --- -->
 
 ## Key ideas
 
 ::: {.incremental}
-- **delta-rules** bridge theory and computation
+- **δ-rules** bridge theory and computation
 - **Kernel models** isolate semantic content from statistical machinery
 - **This distinction is crucial**: 
   - PDS automates the translation from compositional semantics to the core statistical model...
@@ -894,67 +887,67 @@ Full statistical model
 - **Degree inference** from norming questions using degree-argument adjectives
 - **Vagueness** as threshold uncertainty in gradable adjectives
 - **Likelihood judgments** via probabilistic computation with `normal_cdf`
-- **Full delta-rule walkthroughs** showing how complex λ-terms become Stan parameters
+- **Full δ-rule walkthroughs** showing how complex λ-terms become Stan parameters
 :::
 
----
+<!-- --- -->
 
-# Future Directions
+<!-- # Future Directions -->
 
-## Automated augmentation
+<!-- ## Automated augmentation -->
 
-Currently analysts manually add:
+<!-- Currently analysts manually add: -->
 
-- Random effects
-- Hierarchical priors
-- Measurement models
+<!-- - Random effects -->
+<!-- - Hierarchical priors -->
+<!-- - Measurement models -->
 
-::: {.fragment}
-**Goal**: Automate common statistical patterns
-:::
+<!-- ::: {.fragment} -->
+<!-- **Goal**: Automate common statistical patterns -->
+<!-- ::: -->
 
----
+<!-- --- -->
 
-## Formally verified compilation
+<!-- ## Formally verified compilation -->
 
-::: {.incremental}
-- delta-rules with Agda/Coq proofs
-- Ensure semantic preservation
-- Enable generic transformations
-- Build trust in compilation
-:::
+<!-- ::: {.incremental} -->
+<!-- - δ-rules with Agda/Coq proofs -->
+<!-- - Ensure semantic preservation -->
+<!-- - Enable generic transformations -->
+<!-- - Build trust in compilation -->
+<!-- ::: -->
 
----
+<!-- --- -->
 
-## Richer kernel models
+<!-- ## Richer kernel models -->
 
-Extend PDS to directly output:
-- Mixture models
-- Censoring mechanisms
-- Complex statistical structures
+<!-- Extend PDS to directly output: -->
+<!-- - Mixture models -->
+<!-- - Censoring mechanisms -->
+<!-- - Complex statistical structures -->
 
-::: {.fragment}
-**Key**: Encode more semantic theory in kernels
-:::
+<!-- ::: {.fragment} -->
+<!-- **Key**: Encode more semantic theory in kernels -->
+<!-- ::: -->
 
----
+<!-- --- -->
 
-## Community contributions
+<!-- ## Community contributions -->
 
-The modular PDS design invites:
+<!-- The modular PDS design invites: -->
 
-- New lexical entries
-- Domain-specific delta-rules
-- Alternative compilation strategies
-- Cross-linguistic extensions
+<!-- - New lexical entries -->
+<!-- - Domain-specific δ-rules -->
+<!-- - Alternative compilation strategies -->
+<!-- - Cross-linguistic extensions -->
 
----
+<!-- --- -->
 
 ## Conclusion
 
 ::: {.incremental}
 - PDS bridges formal semantics and statistical modeling
-- delta-rules enable computational tractability
+- δ-rules enable computational tractability
 - Kernel models preserve theoretical clarity
 - This approach scales to complex phenomena
 :::
@@ -962,3 +955,7 @@ The modular PDS design invites:
 ::: {.fragment}
 Next: How this handles factivity—where gradience poses even deeper theoretical puzzles
 :::
+
+---
+
+## References
