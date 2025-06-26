@@ -217,7 +217,7 @@ parameters {
 ```
 
 ::: {.fragment}
-This is the core semantic content: each item has a "true" degree on its scale
+These means represent our best guess about each item's true degree on its scale—the theoretical degrees that the semantic analysis posits. Crucially, they also represent subjects' uncertainty about these degrees—what unresolved uncertainty do they maintain when they make these guesses?
 :::
 
 ---
@@ -332,6 +332,10 @@ scaleNormingExample = asTyped tau
 This establishes context and asks for Jo's height
 :::
 
+::: {.fragment style="font-size: 85%;"}
+Note: `getSemantics` retrieves one of the meanings (in the λ-calculus) for the expression it is given as a string of strings.
+:::
+
 ---
 
 ## Lexical entries for degree questions
@@ -361,20 +365,19 @@ The degree-argument version of adjectives enables degree questions
 
 For "how tall is Jo?", composition yields:
 
-$$\ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))$$
+$$λd, i.\ct{height}(i)(j) ≥ d$$
 
 ::: {.fragment}
-This term:
-- Extracts Jo's height at index $i$
-- Uses $\iota$ to get the unique degree
-- Wraps in $\ct{Return}$ for monadic structure
+When $\abbr{respond}$ comes into the picture, some index $i^{\prime}$ is sampled from the common ground, and the maximal answer to the question is determined to be:
+
+$$\ct{max}(λd.\ct{height}(i^{\prime})(j) ≥ d)$$
 :::
 
 ---
 
-## Delta rules: What are they?
+## delta-rules: What are they?
 
-Delta rules are partial functions that simplify terms while preserving meaning
+delta-rules are partial functions that simplify terms while preserving meaning
 
 ::: {.incremental}
 - Type: `Term -> Maybe Term`
@@ -385,7 +388,7 @@ Delta rules are partial functions that simplify terms while preserving meaning
 
 ---
 
-## The indices delta rule
+## The indices delta-rule
 
 ```haskell {style="font-size: 80%;"}
 -- From Lambda.Delta module
@@ -405,20 +408,35 @@ Extracts values from the discourse state
 
 ---
 
-## Delta reduction walkthrough
+## The max operator
+
+```haskell
+maxes :: DeltaRule
+maxes = \case
+   Max (Lam y (GE x (Var y'))) | y' == y -> Just x
+   _                                     -> Nothing  
+```
+
+::: {.fragment}
+This extracts the unique degree satisfying the inequality
+:::
+
+---
+
+## delta-reduction walkthrough
 
 Starting term:
-$$\ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))$$
+$$\ct{max}(λd.\ct{height}(i^{\prime})(j) ≥ d)$$
 
 ::: {.fragment}
 Apply `indices` rule to extract height:
-$$\ct{Return}(\iota(\lambda d[h = d]))$$
+$$\ct{max}(λd.h ≥ d)$$
 where $h$ is Jo's actual height
 :::
 
 ::: {.fragment}
-Apply iota extraction:
-$$\ct{Return}(h)$$
+Apply max extraction:
+$$h$$
 :::
 
 ---
@@ -550,7 +568,7 @@ Compares probability of embedded proposition to a degree
 
 ---
 
-## Delta reduction for vagueness
+## delta-reduction for vagueness
 
 Starting with "Jo is tall":
 $$\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$$
@@ -567,7 +585,7 @@ $$\ct{(≥)}(h)(d)$$
 
 ---
 
-## The states delta rule
+## The states delta-rule
 
 ```haskell {style="font-size: 75%;"}
 -- From Lambda.Delta (lines 167-183)
@@ -586,7 +604,7 @@ states = \case
 
 ---
 
-## The probabilities delta rule
+## The probabilities delta-rule
 
 ```haskell {style="font-size: 75%;"}
 -- From Lambda.Delta (lines 156-164)
@@ -684,7 +702,7 @@ Full statistical model
 ## Key insights
 
 ::: {.incremental}
-- **Delta rules** bridge theory and computation
+- **delta-rules** bridge theory and computation
 - **Kernel models** isolate semantic content
 - **Augmentation** adds statistical machinery
 - **Compilation** embodies linking hypotheses
@@ -698,7 +716,7 @@ Full statistical model
 - **Degree inference** from norming questions
 - **Vagueness** as threshold uncertainty
 - **Likelihood judgments** via probabilistic computation
-- **Full delta rules** when applying transformations
+- **Full delta-rules** when applying transformations
 :::
 
 ---
@@ -721,7 +739,7 @@ Currently analysts manually add:
 ## Formally verified compilation
 
 ::: {.incremental}
-- Delta rules with Agda/Coq proofs
+- delta-rules with Agda/Coq proofs
 - Ensure semantic preservation
 - Enable generic transformations
 - Build trust in compilation
@@ -746,7 +764,7 @@ Extend PDS to directly output:
 
 The modular PDS design invites:
 - New lexical entries
-- Domain-specific delta rules
+- Domain-specific delta-rules
 - Alternative compilation strategies
 - Cross-linguistic extensions
 
@@ -756,7 +774,7 @@ The modular PDS design invites:
 
 ::: {.incremental}
 - PDS bridges formal semantics and statistical modeling
-- Delta rules enable computational tractability
+- delta-rules enable computational tractability
 - Kernel models preserve theoretical clarity
 - This approach scales to complex phenomena
 :::
