@@ -31,8 +31,6 @@ $$
 $$
 :::
 
-# From PDS to Stan
-
 ## The compilation challenge
 
 ::: {.incremental}
@@ -49,45 +47,29 @@ PDS automates the core translation while leaving room for statistical expertise
 
 ## What PDS produces
 
-PDS outputs what we term a *kernel model*—the semantic core that corresponds directly to the lexical and compositional semantics. This kernel can in principle be augmented with other components: random effects, hierarchical priors, and other statistical machinery, but the current implementation focuses on producing just the semantic kernel.
-
-::: {.fragment}
-### Example: Kernel vs Full Model
-
-::: {.columns}
-::: {.column width="45%"}
-**PDS Kernel:**
-```stan
-model {
-  w ~ normal(0.0, 1.0);
-  target += normal_lpdf(y | w, sigma);
-}
-```
-:::
-
-::: {.column width="45%"}
-**Full Model:**
-```stan {code-line-numbers="2,5"}
-model {
-  w ~ normal(0.0, 1.0);          // PDS kernel
-  sigma_e ~ beta(2, 10);         // Analyst-added
-  z_eps ~ std_normal();          // Analyst-added
-  target += normal_lpdf(y | w + eps, sigma_e);
-}
-```
-:::
-:::
-:::
+- PDS outputs what we term a *kernel model*—the semantic core that corresponds directly to the lexical and compositional semantics
+- This kernel can in principle be augmented with other components:
+  - Random effects
+  - Hierarchical priors  
+  - Other statistical machinery
+- The current implementation focuses on producing just the semantic kernel
 
 ---
 
 ## Why Stan?
 
-Stan is a probabilistic programming language designed for statistical inference. Unlike general-purpose programming languages, Stan is specialized for stating distributional assumptions that can then be translated to a C++ backend that performs statistical inference–usually, using a form of Markov Chain Monte Carlo (MCMC).
+- Stan is a probabilistic programming language designed for statistical inference
+- Unlike general-purpose programming languages, Stan is specialized for stating distributional assumptions
+- These assumptions are translated to a C++ backend that performs statistical inference
+- Usually uses a form of Markov Chain Monte Carlo (MCMC)
+
+---
+
+## Why Stan?
 
 ::: {.incremental}
-- **Declarative**: We specify probability models, not procedures
-- **Specialized**: Designed for Bayesian inference via HMC
+- **Declarative(-ish)**: We specify probability models, not procedures
+- **Specialized**: Designed for Bayesian inference
 - **Parallel to semantics**: Both declare "what" not "how"
   - Semantics: truth conditions
   - Stan: probabilistic relationships
@@ -113,7 +95,10 @@ model {
 ```
 
 ::: {.fragment}
-**Key insight**: This approach aligns well with our goals: just as formal semantics declares some representation of the semantic content rather than how that representation is used in verifying truth or drawing inferences, Stan declares probabilistic relationships rather than sampling algorithms.
+**Key idea**: This approach aligns well with our goals:
+
+- Formal semantic analyses declare some representation of the semantic content
+- Stan declares probabilistic relationships rather than sampling algorithms
 :::
 
 ---
@@ -136,14 +121,14 @@ This seemingly simple task will reveal the complexity of the PDS-to-Stan pipelin
 
 ## The experimental data
 
-```{style="font-size: 85%;"}
+:::{style="font-size: 85%;"}
 | participant | item | adjective | condition | response |
 |-------------|------|-----------|-----------|----------|
 | 1 | tall_high | tall | high | 0.82 |
 | 1 | wide_low | wide | low | 0.34 |
 | 1 | expensive_mid | expensive | mid | 0.62 |
 | 1 | full_high | full | high | 1.00 |
-```
+:::
 
 ::: {.fragment}
 - **Items** = adjective × condition pairs
@@ -217,8 +202,10 @@ parameters {
 ```
 
 ::: {.fragment}
-These means can be understood as representing our best guess, as researchers, about each item's true degree on its scale---the theoretical degrees that the semantic analysis posits.
-Crucially, they can also be viewed as representing subjects' uncertainty about these degrees---what unresolved uncertainty do they maintain when they make these guesses?
+- These means represent our best guess, as researchers, about each item's true degree on its scale
+- They capture the theoretical degrees that the semantic analysis posits
+- Crucially, they can also be viewed as representing subjects' uncertainty about these degrees
+- They reflect what unresolved uncertainty subjects maintain when they make these guesses
 :::
 
 ---
@@ -334,8 +321,11 @@ This establishes context and asks for Jo's height
 :::
 
 ::: {.fragment style="font-size: 85%;"}
-Note the use of certain convenience functions.
-For example, `getSemantics` retrieves one of the meanings (in the λ-calculus) for the expression it is given as a string of strings, using the parser implemented at [`Grammar.Parser`](https://juliangrove.github.io/pds/Grammar-Parser.html).
+Note the use of certain convenience functions:
+
+- `getSemantics` retrieves one of the meanings (in the λ-calculus) for the expression
+- It takes a string of strings as input
+- Uses the parser implemented at [`Grammar.Parser`](https://juliangrove.github.io/pds/Grammar-Parser.html)
 :::
 
 ---
@@ -365,7 +355,7 @@ The degree-argument version of adjectives enables degree questions
 
 ## Compositional semantics
 
-For "how tall is Jo?", composition yields:
+For *how tall is Jo?*, composition yields:
 
 $$λd, i.\ct{height}(i)(j) ≥ d$$
 
@@ -379,7 +369,10 @@ $$\ct{max}(λd.\ct{height}(i^{\prime})(j) ≥ d)$$
 
 ## delta-rules: What are they?
 
-delta-rules enable different semantic computations while preserving semantic equivalence. The formalism is strongly normalizing and confluent, so the order of rule application doesn't affect the final result—a crucial property that ensures our semantic theory remains consistent.
+- delta-rules enable different semantic computations while preserving semantic equivalence
+- Formalism is strongly normalizing and confluent, so:
+  - Order of rule application doesn't affect the final result
+  - Our semantic theory remains consistent
 
 ::: {.incremental}
 - Type: `Term -> Maybe Term`
@@ -390,7 +383,7 @@ delta-rules enable different semantic computations while preserving semantic equ
 
 ---
 
-## The indices delta-rule
+## The `indices` and `maxes` delta-rules
 
 ```haskell {style="font-size: 80%;"}
 -- From Lambda.Delta module
@@ -408,10 +401,6 @@ indices = \case
 Extracts values from the discourse state
 :::
 
----
-
-## The max operator
-
 ```haskell
 maxes :: DeltaRule
 maxes = \case
@@ -420,14 +409,12 @@ maxes = \case
 ```
 
 ::: {.fragment}
-This extracts the unique degree satisfying the inequality
+Extracts the unique degree satisfying the inequality
 :::
 
 ---
 
 ## delta-reduction walkthrough
-
-Having seen the PDS code for degree questions, we now trace through how delta-rules transform these complex λ-terms into forms suitable for Stan compilation.
 
 For degree questions like *how tall is Jo?*, the compositional semantics produces:
 $$\ct{max}(λd.\ct{height}(i^{\prime})(j) ≥ d)$$
@@ -448,13 +435,21 @@ This final form directly corresponds to the Stan parameter we need to infer—th
 
 ## Key transformations
 
-The challenge is translating abstract semantic computations into Stan's parameter space. This translation embodies (some of) our linking hypothesis between semantic competence and performance.
+- **Challenge:** translating abstract semantic computations into Stan's parameter space
+- Translation embodies (some of) our linking hypothesis between semantic competence and performance
 
 ::: {.incremental}
 1. **Degree extraction becomes parameter inference**
    - $\ct{max}(λd.\ct{height}(i)(j) ≥ d)$ → Infer parameter `height_jo`
    - The unique degree satisfying the equation becomes a parameter to estimate
 
+:::
+
+---
+
+## Key transformations
+
+::: {.fragment}
 2. **Functions become arrays**
    - $\ct{height} : \iota \to e \to r$ → Array `height[person]`
    - Function application → Array indexing
@@ -489,7 +484,7 @@ model {
 Actual PDS output: `model { w ~ normal(0.0, 1.0); target += normal_lpdf(y | w, sigma); }`
 :::
 
-This is the semantic core—it captures the essential degree-based semantics where `w` represents the degree on the height scale.
+Captures the essential degree-based semantics where `w` represents the degree on the height scale.
 :::
 
 ---
@@ -498,7 +493,7 @@ This is the semantic core—it captures the essential degree-based semantics whe
 
 The full model with analyst augmentations looks like:
 
-```stan {code-line-numbers="6,13"}
+```stan {code-line-numbers="7,13"}
 model {
   // PRIORS (analyst-added)
   sigma_epsilon_guess ~ exponential(1);
@@ -515,8 +510,17 @@ model {
 }
 ```
 
+Highlighted lines show the kernel model from PDS
+
+---
+
+## From kernel to full model
+
 ::: {.fragment}
-Lines 6 and 13 (highlighted) show the kernel model from PDS. The unhighlighted portions add statistical machinery for real data: hierarchical priors, random effects, and indexed parameters.
+- The unhighlighted portions add statistical machinery for real data:
+  - Hierarchical priors
+  - Random effects  
+  - Indexed parameters
 :::
 
 ---
@@ -525,10 +529,9 @@ Lines 6 and 13 (highlighted) show the kernel model from PDS. The unhighlighted p
 
 ## From degrees to likelihood judgments
 
-Our next model addresses how speakers reason about the likelihood that gradable adjectives apply. "How likely (is it) that Jo is tall?"
+Our next model addresses how speakers reason about the likelihood that gradable adjectives apply: *how likely (is it) that Jo is tall?*
 
 ::: {.incremental}
-- Not asking for a degree
 - Metalinguistic judgment about adjective application
 - Requires probabilistic reasoning
 - **Key**: Threshold uncertainty creates vagueness
@@ -566,6 +569,7 @@ likelihoodExample = asTyped tau
 
 ::: {.fragment}
 Key semantic components:
+
 - `height`: $\iota \to e \to r$ (entity heights)
 - `d_tall`: $\sigma \to r$ (contextual threshold)
 - `(≥)`: $r \to r \to t$ (comparison)
@@ -593,7 +597,7 @@ Compares probability of embedded proposition to a degree
 
 ## delta-reduction for vagueness
 
-Starting with "Jo is tall":
+Starting with *Jo is tall*:
 $$\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$$
 
 ::: {.fragment}
@@ -685,7 +689,7 @@ The kernel captures likelihood via `normal_cdf`
 
 ## Full vagueness model
 
-```stan {style="font-size: 75%;" code-line-numbers="8,11"}
+```stan {style="font-size: 75%;" code-line-numbers="9-11"}
 transformed parameters {
   for (i in 1:N_data) {
     // Add participant adjustment
@@ -722,12 +726,14 @@ Full statistical model
 
 ---
 
-## Key insights
+## Key ideas
 
 ::: {.incremental}
 - **delta-rules** bridge theory and computation
 - **Kernel models** isolate semantic content from statistical machinery
-- **This distinction is crucial**: PDS automates the translation from compositional semantics to the core statistical model, while leaving room for analysts to add domain-specific statistical structure
+- **This distinction is crucial**: 
+  - PDS automates the translation from compositional semantics to the core statistical model...
+  - while leaving room for analysts to add domain-specific statistical structure
 - **Compilation** embodies our linking hypothesis between semantic competence and performance
 :::
 
@@ -749,6 +755,7 @@ Full statistical model
 ## Automated augmentation
 
 Currently analysts manually add:
+
 - Random effects
 - Hierarchical priors
 - Measurement models
@@ -786,6 +793,7 @@ Extend PDS to directly output:
 ## Community contributions
 
 The modular PDS design invites:
+
 - New lexical entries
 - Domain-specific delta-rules
 - Alternative compilation strategies
