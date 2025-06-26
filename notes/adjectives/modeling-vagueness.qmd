@@ -31,6 +31,367 @@ $$
 $$
 :::
 
+Our next model addresses how speakers reason about the likelihood that gradable adjectives apply.
+We'll start with a realistic model of the vagueness data that one might design as a means for analyzing that dataset. As for the norming model, what we'll do is to build up the model block-by-block, explaining each line. Then, we'll turn to how we might analyze this experiment using PDS and show which components of this model correspond to the PDS kernel model and which are extensions by the analyst.
+
+## Understanding the experimental setup
+
+Before diving into the Stan code, let's consider how we'll represent the vagueness data. Here's a sample:
+
+| participant | item | item_number | adjective | adjective_number | scale_type | scale_type_number | condition | condition_number | response |
+|-------------|------|-------------|-----------|------------------|------------|-------------------|-----------|------------------|----------|
+| 1 | 9_high | 25 | quiet | 9 | absolute | 1 | high | 1 | 0.82 |
+| 1 | 4_low | 11 | wide | 4 | relative | 2 | low | 2 | 0.34 |
+| 1 | 5_mid | 15 | deep | 5 | relative | 2 | mid | 3 | 0.77 |
+
+Each row represents one likelihood judgment:
+- `participant`: Which person made this judgment
+- `item`: A unique identifier combining adjective and condition (e.g., "quiet_high")
+- `adjective`: The gradable adjective being tested
+- `condition`: Whether this is a high/mid/low standard context
+- `response`: The participant's likelihood judgment (0-1)
+
+The key difference from norming: we now distinguish between items (specific adjective-condition pairs) and adjectives themselves. This structure lets us model properties that belong to adjectives (like how context-sensitive they are) separately from properties of specific items—a distinction motivated by the semantic theory.
+
+## The structure of a Stan program
+
+Let's build up our vagueness model block by block. Since you're already familiar with Stan's architecture from the norming model, we'll focus on what's different for modeling likelihood judgments.
+
+### The `data` block
+
+The data block for vagueness extends the norming structure with adjective-level information:
+
+```stan
+data {
+  int<lower=1> N_item;              // number of items (adjective × condition)
+  int<lower=1> N_adjective;         // number of unique adjectives
+  int<lower=1> N_participant;       // number of participants
+  int<lower=1> N_data;              // responses in (0,1)
+  int<lower=1> N_0;                 // boundary responses at 0
+  int<lower=1> N_1;                 // boundary responses at 1
+  
+  // Response data
+  vector<lower=0, upper=1>[N_data] y;  // slider responses
+  
+  // NEW: Mapping structure
+  array[N_item] int<lower=1, upper=N_adjective> item_adj;  // which adjective for each item
+  
+  // Indexing arrays for responses
+  array[N_data] int<lower=1, upper=N_item> item;
+  array[N_0] int<lower=1, upper=N_item> item_0;
+  array[N_1] int<lower=1, upper=N_item> item_1;
+  array[N_data] int<lower=1, upper=N_adjective> adjective;
+  array[N_0] int<lower=1, upper=N_adjective> adjective_0;
+  array[N_1] int<lower=1, upper=N_adjective> adjective_1;
+  array[N_data] int<lower=1, upper=N_participant> participant;
+  array[N_0] int<lower=1, upper=N_participant> participant_0;
+  array[N_1] int<lower=1, upper=N_participant> participant_1;
+}
+```
+
+The key addition is the adjective-level structure. We need to track both items (e.g., "tall_high") and adjectives (e.g., "tall") because our semantic theory posits that context-sensitivity is a property of adjectives, not individual items.
+
+### The `parameters` block
+
+The parameters capture both semantic quantities and statistical variation:
+
+```stan
+parameters {
+  // SEMANTIC PARAMETERS
+  
+  // Each item has a degree on its scale
+  vector<lower=0, upper=1>[N_item] d;
+  
+  // Global vagueness: how fuzzy are threshold comparisons?
+  real<lower=0> sigma_guess;
+  
+  // Adjective-specific context sensitivity
+  vector<lower=0>[N_adjective] spread;
+
+  // PARTICIPANT VARIATION
+  
+  // How much participants vary in their thresholds
+  real<lower=0> sigma_epsilon_mu_guess;
+  // Each participant's standardized deviation
+  vector[N_participant] z_epsilon_mu_guess;
+  
+  // RESPONSE NOISE
+  real<lower=0, upper=1> sigma_e;
+  
+  // CENSORED DATA
+  array[N_0] real<upper=0> y_0;  // latent values for 0s
+  array[N_1] real<lower=1> y_1;  // latent values for 1s
+}
+```
+
+The parameters include:
+- `d`: The degree each item has on its scale (e.g., how tall basketball players are)
+- `sigma_guess`: Global vagueness parameter controlling threshold fuzziness
+- `spread`: How much each adjective's standard shifts across contexts
+
+### The `transformed parameters` block
+
+This block computes the semantic judgments from our parameters:
+
+```stan
+transformed parameters {
+  // Convert standardized participant effects to natural scale
+  vector[N_participant] epsilon_mu_guess = sigma_epsilon_mu_guess * z_epsilon_mu_guess;
+  
+  // STEP 1: Set up base thresholds for each item
+  vector[N_item] mu_guess0;
+  
+  // This assumes our data has 3 conditions per adjective in order:
+  // high (index 1), low (index 2), mid (index 3)
+  for (i in 0:(N_adjective-1)) {
+    // High condition: positive threshold shift
+    mu_guess0[3 * i + 1] = spread[i + 1];
+    // Low condition: negative threshold shift  
+    mu_guess0[3 * i + 2] = -spread[i + 1];
+    // Mid condition: no shift (baseline)
+    mu_guess0[3 * i + 3] = 0;
+  }
+  
+  // STEP 2: Transform thresholds to probability scale
+  vector<lower=0, upper=1>[N_data] mu_guess;
+  vector<lower=0, upper=1>[N_0] mu_guess_0;
+  vector<lower=0, upper=1>[N_1] mu_guess_1;
+  
+  // STEP 3: Compute predicted responses
+  vector<lower=0, upper=1>[N_data] response_rel;
+  vector<lower=0, upper=1>[N_0] response_rel_0;
+  vector<lower=0, upper=1>[N_1] response_rel_1;
+  
+  // For each response in (0,1)
+  for (i in 1:N_data) {
+    // Add participant adjustment to base threshold
+    real threshold_logit = mu_guess0[item[i]] + epsilon_mu_guess[participant[i]];
+    // Convert from logit scale to probability scale
+    mu_guess[i] = inv_logit(threshold_logit);
+    
+    // KEY SEMANTIC COMPUTATION:
+    // P(adjective applies) = P(degree > threshold)
+    // Using normal CDF for smooth threshold crossing
+    response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
+  }
+  
+  // Repeat for censored data
+  for (i in 1:N_0) {
+    mu_guess_0[i] = inv_logit(mu_guess0[item_0[i]] + epsilon_mu_guess[participant_0[i]]);
+    response_rel_0[i] = 1 - normal_cdf(d[item_0[i]] | mu_guess_0[i], sigma_guess);
+  }
+  
+  for (i in 1:N_1) {
+    mu_guess_1[i] = inv_logit(mu_guess0[item_1[i]] + epsilon_mu_guess[participant_1[i]]);
+    response_rel_1[i] = 1 - normal_cdf(d[item_1[i]] | mu_guess_1[i], sigma_guess);
+  }
+}
+```
+
+Line 40 is the crucial one: `response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess)`. This implements the likelihood that the adjective applies, using a smooth threshold crossing via the normal CDF. We'll return to this shortly.
+
+### The `model` block
+
+The model block specifies our priors and likelihood:
+
+```stan
+model {
+  // PRIORS
+  
+  // Vagueness: smaller values = more precise thresholds
+  sigma_guess ~ exponential(5);
+  
+  // Context effects: how much standards shift
+  spread ~ exponential(1);
+  
+  // Participant variation
+  sigma_epsilon_mu_guess ~ exponential(1);
+  z_epsilon_mu_guess ~ std_normal();
+  
+  // LIKELIHOOD
+  
+  // Observed responses are noisy measurements of semantic judgments
+  for (i in 1:N_data) {
+    y[i] ~ normal(response_rel[i], sigma_e);
+  }
+  
+  // Censored responses
+  for (i in 1:N_0) {
+    y_0[i] ~ normal(response_rel_0[i], sigma_e);
+  }
+  
+  for (i in 1:N_1) {
+    y_1[i] ~ normal(response_rel_1[i], sigma_e);
+  }
+}
+```
+
+The likelihood connects our semantic computation (`response_rel`) to the observed data through a measurement model.
+
+### The complete model
+
+Here's our complete vagueness model—the exact model we'll use for analysis:
+
+```stan
+data {
+  int<lower=1> N_item;              // number of items
+  int<lower=1> N_adjective;          // number of adjectives
+  int<lower=1> N_participant;          // number of participants
+  int<lower=1> N_data;              // number of data points in (0, 1)
+  int<lower=1> N_0;              // number of 0s
+  int<lower=1> N_1;              // number of 1s
+  vector<lower=0, upper=1>[N_data] y; // response in (0, 1)
+  array[N_item] int<lower=1, upper=N_adjective> item_adj; // map from items to adjectives
+  array[N_data] int<lower=1, upper=N_item> item; // map from data points to items
+  array[N_0] int<lower=1, upper=N_item> item_0;     // map from 0s to items
+  array[N_1] int<lower=1, upper=N_item> item_1;     // map from 1s to items
+  array[N_data] int<lower=1, upper=N_adjective> adjective; // map from data points to adjectives
+  array[N_0] int<lower=1, upper=N_adjective> adjective_0; // map from 0s to adjectives
+  array[N_1] int<lower=1, upper=N_adjective> adjective_1; // map from 1s to adjectives
+  array[N_data] int<lower=1, upper=N_participant> participant; // map from data points to participants
+  array[N_0] int<lower=1, upper=N_participant> participant_0; // map from 0s to participants
+  array[N_1] int<lower=1, upper=N_participant> participant_1; // map from 1s to participants
+}
+
+parameters {
+  // 
+  // FIXED EFFECTS
+  // 
+  
+  // items:
+  vector<lower=0, upper=1>[N_item] d;
+  real<lower=0> sigma_guess;
+  vector<lower=0>[N_adjective] spread;
+
+  // 
+  // RANDOM EFFECTS
+  //
+
+  real<lower=0> sigma_epsilon_mu_guess;        // global scaling factor
+  vector[N_participant] z_epsilon_mu_guess; // by-participant z-scores 
+
+  real<lower=0, upper=1> sigma_e;
+
+  //
+  // CENSORED DATA
+  //
+
+  array[N_0] real<upper=0> y_0;
+  array[N_1] real<lower=1> y_1;
+}
+
+transformed parameters {
+  vector[N_participant] epsilon_mu_guess;
+  vector[N_item] mu_guess0;
+  vector<lower=0, upper=1>[N_data] mu_guess;
+  vector<lower=0, upper=1>[N_0] mu_guess_0;
+  vector<lower=0, upper=1>[N_1] mu_guess_1;
+  vector<lower=0, upper=1>[N_data] response_rel;
+  vector<lower=0, upper=1>[N_0] response_rel_0;
+  vector<lower=0, upper=1>[N_1] response_rel_1;
+
+  // 
+  // DEFINITIONS
+  //
+
+  // non-centered parameterization of the participant random intercepts:
+  epsilon_mu_guess = sigma_epsilon_mu_guess * z_epsilon_mu_guess;
+
+  for (i in 0:N_adjective-1) {
+    mu_guess0[3 * i + 1] = spread[i + 1];
+    mu_guess0[3 * i + 2] = -spread[i + 1];
+    mu_guess0[3 * i + 3] = 0;
+  }
+  
+  for (i in 1:N_data) {
+    mu_guess[i] = inv_logit(mu_guess0[item[i]] + epsilon_mu_guess[participant[i]]);
+    response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
+  }
+
+  for (i in 1:N_0) {
+    mu_guess_0[i] = inv_logit(mu_guess0[item_0[i]] + epsilon_mu_guess[participant_0[i]]);
+    response_rel_0[i] = 1 - normal_cdf(d[item_0[i]] | mu_guess_0[i], sigma_guess);
+  }
+
+  for (i in 1:N_1) {
+    mu_guess_1[i] = inv_logit(mu_guess0[item_1[i]] + epsilon_mu_guess[participant_1[i]]);
+    response_rel_1[i] = 1 - normal_cdf(d[item_1[i]] | mu_guess_1[i], sigma_guess);
+  }
+}
+
+model {
+  // 
+  // FIXED EFFECTS
+  //
+
+  // scale estimate standard deviations:
+  sigma_guess ~ exponential(5);
+
+  // scale estimate spread
+  spread ~ exponential(1);
+
+  //
+  // RANDOM EFFECTS
+  // 
+  
+  // by-participant random intercepts:
+  sigma_epsilon_mu_guess ~ exponential(1);
+  z_epsilon_mu_guess ~ std_normal();
+
+  //
+  // LIKELIHOOD
+  // 
+
+  for (i in 1:N_data) {
+    y[i] ~ normal(response_rel[i], sigma_e);
+  }
+  for (i in 1:N_0) {
+    y_0[i] ~ normal(response_rel_0[i], sigma_e);
+  }
+  for (i in 1:N_1) {
+    y_1[i] ~ normal(response_rel_1[i], sigma_e);
+  }
+}
+
+generated quantities {
+  vector[N_data] ll;      // log-likelihoods (needed for WAIC/PSIS calculations)
+  
+  // definition:
+  for (i in 1:N_data) {
+    ll[i] = normal_lpdf(
+            y[i] |
+            response_rel[i],
+            sigma_e
+            );
+  }
+}
+```
+
+This model for vagueness treats each item as having a degree on its scale, with participants making likelihood judgments based on comparing these degrees to contextually shifted thresholds. The vagueness parameter controls how fuzzy these comparisons are.
+
+## PDS-to-Stan
+
+So what components of the above model are derived from PDS? To answer this, we need to define our PDS model of the likelihood judgment task itself. Here it is:
+
+```haskell
+-- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
+expr1 = ["jo", "is", "a", "soccer", "player"]
+expr2 = ["how", "likely", "that", "jo", "is", "tall"]
+s1 = getSemantics @Adjectives 0 expr1
+q1 = getSemantics @Adjectives 0 expr2
+discourse = ty tau $ assert s1 >>> ask q1
+likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond likelihoodPrior) discourse
+```
+
+This code:
+1. Asserts that Jo is a soccer player (updated the common ground)
+2. Asks "how likely (is it) that Jo is tall?" using the likelihood operator
+3. Applies beta and delta reduction rules via `betaDeltaNormal`
+4. Uses `likelihoodPrior` to generate prior distributions
+5. Applies `adjectivesRespond` to specify the response function
+
+### The PDS implementation: Gradable adjectives
+
 Now that we understand Stan's structure and how to translate from PDS, let's look at how we might capture vagueness. For this, we'll need to add to our lexicon from the previous section a new denotation for the adjective *tall* and the WH word *how*. We'll also need an entry for *likely*.
 
 ```haskell
@@ -65,14 +426,153 @@ instance Interpretation Adjectives SynSem where
       ...
 ```
 
-The entry for *likely* uses the `Pr` operator to compute the probability of a proposition, comparing it to a degree threshold. The `Pr` operator is defined in the signature ([`Lambda.Convenience`](https://juliangrove.github.io/pds/Lambda-Convenience.html)) and reduced by the `probabilities` delta rule in [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html).
+The key components of the gradable adjective entries are:
+- `sCon "height"` represents an $e \rightarrow r$ function from individuals to their heights
+- `sCon "d_tall"` represents the contextual threshold from the discourse state
+- `sCon "(≥)"` represents the comparison relation
 
-## PDS to Stan
+The lexical entry for *tall* is related to the one we talked about in the last section but has a few key differences:
 
-For the likelihood judgment *how likely is it that Jo is tall?*, we use the bare adjective entry (type `AP`) rather than the degree-question version:
+1. **Syntactic type**: `AP` indicates this is an adjective phrase (in contrast to the degree-question version `AP :\: Deg`)
+2. **Semantic computation**: The meaning is a function that:
+   - Takes a discourse state `s` (containing threshold information)
+   - Returns a function from entities `x` to propositions (functions from indices `i` to truth values)
+   - The proposition is true when the entity's height exceeds the contextual threshold
+
+3. **Semantic components**:
+   - $\ct{height}$: A function from indices to entity-to-degree mappings (type: $\iota \to e \to r$)
+   - $\ct{d\_tall}$: Extracts the threshold for "tall" from the discourse state (type: $\sigma \to r$)
+   - $\ct{(≥)}$: Comparison operator (type: $r \to r \to t$)
+
+This implements degree-based semantics where gradable adjectives denote relations between degrees and contextually determined thresholds. The use of the discourse state for threshold storage captures the context-sensitivity of standards.
+
+TODO: explain the denotation for *likely*.
+
+### Working through likelihood judgments
+
+Having seen the PDS code for likelihood judgments, we now trace through how delta rules transform these complex λ-terms into forms suitable for Stan compilation. Delta rules, as introduced in [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html), are partial functions from terms to terms that implement semantic computations.
+
+For likelihood judgments like *how likely (is it) that Jo is tall?*, the compositional semantics first produces the embedded proposition *Jo is tall*:
 
 ```haskell
--- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
+(sCon "(≥)" @@ (sCon "height" @@ i @@ j) @@ (sCon "d_tall" @@ s))
+```
+
+$$\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$$
+
+This undergoes delta reduction using the `states` rule from [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html):
+
+```haskell
+-- From Lambda.Delta (lines 167-183)
+states :: DeltaRule
+states = \case
+  CG      (UpdCG cg _)     -> Just cg
+  CG      (UpdDTall _ s)   -> Just (CG s)
+  CG      (UpdQUD _ s)     -> Just (CG s)
+  CG      (UpdTauKnow _ s) -> Just (CG s)
+  DTall   (UpdDTall d _)   -> Just d
+  DTall   (UpdCG _ s)      -> Just (DTall s)
+  DTall   (UpdQUD _ s)     -> Just (DTall s)
+  QUD     (UpdQUD q _)     -> Just q
+  QUD     (UpdCG _ s)      -> Just (QUD s)
+  QUD     (UpdDTall _ s)   -> Just (QUD s)
+  QUD     (UpdTauKnow _ s) -> Just (QUD s)
+  TauKnow (UpdTauKnow b _) -> Just b
+  TauKnow (UpdCG _ s)      -> Just (TauKnow s)
+  TauKnow (UpdQUD _ s)     -> Just (TauKnow s)
+  _                        -> Nothing
+```
+
+Applied to extract the threshold for "tall":
+
+```haskell
+(sCon "(≥)" @@ (sCon "height" @@ i @@ j) @@ d)
+```
+
+$$\ct{(≥)}(\ct{height}(i)(j))(d)$$
+
+Next, the `indices` rule extracts Jo's height:
+
+```haskell
+-- From Lambda.Delta (lines 106-120)
+indices :: DeltaRule
+indices = \case
+  Epi    (UpdEpi p _)    -> Just p
+  Epi    (UpdLing _ i)   -> Just (Epi i)
+  Epi    (UpdSocPla _ i) -> Just (Epi i)
+  Ling   (UpdLing p _)   -> Just p
+  Ling   (UpdEpi _ i)    -> Just (Ling i)
+  Ling   (UpdSocPla _ i) -> Just (Ling i)
+  Height (UpdHeight p _) -> Just p
+  Height (UpdSocPla _ i) -> Just (Height i)
+  SocPla (UpdSocPla p _) -> Just p
+  SocPla (UpdHeight _ i) -> Just (SocPla i)
+  SocPla (UpdLing _ i)   -> Just (SocPla i)
+  SocPla (UpdEpi _  i)   -> Just (SocPla i)
+  _                      -> Nothing
+```
+
+This yields:
+
+```haskell
+(sCon "(≥)" @@ h @@ d)
+```
+
+$$\ct{(≥)}(h)(d)$$
+
+where $h$ is Jo's height.
+
+### The probabilities delta rule
+
+The comparison stays symbolic—it cannot be reduced without concrete values. This is where the `probabilities` rule becomes crucial. Here's the FULL probabilities rule:
+
+```haskell
+-- From Lambda.Delta (lines 156-164)
+probabilities :: DeltaRule
+probabilities = \case
+  Pr (Return Tr)                                             -> Just 1
+  Pr (Return Fa)                                             -> Just 0
+  Pr (Bern x)                                                -> Just x
+  Pr (Disj x t u)                                            -> Just (x * Pr t + (1 - x) * Pr u)
+  Pr (Let v (Normal x y) (Return (GE t (Var v')))) | v' == v -> Just (NormalCDF x y t)
+  Pr (Let v (Normal x y) (Return (GE (Var v') t))) | v' == v -> Just (NormalCDF (- x) y t)
+  _                                                          -> Nothing
+```
+
+This handles the case where we compute the probability that a normally distributed variable exceeds (or is exceeded by) a threshold. When both degrees and thresholds are uncertain, the system computes the appropriate probabilistic comparison.
+
+### Binding
+
+The bind operator allows us to sequence probabilistic computations:
+
+```haskell
+let' d (Normal mu sigma) $
+let' h (Normal mu_h sigma_h) $
+Return (GE h d)
+```
+
+$$\begin{array}{l}
+d \sim \mathcal{N}(\mu, \sigma) \\
+h \sim \mathcal{N}(\mu_h, \sigma_h) \\
+\text{return}(h \geq d)
+\end{array}$$
+
+When we have probabilistic comparisons like height vs threshold, both drawn from distributions, the system can compute the probability that one exceeds the other. If both are normally distributed:
+- $h \sim \mathcal{N}(\mu_h, \sigma_h)$ (height)
+- $d \sim \mathcal{N}(\mu_d, \sigma_d)$ (threshold)
+
+Then $P(h \geq d)$ can be computed using the fact that $h - d \sim \mathcal{N}(\mu_h - \mu_d, \sqrt{\sigma_h^2 + \sigma_d^2})$.
+
+This property allows the compilation to Stan code that efficiently computes these probabilities:
+
+```stan
+real p = normal_cdf((mu_h - mu_d) / sqrt(sigma_h^2 + sigma_d^2) | 0, 1);
+target += normal_lpdf(y | p, sigma_response);
+```
+
+::: {.callout-note title="PDS Compilation Details"}
+**Input PDS:**
+```haskell
 expr1 = ["jo", "is", "a", "soccer", "player"]
 expr2 = ["how", "likely", "that", "jo", "is", "tall"]
 s1 = getSemantics @Adjectives 0 expr1
@@ -81,7 +581,29 @@ discourse = ty tau $ assert s1 >>> ask q1
 likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond likelihoodPrior) discourse
 ```
 
-PDS outputs this kernel model:
+**Delta reductions:**
+
+1. Parse "jo is tall" (embedded in likelihood) → $\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$
+2. Apply `states` rule → $\ct{(≥)}(\ct{height}(i)(j))(d)$
+3. Apply `indices` rule → $\ct{(≥)}(h)(d)$
+4. Wrap in `Pr` operator for likelihood computation
+5. Apply `probabilities` rule → `NormalCDF` computation
+
+**Kernel output:**^[Actual PDS output: `model { v ~ normal(0.0, 1.0); target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma); }`]
+```stan
+model {
+  // FIXED EFFECTS
+  v ~ normal(0.0, 1.0);
+  
+  // LIKELIHOOD
+  target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma);
+}
+```
+:::
+
+### The PDS kernel model
+
+The PDS system outputs the following kernel model:
 
 ```stan
 model {
@@ -90,87 +612,66 @@ model {
 }
 ```
 
-This kernel captures that the likelihood that Jo is tall depends on where Jo's height `v` falls relative to the threshold (here normalized to 0). The `normal_cdf` implements vagueness—there's no sharp cutoff but a gradual transition.
+This kernel captures the likelihood questions effect where `v` represents Jo's height and the `normal_cdf` implements the probability that Jo counts as tall given vagueness in the threshold. 
 
-### Delta rules for likelihood judgments
+### The full model
 
+But as we saw for the norming model and in our discussion above, reality is complicated: we need to handle multiple adjectives, context effects, participant variation, and censored data.
 
-The delta rules for probabilistic judgments are more complex than shown here. In the actual implementation, the `Pr` operator computes probabilities through marginalization over the probabilistic state monad.
+The full model with analyst augmentations looks like:
 
-When we have probabilistic comparisons like height vs threshold, both drawn from distributions, the system can compute the probability that one exceeds the other. If both are normally distributed:
-- $h \sim \mathcal{N}(\mu_h, \sigma_h)$ (height)
-- $d \sim \mathcal{N}(\mu_d, \sigma_d)$ (threshold)
-
-Then $P(h \geq d)$ can be computed using the fact that $h - d \sim \mathcal{N}(\mu_h - \mu_d, \sqrt{\sigma_h^2 + \sigma_d^2})$.
-
-This mathematical insight allows the compilation to Stan code that efficiently computes these probabilities:
-
-```stan
-real p = normal_cdf((mu_h - mu_d) / sqrt(sigma_h^2 + sigma_d^2) | 0, 1);
-target += normal_lpdf(y | p, sigma_response);
+```stan {.line-numbers start="307" highlight="2"}
+for (i in 1:N_data) {
+  mu_guess[i] = inv_logit(mu_guess0[item[i]] + epsilon_mu_guess[participant[i]]);
+  response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);  // PDS KERNEL
+}
 ```
 
-### Probabilistic computation in PDS
+The highlighted line shows the kernel model from PDS. Everything else in our complete model adds the statistical machinery needed for real data:
 
-A key aspect of likelihood judgments is how they handle uncertainty in both degrees and thresholds. In the actual PDS implementation (Lambda.Delta), the `probabilities` delta rule handles certain probabilistic computations:
-
-```haskell
--- From Lambda.Delta (lines 142-150)
-probabilities :: DeltaRule
-probabilities = \case
-  Pr (Let v (Normal x y) (Return (GE t (Var v')))) | v' == v -> Just (NormalCDF x y t)
-  Pr (Let v (Normal x y) (Return (GE (Var v') t))) | v' == v -> Just (NormalCDF (- x) y t)
-  -- ... other cases
-```
-
-This handles the case where we compute the probability that a normally distributed variable exceeds (or is exceeded by) a threshold. When both degrees and thresholds are uncertain, the system computes the appropriate probabilistic comparison.
-
-
-But reality is complicated: we need to handle multiple adjectives, context effects, participant variation, and censored data. The full model with analyst augmentations:
-
-```stan {.line-numbers highlight="7,15"}
+```stan {.line-numbers start="323" highlight="7,15"}
 model {
-  // PRIORS (analyst-added)
-  sigma_guess ~ exponential(5);
-  spread ~ exponential(1);
+  // FIXED EFFECTS (analyst-added structure)
+  sigma_guess ~ exponential(5);      // PDS vagueness parameter
+  spread ~ exponential(1);            // analyst-added context effects
   
-  // DEGREE PARAMETERS (PDS kernel)
-  // Each item has a degree on its scale
-  vector<lower=0, upper=1>[N_item] d;
-  
-  // PARTICIPANT EFFECTS (analyst-added)
+  // RANDOM EFFECTS (analyst-added)
   sigma_epsilon_mu_guess ~ exponential(1);
   z_epsilon_mu_guess ~ std_normal();
   
   // LIKELIHOOD
-  // Core semantic computation from PDS
-  response_rel[i] = 1 - normal_cdf(d[item[i]] | mu_guess[i], sigma_guess);
-  // Measurement model (analyst-added modification)
-  y[i] ~ normal(response_rel[i], sigma_e);
+  for (i in 1:N_data) {
+    y[i] ~ normal(response_rel[i], sigma_e);  // Wraps PDS computation
+  }
 }
 ```
 
-The highlighted lines show PDS's semantic computation—comparing degrees to thresholds with vagueness. The unhighlighted code adds the statistical machinery needed for real experimental data. The point here is clear: ongoing research involves figuring out how to get from here (PDS output) to here (actual implementation) in a principled way.
+The transformed parameters computes the semantic judgment (PDS kernel), while the model block adds measurement noise and hierarchical structure.
 
-#### Data structure for vagueness experiments
+### How the model components map to semantic theory
 
-Our vagueness data looks similar to the norming data but now tracks adjectives separately:
+Let's trace through a specific example to see how this model works:
 
-| participant | item | item_number | adjective | adjective_number | scale_type | scale_type_number | condition | condition_number | response |
-|-------------|------|-------------|-----------|------------------|------------|-------------------|-----------|------------------|----------|
-| 1 | 9_high | 25 | quiet | 9 | absolute | 1 | high | 1 | 0.82 |
-| 1 | 4_low | 11 | wide | 4 | relative | 2 | low | 2 | 0.34 |
-| 1 | 5_mid | 15 | deep | 5 | relative | 2 | mid | 3 | 0.77 |
+1. **Item degree**: Suppose we're modeling "tall" in the high condition. The parameter `d[item["tall_high"]]` might be 0.85, representing that basketball players (high condition) have high degrees on the height scale.
 
-The key difference: we now distinguish between items (specific adjective-condition pairs) and adjectives themselves. For example:
-- Item "9_high" = adjective "quiet" in the "high" condition
-- Item "4_low" = adjective "wide" in the "low" condition
+2. **Adjective spread**: The parameter `spread["tall"]` might be 2.0, meaning "tall" is highly context-sensitive—its threshold shifts dramatically between conditions.
 
-This structure lets us model properties that belong to adjectives (like how context-sensitive they are) separately from properties of specific items—a distinction motivated by the semantic theory.
+3. **Threshold computation**: 
+   - Base threshold (logit scale): `mu_guess0["tall_high"] = spread["tall"] = 2.0`
+   - Participant adjustment: Say participant 5 has `epsilon_mu_guess[5] = -0.3`
+   - Final threshold (logit): `2.0 + (-0.3) = 1.7`
+   - Final threshold (probability): `inv_logit(1.7) ≈ 0.85`
 
-#### Complete Stan code for the vagueness model
+4. **Semantic judgment** (THE PDS KERNEL):
+   ```stan
+   response_rel = 1 - normal_cdf(0.85 | 0.85, sigma_guess)
+   ```
+   - If `sigma_guess = 0.1` (precise threshold), this gives ≈ 0.5
+   - If `sigma_guess = 0.3` (vague threshold), the response is more variable
 
-Here's the complete model with detailed explanations:
+5. **Response generation**: The participant's actual slider response is a noisy measurement of this semantic judgment, with noise `sigma_e`.
+
+This vagueness model extends our baseline by capturing threshold uncertainty through probabilistic computation. The kernel represents the core semantic judgment—comparing degrees to thresholds—while the augmentations handle experimental realities.
 
 ```stan
 data {
@@ -325,28 +826,7 @@ generated quantities {
 }
 ```
 
-#### How the model components map to semantic theory
-
-Let's trace through a specific example to see how this model works:
-
-1. **Item degree**: Suppose we're modeling "tall" in the high condition. The parameter `d[item["tall_high"]]` might be 0.85, representing that basketball players (high condition) have high degrees on the height scale.
-
-2. **Adjective spread**: The parameter `spread["tall"]` might be 2.0, meaning "tall" is highly context-sensitive—its threshold shifts dramatically between conditions. This captures the context-dependency that the discourse state mechanism models.
-
-3. **Threshold computation**: 
-   - Base threshold (logit scale): `mu_guess0["tall_high"] = spread["tall"] = 2.0`
-   - Participant adjustment: Say participant 5 has `epsilon_mu_guess[5] = -0.3`
-   - Final threshold (logit): `2.0 + (-0.3) = 1.7`
-   - Final threshold (probability): `inv_logit(1.7) ≈ 0.85`
-
-4. **Semantic judgment**:
-   - The crucial computation: `response_rel = 1 - normal_cdf(0.85 | 0.85, sigma_guess)`
-   - If `sigma_guess = 0.1` (precise threshold), this gives ≈ 0.5
-   - If `sigma_guess = 0.3` (vague threshold), the response is more variable
-
-5. **Response generation**: The participant's actual slider response is a noisy measurement of this semantic judgment, with noise `sigma_e`.
-
-This model implements several key components:
+This model for vagueness implements several key components:
 
 - **Vagueness as threshold uncertainty**: The `sigma_guess` parameter captures how fuzzy the boundary is
 - **Context sensitivity**: The `spread` parameters capture how standards shift across contexts
@@ -354,5 +834,3 @@ This model implements several key components:
 - **Measurement error**: Slider responses are noisy measurements of semantic judgments
 
 The model thus operationalizes the theoretical distinctions introduced earlier while adding the statistical machinery needed for real experimental data.
-
-So far we've assumed all adjectives work the same way. But linguistic theory suggests a fundamental distinction between relative and absolute adjectives—a hypothesis we can capture with mixture models.
