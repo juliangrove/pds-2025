@@ -3,6 +3,137 @@ title: "Modeling questions under discussion"
 bibliography: ../../pds.bib
 ---
 
-{{< include qud-julian.qmd >}}
+## Main questions
 
-- [← Back to Index](../index.html)
+- How do people represent their knowledge of factivity: is its gradience metalinguistic or occasional? 
+
+![](/images/factivity_paper.png)
+![](/images/factivity_qr.png)
+\textcite{grove_factivity_2024}:
+gradience in factivity is like ambiguity, \emph{not} vagueness. 
+
+- How should we capture the fine-grained semantics of the prompt used in eliciting judgments?
+
+- How does manipulating and modeling the prompt affect our earlier findings?
+
+---
+
+## Experiments
+Two experiments, differing only by the prompt used. \\[0pt]
+Following the paradigm of \textcite{degen_prior_2021}. \\[0pt]
+ 
+\alert{Fact (which Nancy knows):} Zoe is 5 years old. / Zoe is a math major.
+[Nancy asks:]{.gb-orange} ``Does Tim know that Zoe calculated the tip?''
+
+
+- [Experiment 1:]{.gb-orange} How [certain is Nancy]{.gb-orange} that Zoe calculated the tip?
+- [Experiment 2:]{.gb-orange} How \alert{likely is it that Nancy is certain} that Zoe calculated the tip?
+
+
+---
+
+## Experiment 1: the ``how certain'' task
+
+
+![](/images/zoe_2a.png)
+
+ 
+
+- Start with a prior distribution over \emph{discourse states}. \\[0pt]
+
+Update with \(⟦\textit{Zoe is a math major}⟧\). \\[0pt]
+
+Update with \(⟦\textit{Tim knows that Zoe calculated the tip}⟧\). 
+- Push \(⟦\textit{How certain is Nancy that Zoe calculated the tip?}⟧\) onto the QUD stack.
+- Pop it off the QUD stack; respond with maximally informative answer.
+
+
+---
+
+## Semantics of \emph{`how certain is X that p'}
+
+- Assumption: while \emph{likely} predicates of degrees on a probability scale, \emph{certain} predicates of degrees on a [confidence]{.gb-orange} scale \autocite{klecha_positive_2012}.
+- In practice, the scale associated with \emph{certain} is truncated at the lower end, relative to the scale for \emph{likely}.
+
+![](/images/scale.png)
+
+---
+
+## Experiment 2: the ``how likely \ldots{} certain'' task
+
+![](/images/zoe_2b.png)
+
+- Start with a prior distribution over \emph{discourse states}. \\[0pt]
+
+Update with \(⟦\textit{Zoe is a math major}⟧\). \\[0pt]
+
+Update with \(⟦\textit{Tim knows that Zoe calculated the tip}⟧\). 
+- Push \(⟦\textit{How likely is it that N is certain that Z calculated the tip?}⟧\) onto the QUD stack.
+- Pop it off the stack; respond.
+
+
+---
+
+## Semantics of \emph{`how likely is it that X is certain that p'}
+
+- Assumption: \emph{certain} gives rise to a vague standard threshold, and thus \emph{occasional} uncertainty.  \\[0pt]
+\emph{likely} computes the probability of the vague inference. 
+- Perhaps, more appropriate to think of this standard as being \emph{imprecise} rather than \emph{vague}\ldots{}.  \\[0pt]
+assuming \emph{certain} is a maximum standard adjective (see, e.g., \textcite{kennedy_scale_2005,kennedy_vagueness_2007}).
+
+
+---
+
+## The ``how certain'' task: comparing models
+\includegraphics<1>[width=330px]{./images/certain-scores-1.pdf}
+\includegraphics<2>[width=330px]{./images/certain-scores-2.pdf}
+\includegraphics<3>[width=330px]{./images/certain-scores-3.pdf}
+\includegraphics<4>[width=330px]{./images/certain-scores-4.pdf}
+
+---
+
+## The ``how likely \ldots{} certain'' task: comparing models
+\includegraphics<1>[width=330px]{./images/likely-certain-scores-1.pdf}
+\includegraphics<2>[width=330px]{./images/likely-certain-scores-2.pdf}
+\includegraphics<3>[width=330px]{./images/likely-certain-scores-3.pdf}
+
+---
+
+## Outlook
+
+
+- Building on \textcite{grove_factivity_2024}, we continue to find that inferences from factive predicates exhibit gradience which is metalinguistic in nature.
+- When incorporating semantic analyses into our probabilistic models, there is an advantage to going all the way!
+- The compositional semantics of the prompt matters.
+- Probabilistic dynamic semantics allows us to seamlessly incorporate it into our models of inference data.
+
+
+---
+# Modeling the prompt in inference judgment tasks
+
+# Some implementation details
+
+## Delta rules
+
+# Outlook
+
+## Other empirical domains
+
+### Conventional implicatures (e.g., parentheticals)
+
+### Evidentials (e.g., Sarah Murray's work)
+
+### Non-canonical questions (e.g., Kyle Rawlins's work)
+
+#### 'what if', resistance and resolution in discourse, epistemic resistance moves
+
+### Socio-semantic inferences (e.g., Andrea Beltrama's work)
+
+## Other kinds of experimental tasks
+
+### Dynamics of imprecision (project with Yifan and Helena)
+
+## Other uses of the framework
+
+### Relating operational semantics of lambda-terms to response behavior (e.g., psychosemantics of 'most')
+
