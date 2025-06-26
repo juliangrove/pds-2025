@@ -186,49 +186,24 @@ Using the norming data to help model the adjectival inference data:
 
 ---
 
-## Adjectival inference data: by scale type
+## Adjectival inference data: aggregate
   
-<br>
-<div style="text-align: center;">
-<img src="images/adjectival_inference.pdf" style="width: 70%;">
-</div>
+::: {style="text-align: center;"}
+![](images/relative.png){height=600}
+:::
 
 ---
 
 ## Adjectival inference data: by adjective
   
-![](images/adjectival_inference_by_adj.pdf)
-  
+::: {style="text-align: center;"}
+![](images/expensive.png){height=200}
+![](images/tall_wide.png){height=200}
+:::
+
+::: {style="text-align: center;"}
+![](images/deep.png){height=200}
+![](images/heavy_old.png){height=200}
+:::
 
 ---
-
-## Adjectival inference models
-  
-![](images/blackboard.jpg)
-
----
-
-
-
-
-# Case study: vagueness and imprecision
-
-## Background on vagueness and imprecision
-
-# The data-collection pipeline
-
-## Scale norming
-
-## Likelihood inferences
-
-# Compositional semantics
-
-## Gradable adjectives
-
-## Scale-norming prompts
-
-## Likelihood prompts
-
-# Some implementation details
-
-## Delta rules
