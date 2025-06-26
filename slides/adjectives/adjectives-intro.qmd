@@ -1,9 +1,5 @@
 ---
-<<<<<<< HEAD
 title: "Vagueness"
-=======
-title: "From PDS to Stan"
->>>>>>> notes-aaron-adjectives
 bibliography: ../../pds.bib
 format:
   revealjs:
@@ -198,6 +194,12 @@ Using the norming data to help model the adjectival inference data:
 
 ---
 
+## Norming data
+
+![](images/norming_histograms.png)
+
+---
+
 ## Adjectival inference task
 
 <br>
@@ -210,15 +212,15 @@ Using the norming data to help model the adjectival inference data:
 
 ---
 
-## Adjectival inference data: aggregate
+<!-- ## Adjectival inference data: aggregate -->
   
-::: {style="text-align: center;"}
-![](images/relative.png){height=600}
-:::
+<!-- ::: {style="text-align: center;"} -->
+<!-- ![](images/relative.png){height=600} -->
+<!-- ::: -->
 
----
+<!-- --- -->
 
-## Adjectival inference data: by adjective
+## Adjectival inference data
   
 ::: {style="text-align: center;"}
 ![](images/expensive.png){height=200}
@@ -228,6 +230,7 @@ Using the norming data to help model the adjectival inference data:
 ::: {style="text-align: center;"}
 ![](images/deep.png){height=200}
 ![](images/heavy_old.png){height=200}
+<small>Likelihood of adj.
 :::
 
 ---
