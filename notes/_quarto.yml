@@ -28,13 +28,13 @@ website:
       - pds-intro/expressions-and-discourses.qmd
       - pds-intro/constants.qmd
       - pds-intro/delta-rules.qmd
-    - section: "Vagueness and imprecision"
+    - section: "Gradable adjectives"
       contents:
       - adjectives/adjectives-intro.qmd
       - adjectives/compiling-kernel-models.qmd
       - adjectives/norming-model.qmd
       - adjectives/modeling-vagueness.qmd
-      - adjectives/future-directions.qmd
+      # - adjectives/future-directions.qmd
     - section: "Factivity inferences"
       contents:
       - factivity/factivity.qmd

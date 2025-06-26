@@ -1,5 +1,5 @@
 ---
-title: "Modeling vagueness and imprecision"
+title: "Modeling vagueness"
 bibliography: ../../pds.bib
 format:
   html:
@@ -53,7 +53,7 @@ Each row represents one likelihood judgment:
 
 The key difference from norming: we now distinguish between items (specific adjective-condition pairs) and adjectives themselves. This structure lets us model properties that belong to adjectives (like how context-sensitive they are) separately from properties of specific items—a distinction motivated by the semantic theory.
 
-## The structure of a Stan program
+## The structure of the Stan program
 
 Let's build up our vagueness model block by block. Since you're already familiar with Stan's architecture from the norming model, we'll focus on what's different for modeling likelihood judgments.
 
@@ -125,6 +125,7 @@ parameters {
 ```
 
 The parameters include:
+
 - `d`: The degree each item has on its scale (e.g., how tall basketball players are)
 - `sigma_guess`: Global vagueness parameter controlling threshold fuzziness
 - `spread`: How much each adjective's standard shifts across contexts
@@ -392,7 +393,7 @@ This code:
 
 ### The PDS implementation: Gradable adjectives
 
-Now that we understand Stan's structure and how to translate from PDS, let's look at how we might capture vagueness. For this, we'll need to add to our lexicon from the previous section a new denotation for the adjective *tall* and the WH word *how*. We'll also need an entry for *likely*.
+Now that we understand Stan's structure and how to translate from PDS, let's look at how we might capture vagueness. For this, we'll need to add to our lexicon from the previous section a new denotation for the adjective *tall* and the *wh*-word *how*. We'll also need an entry for *likely*.
 
 ```haskell
 instance Interpretation Adjectives SynSem where
@@ -446,7 +447,18 @@ The lexical entry for *tall* is related to the one we talked about in the last s
 
 This implements degree-based semantics where gradable adjectives denote relations between degrees and contextually determined thresholds. The use of the discourse state for threshold storage captures the context-sensitivity of standards.
 
-TODO: explain the denotation for *likely*.
+Important also is the lexical entry for *likely*:
+
+1. **Syntactic type**: `S :\: Deg :/: S` indicates this takes a sentence and a degree to give back a sentence (this syntactic type is not completely realistic, but it serves our purposes)
+2. **Semantic computation**: The meaning is a function that:
+   - Takes a discourse state `s` (containing threshold information)
+   - Returns a function from propositions `p` to propositions to functions from degrees `d` to propositions.
+   - The resulting proposition is true (at any index) when the probability of the original proposition given the common ground of `s` exceeds the contextual threshold
+
+3. **Semantic components**:
+   - $\ct{Pr}$: A function from probability distributions over truth values to real numbers that computes the probability of True
+   - $\ct{CG}$: Grabs the common ground of the current state---a value of type $\P ι$
+   - $\ct{(≥)}$: Comparison operator (type: $r \to r \to t$)
 
 ### Working through likelihood judgments
 
@@ -458,7 +470,7 @@ For likelihood judgments like *how likely (is it) that Jo is tall?*, the composi
 (sCon "(≥)" @@ (sCon "height" @@ i @@ j) @@ (sCon "d_tall" @@ s))
 ```
 
-$$\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$$
+$$\ct{(≥)}(\ct{height}(i)(\ct{j}))(\ct{d\_tall}(s))$$
 
 This undergoes delta reduction using the `states` rule from [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html):
 
@@ -466,21 +478,11 @@ This undergoes delta reduction using the `states` rule from [`Lambda.Delta`](htt
 -- From Lambda.Delta (lines 167-183)
 states :: DeltaRule
 states = \case
-  CG      (UpdCG cg _)     -> Just cg
-  CG      (UpdDTall _ s)   -> Just (CG s)
-  CG      (UpdQUD _ s)     -> Just (CG s)
-  CG      (UpdTauKnow _ s) -> Just (CG s)
-  DTall   (UpdDTall d _)   -> Just d
-  DTall   (UpdCG _ s)      -> Just (DTall s)
-  DTall   (UpdQUD _ s)     -> Just (DTall s)
-  QUD     (UpdQUD q _)     -> Just q
-  QUD     (UpdCG _ s)      -> Just (QUD s)
-  QUD     (UpdDTall _ s)   -> Just (QUD s)
-  QUD     (UpdTauKnow _ s) -> Just (QUD s)
-  TauKnow (UpdTauKnow b _) -> Just b
-  TauKnow (UpdCG _ s)      -> Just (TauKnow s)
-  TauKnow (UpdQUD _ s)     -> Just (TauKnow s)
-  _                        -> Nothing
+  CG      (UpdCG cg s)   -> Just cg
+  CG      (UpdDTall _ s) -> Just (CG s)
+  DTall   (UpdDTall d _) -> Just d
+  DTall   (UpdCG _ s)    -> Just (DTall s)
+  _                      -> Nothing
 ```
 
 Applied to extract the threshold for "tall":
@@ -489,7 +491,7 @@ Applied to extract the threshold for "tall":
 (sCon "(≥)" @@ (sCon "height" @@ i @@ j) @@ d)
 ```
 
-$$\ct{(≥)}(\ct{height}(i)(j))(d)$$
+$$\ct{(≥)}(\ct{height}(i)(\ct{j}))(d)$$
 
 Next, the `indices` rule extracts Jo's height:
 
@@ -497,18 +499,7 @@ Next, the `indices` rule extracts Jo's height:
 -- From Lambda.Delta (lines 106-120)
 indices :: DeltaRule
 indices = \case
-  Epi    (UpdEpi p _)    -> Just p
-  Epi    (UpdLing _ i)   -> Just (Epi i)
-  Epi    (UpdSocPla _ i) -> Just (Epi i)
-  Ling   (UpdLing p _)   -> Just p
-  Ling   (UpdEpi _ i)    -> Just (Ling i)
-  Ling   (UpdSocPla _ i) -> Just (Ling i)
   Height (UpdHeight p _) -> Just p
-  Height (UpdSocPla _ i) -> Just (Height i)
-  SocPla (UpdSocPla p _) -> Just p
-  SocPla (UpdHeight _ i) -> Just (SocPla i)
-  SocPla (UpdLing _ i)   -> Just (SocPla i)
-  SocPla (UpdEpi _  i)   -> Just (SocPla i)
   _                      -> Nothing
 ```
 
@@ -545,23 +536,20 @@ This handles the case where we compute the probability that a normally distribut
 
 The bind operator allows us to sequence probabilistic computations:
 
-```haskell
-let' d (Normal mu sigma) $
-let' h (Normal mu_h sigma_h) $
-Return (GE h d)
-```
-
-$$\begin{array}{l}
-d \sim \mathcal{N}(\mu, \sigma) \\
-h \sim \mathcal{N}(\mu_h, \sigma_h) \\
-\text{return}(h \geq d)
-\end{array}$$
+$$
+\begin{array}{l}
+d \sim \ct{Normal}(\mu, \sigma) \\
+h \sim \ct{Normal}(\mu_h, \sigma_h) \\
+\pure{h \geq d}
+\end{array}
+$$
 
 When we have probabilistic comparisons like height vs threshold, both drawn from distributions, the system can compute the probability that one exceeds the other. If both are normally distributed:
-- $h \sim \mathcal{N}(\mu_h, \sigma_h)$ (height)
-- $d \sim \mathcal{N}(\mu_d, \sigma_d)$ (threshold)
 
-Then $P(h \geq d)$ can be computed using the fact that $h - d \sim \mathcal{N}(\mu_h - \mu_d, \sqrt{\sigma_h^2 + \sigma_d^2})$.
+- $h \sim \ct{Normal}(\mu_h, \sigma_h)$ (height)
+- $d \sim \ct{Normal}(\mu_d, \sigma_d)$ (threshold)
+
+Then $P(h \geq d)$ can be computed using the fact that $h - d \sim \ct{Normal}(\mu_h - \mu_d, \sqrt{\sigma_h^2 + \sigma_d^2})$.
 
 This property allows the compilation to Stan code that efficiently computes these probabilities:
 
@@ -583,8 +571,8 @@ likelihoodExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond 
 
 **Delta reductions:**
 
-1. Parse "jo is tall" (embedded in likelihood) → $\ct{(≥)}(\ct{height}(i)(j))(\ct{d\_tall}(s))$
-2. Apply `states` rule → $\ct{(≥)}(\ct{height}(i)(j))(d)$
+1. Parse "jo is tall" (embedded in likelihood) → $\ct{(≥)}(\ct{height}(i)(\ct{j}))(\ct{d\_tall}(s))$
+2. Apply `states` rule → $\ct{(≥)}(\ct{height}(i)(\ct{j}))(d)$
 3. Apply `indices` rule → $\ct{(≥)}(h)(d)$
 4. Wrap in `Pr` operator for likelihood computation
 5. Apply `probabilities` rule → `NormalCDF` computation
@@ -596,7 +584,7 @@ model {
   v ~ normal(0.0, 1.0);
   
   // LIKELIHOOD
-  target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma);
+  target += normal_lpdf(y | 1 - normal_cdf(v, 0.0, 1.0), sigma);
 }
 ```
 :::
@@ -608,7 +596,7 @@ The PDS system outputs the following kernel model:
 ```stan
 model {
   v ~ normal(0.0, 1.0);
-  target += normal_lpdf(y | normal_cdf(v, -0.0, 1.0), sigma);
+  target += normal_lpdf(y | 1 - normal_cdf(v, 0.0, 1.0), sigma);
 }
 ```
 
@@ -828,7 +816,7 @@ generated quantities {
 
 This model for vagueness implements several key components:
 
-- **Vagueness as threshold uncertainty**: The `sigma_guess` parameter captures how fuzzy the boundary is
+- **Vagueness as threshold uncertainty**: The `sigma_guess` parameter captures the participant's uncertainty about people's heights
 - **Context sensitivity**: The `spread` parameters capture how standards shift across contexts
 - **Individual differences**: Participants can have systematically different thresholds
 - **Measurement error**: Slider responses are noisy measurements of semantic judgments

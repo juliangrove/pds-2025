@@ -1,5 +1,3 @@
-## Vagueness and imprecision
-
 ## Semantics
   \textbf{Semantics} characterizes a certain linguistic system---the one giving us access to knowledge about: \pause
   \begin{itemize}
