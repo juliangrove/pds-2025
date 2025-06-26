@@ -31,51 +31,50 @@ $$
 $$
 :::
 
-Real speakers don't just make binary judgments—they can also reason about the likelihood that a gradable adjective applies. This requires extending our framework to handle probabilistic metalinguistic judgments.
+Now that we understand Stan's structure and how to translate from PDS, let's look at how we might capture vagueness. For this, we'll need to add to our lexicon from the previous section a new denotation for the adjective *tall* and the WH word *how*. We'll also need an entry for *likely*.
 
-Now that we understand Stan's structure and how to translate from PDS, let's implement a more sophisticated model that captures the theoretical distinction between vagueness (uncertainty about standards) and imprecision (tolerance around thresholds).
+```haskell
+instance Interpretation Adjectives SynSem where
+  combineR = Convenience.combineR
+  combineL = Convenience.combineL
+  
+  lexica = [lex]
+    where lex = \case
+      ...
+      "tall"         -> [ SynSem {
+                            syn = AP :\: Deg,
+                            sem = ty tau (purePP (lam d (lam x (lam i (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ d)))))
+                            }
+                        , SynSem {
+                            syn = AP,
+                            sem = ty tau (lam s (purePP (lam x (lam i (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ (sCon "d_tall" @@ s)))) @@ s))
+                                } ]
+      ...
+      "likely"      ->  [ SynSem {
+                            syn = S :\: Deg :/: S,
+                            sem = ty tau (lam s (purePP (lam p (lam d (lam _' (sCon "(≥)" @@ (Pr (let' i (CG s) (Return (p @@ i)))) @@ d)))) @@ s))
+                          } ]
+      "how"         ->  [ SynSem {
+                            syn =  Qdeg :/: (S :/: AP) :/: (AP :\: Deg),
+                            sem = ty tau (purePP (lam x (lam y (lam z (y @@ (x @@ z))))))
+                          }
+                          , SynSem {
+                              syn = Qdeg :/: (S :\: Deg),
+                              sem = ty tau (purePP (lam x x))
+                            } ]
+      ...
+```
 
-## Theoretical motivation
-
-As we discussed earlier, gradable adjectives involve comparing an item's degree to a threshold, where both the threshold location and the comparison precision can vary.
+The entry for *likely* uses the `Pr` operator to compute the probability of a proposition, comparing it to a degree threshold. The `Pr` operator is defined in the signature ([`Lambda.Convenience`](https://juliangrove.github.io/pds/Lambda-Convenience.html)) and reduced by the `probabilities` delta rule in [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html).
 
 ## PDS to Stan
 
-I think it's right to structure this section around (1) the scale-norming model, and (2) the likelihood models. Let me present these using actual PDS examples.
-
-### Scale-norming model
-
-For the scale-norming task, we first assert that Jo is a soccer player, then ask how tall Jo is:
+For the likelihood judgment *how likely is it that Jo is tall?*, we use the bare adjective entry (type `AP`) rather than the degree-question version:
 
 ```haskell
 -- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
 expr1 = ["jo", "is", "a", "soccer", "player"]
-expr2 = ["how", "tall", "jo", "is"]
-s1 = getSemantics @Adjectives 0 expr1
-q1 = getSemantics @Adjectives 0 expr2
-discourse = ty tau $ assert s1 >>> ask q1
-scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse
-```
-
-PDS outputs the following kernel model:
-
-```stan
-model {
-  w ~ normal(0.0, 1.0);
-  target += normal_lpdf(y | w, sigma);
-}
-```
-
-This kernel captures the essential degree-based semantics where `w` represents the degree on the height scale. To handle real experimental data, we augment this kernel with hierarchical structure, random effects, and proper indexing for multiple items and participants.
-
-### Likelihood model
-
-For the likelihood judgment *how likely is it that Jo is tall?*, we use the bare adjective entry (type AP) rather than the degree-question version:
-
-```haskell
--- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
-expr1 = ["jo", "is", "a", "soccer", "player"]
-expr2 = ["how", "likely", "is", "it", "that", "jo", "is", "tall"]
+expr2 = ["how", "likely", "that", "jo", "is", "tall"]
 s1 = getSemantics @Adjectives 0 expr1
 q1 = getSemantics @Adjectives 0 expr2
 discourse = ty tau $ assert s1 >>> ask q1
@@ -91,22 +90,10 @@ model {
 }
 ```
 
-This kernel captures the semantic computation: the likelihood that Jo is tall depends on where Jo's height `v` falls relative to the threshold (here normalized to 0). The `normal_cdf` implements vagueness—there's no sharp cutoff but a gradual transition.
+This kernel captures that the likelihood that Jo is tall depends on where Jo's height `v` falls relative to the threshold (here normalized to 0). The `normal_cdf` implements vagueness—there's no sharp cutoff but a gradual transition.
 
 ### Delta rules for likelihood judgments
 
-Likelihood judgments introduce probabilistic reasoning directly into the semantics. Consider *How likely is Jo tall?* The compositional semantics yields:
-
-```haskell
--- From Grammar.Lexica.SynSem.Adjectives
-"likely" -> [ SynSem {
-    syn = S :\: Deg :/: S,
-    sem = ty tau (lam s (purePP (lam p (lam d (lam _' 
-      (sCon "(≥)" @@ (Pr (let' i (CG s) (Return (p @@ i)))) @@ d)))) @@ s))
-} ]
-```
-
-This uses the `Pr` operator to compute the probability of a proposition, comparing it to a degree threshold. The `Pr` operator is defined in the signature (Lambda.Convenience) and reduced by the `probabilities` delta rule in Lambda.Delta.
 
 The delta rules for probabilistic judgments are more complex than shown here. In the actual implementation, the `Pr` operator computes probabilities through marginalization over the probabilistic state monad.
 
@@ -167,7 +154,7 @@ The highlighted lines show PDS's semantic computation—comparing degrees to thr
 
 #### Data structure for vagueness experiments
 
-Our vagueness/imprecision data looks similar to the norming data but now tracks adjectives separately:
+Our vagueness data looks similar to the norming data but now tracks adjectives separately:
 
 | participant | item | item_number | adjective | adjective_number | scale_type | scale_type_number | condition | condition_number | response |
 |-------------|------|-------------|-----------|------------------|------------|-------------------|-----------|------------------|----------|

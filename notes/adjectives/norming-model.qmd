@@ -31,7 +31,7 @@ $$
 $$
 :::
 
-Our first model addresses a fundamental question: how do we infer the degrees that gradable adjectives operate on? The norming study provides a clean test case where participants directly report degrees on scales.
+Our first model addresses a fundamental question: how do we infer the "shape" of people's prior beliefs about the degrees that gradable adjectives operate on? The norming study provides a clean test case where participants directly report degrees on scales.
 
 We'll start with a realistic model of the norming data that one might design as a means for analyzing that dataset. What we'll do is to build up the model block-by-block, explaining each line. Then, we'll turn to how we might analyze this experiment using PDS and show which components of this model correspond to the PDS kernel model and which are extensions by the analyst.
 
@@ -55,7 +55,7 @@ Each row represents one judgment:
 - `condition`: Whether this is a high/mid/low standard context
 - `response`: The participant's slider response (0-1)
 
-Our simplest model asks: What degree does each item have on its scale, and how do participants map these degrees to slider responses?
+Our simplest model asks: what degree does each item have on its scale, and how do participants map these degrees to slider responses?
 
 ## The structure of a Stan program
 
@@ -164,7 +164,7 @@ Finally, those boundary responses:
 }
 ```
 
-This is subtle but important. When someone gives a 0 response, their "true" judgment might be -0.1 or -0.5—we just can't see below 0. These parameters let Stan infer what those true values might have been @stevens_psychophysics_1975.
+This is subtle but important. When someone gives a 0 response, their "true" judgment might be -0.1 or -0.5—we just can't see below 0. These parameters let Stan infer what those true values might have been.
 
 #### The transformed parameters block: Building predictions
 
@@ -354,14 +354,8 @@ This baseline model treats each item as having an inherent degree along the rele
 So what components of the above model are derived from PDS? To answer this, we need to define our PDS model of the norming task itself. Here it is:
 
 ```haskell
--- From Grammar.Parser and Grammar.Lexica.SynSem.Adjectives
-expr1 = ["jo", "is", "a", "soccer", "player"]
-expr2 = ["how", "tall", "jo", "is"]
-parses1 = interpretations @Adjectives expr1 0
-parses2 = interpretations @Adjectives expr2 0
--- Extract semantic terms from parses
-s1' = sem (head (getList parses1))
-q1' = sem (head (getList parses2))
+s1'        = termOf $ getSemantics @Adjectives 1 ["jo", "is", "a", "soccer player"]
+q1'        = termOf $ getSemantics @Adjectives 0 ["how", "tall", "jo", "is"]
 discourse' = ty tau $ assert s1' >>> ask q1'
 scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse'
 ```
@@ -379,28 +373,32 @@ This code:
 Degree questions like "how tall is Jo?" use a special lexical entry for adjectives that exposes the degree argument. From [`Grammar.Lexica.SynSem.Adjectives`](https://juliangrove.github.io/pds/Grammar-Lexica-SynSem-Adjectives.html):
 
 ```haskell
--- Degree-question version of "tall"
-"tall" -> [ SynSem {
-    syn = (S :\: NP) :/: (S :/: NP :/: Deg),
-    sem = ty tau (lam s (purePP (lam f (lam x (lam i 
-      (f @@ (sCon "height" @@ i @@ x) @@ x @@ i))))) @@ s))
-} ]
+instance Interpretation Adjectives SynSem where
+  combineR = Convenience.combineR
+  combineL = Convenience.combineL
+  
+  lexica = [lex]
+    where lex = \case
+      ...
+      "tall"          -> [ SynSem {
+                              syn = AP :\: Deg,
+                              sem = ty tau (purePP (lam d (lam x (lam i (sCon "(≥)" @@ (sCon "height" @@ i @@ x) @@ d)))))
+                              }
+                           ...
+                         ]
+      ...
+      "how"           ->  [ SynSem {
+                              syn =  Qdeg :/: (S :/: AP) :/: (AP :\: Deg),
+                              sem = ty tau (purePP (lam x (lam y (lam z (y @@ (x @@ z))))))
+                            }
+                            ...
+                          ]
+      ...
 ```
-
-This entry takes a degree-to-proposition function and applies it to the entity's height. The question word "how" provides this function:
-
-```haskell
-"how" -> [ SynSem {
-    syn = S :/: (S :\: Deg),
-    sem = ty tau (purePP (lam p (lam i (Return (iota (lam d (p @@ d @@ i)))))))
-} ]
-```
-
-The $\iota$ operator extracts the unique degree satisfying the predicate—implementing the semantics of degree questions.
 
 ### Delta rules and semantic computation
 
-PDS applies delta rules to simplify these complex λ-terms. As discussed in [the implementation section](../pds-intro/implementation.html), delta rules enable different semantic computations while preserving semantic equivalence. The formalism is strongly normalizing and confluent, so the order of rule application doesn't affect the final result—a crucial property that ensures our semantic theory remains consistent.
+PDS applies delta rules to simplify these complex λ-terms. As discussed in [the implementation section](../pds-intro/implementation.md), delta rules enable different semantic computations while preserving semantic equivalence. The formalism is strongly normalizing and confluent, so the order of rule application doesn't affect the final result—a crucial property that ensures our semantic theory remains consistent.
 
 Key delta rules for adjectives include:
 - **Arithmetic operations**: Simplifying comparisons like $\ct{(≥)}$ when applied to constants
@@ -413,21 +411,21 @@ These rules transform the complex compositional semantics into simpler forms sui
 
 Having seen the PDS code for degree questions, we now trace through how delta rules transform these complex λ-terms into forms suitable for Stan compilation. Delta rules, as introduced in [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html), are partial functions from terms to terms that implement semantic computations.
 
-For degree questions like "how tall is Jo?", the compositional semantics produces:
+For degree questions like *how tall is Jo?*, the compositional semantics produces:
 
 $$
 \ct{Return}(\iota(\lambda d[\ct{height}(i)(j) = d]))
 $$
 
-This term undergoes several delta reductions. First, the `indices` rule extracts the height value from the discourse state:
+This term undergoes several delta reductions. First, the `indices` rule extracts the height value from the discourse state. From [`Lambda.Delta`](https://juliangrove.github.io/pds/Lambda-Delta.html):
 
 ```haskell
--- | Computes functions on indices (from Lambda.Delta).
 indices :: DeltaRule
 indices = \case
+  ...
   Height (UpdHeight p _) -> Just p
   Height (UpdSocPla _ i) -> Just (Height i)
-  -- Additional cases handle other index updates
+  ...
   _                      -> Nothing
 ```
 
@@ -447,7 +445,7 @@ This final form directly corresponds to the Stan parameter we need to infer—th
 
 ### From lambda terms to Stan parameters
 
-The challenge is translating abstract semantic computations into Stan's parameter space. This translation embodies our linking hypothesis between semantic competence and performance. Key transformations:
+The challenge is translating abstract semantic computations into Stan's parameter space. This translation embodies (some of) our linking hypothesis between semantic competence and performance.
 
 1. **Degree extraction becomes parameter inference**:
    - $\iota(\lambda d[\ct{height}(i)(j) = d])$ → Infer parameter `height_jo`
@@ -470,20 +468,13 @@ The challenge is translating abstract semantic computations into Stan's paramete
          & \ct{return}(y)
      \end{array}$
 
-   - This becomes contributions to Stan's log probability
+   - This determines Stan's log probability
 
 This translation embodies our linking hypothesis: semantic computations generate behavioral data through a noisy measurement process captured by `adjectivesRespond`.
 
 ::: {.callout-note title="PDS Compilation Details"}
 **Input PDS:**
 ```haskell
--- Example PDS processing pipeline
--- Using actual functions from PDS:
--- interpretations :: Expr -> Int -> ParseAs m  (from Grammar.Parser)
--- ty :: Sig -> Term -> Typed  (from Lambda.Types)
--- asTyped :: Sig -> (Term -> Term) -> Typed -> Typed  (from Lambda.Types)
--- assert, ask :: Term -> Term  (from Lambda.Convenience)
--- (>>>) :: Term -> Term -> Term  (from Lambda.Convenience)
 discourse' = ty tau $ assert s1' >>> ask q1'
 scaleNormingExample = asTyped tau (betaDeltaNormal deltaRules . adjectivesRespond scaleNormingPrior) discourse'
 ```
