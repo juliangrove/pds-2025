@@ -31,23 +31,6 @@ $$
 $$
 :::
 
-## Studying inferences: big picture
-
-::: {.fragment}
-Semantic inferences (e.g., entailments, presuppositions) are typically assumed to be [discrete]{.gb-orange}.
-
-- They are turned on or off by linguistic expressions.
-:::
-
-::: {.fragment}
-Semantic grammars model these inferences by:
-
-- mapping words and phrases onto logical formulae compositionally; 
-- determining if an inference "on" or "off" for the expressions of a significant chunk of the language.
-:::
- 
----
-
 ## Vague adjectives
 
 - *tall*, *wide*, *expensive*, *happy*, ... 

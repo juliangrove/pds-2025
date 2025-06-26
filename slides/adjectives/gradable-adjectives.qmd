@@ -1,5 +1,5 @@
 ---
-title: "From PDS to Stan"
+title: "Gradable adjectives"
 bibliography: ../../pds.bib
 format:
   revealjs:
@@ -31,8 +31,152 @@ $$
 $$
 :::
 
+## Vague adjectives
 
-## sdf
+- *tall*, *wide*, *expensive*, *happy*, ... 
+  
+(@ex-coffee) The coffee in Rome is [expensive]{.gb-orange}. [@kennedy_vagueness_2007]
+  
+- True if: the cost of coffee in Rome is as great as a salient threshold, [$d$]{.gb-orange}:
+  $$c ≥ d$$
+- Maybe the cost of coffee is 3 euros.
+- $d$ is [vague]{.gb-orange}... maybe it ranges somewhere from 2 euros to 4 euros.
+
+---
+
+## Vagueness: strange inference patterns
+
+Vague adjectives such as *expensive*
+
+- admit [borderline cases]{.gb-orange}: 
+  - Mud Blend: $1.50/lb \ \ 🙁
+  - Organic Kona: $20/lb \ \ 🥰
+  - Swell Start Blend: $9.25/lb ??
+
+---
+
+## Vagueness: strange inference patterns
+
+- produce [sorites paradoxes]{.gb-orange}:
+
+---
+
+## Sorites: $10
+  
+Is a $10 cup of coffee expensive? 
+
+::: {.fragment}
+![](images/hands1.jpg){width=800}
+:::
+
+---
+
+## Sorites: $9.99
+  
+Take $0.01 away. Is a $9.99 cup of coffee expensive? 
+
+::: {.fragment}
+![](images/hands2.jpg){width=800}
+:::
+
+---
+
+## Sorites: $9.98
+  
+Take $0.01 away. Is a $9.98 cup of coffee expensive? 
+
+::: {.fragment}
+![](images/hands3.jpg){width=800}
+:::
+
+---
+
+## Vagueness: strange inference patterns
+
+- produce [sorites paradoxes]{.gb-orange}: 
+  - Premise 1: A $10 cup of coffee is expensive. 
+  - Premise 2: If an expensive cup of coffee were 1 cent cheaper, it would still be expensive.
+  - Conclusion: *Therefore*, a [free]{.gb-orange} cup of coffee is expensive!
+  
+
+---
+
+## Why tricky?
+Borderline cases and sorites paradoxes: 
+inference patterns that do not fall into any traditional semantic classification. 
+
+- Borderline cases:
+  things to which the adjective neither applies nor doesn't apply. 
+- The inference is not simply "on" or "off".
+- The sorites paradox: troublesome because... 
+  - inferences should be closed under implication: 
+	if $10 ↝ $9.99, and $9.99 ↝ $9.98, then $10.00 ↝ $9.98. 
+	- *a $10 cup is expensive* ↝ *a free cup is expensive*
+
+---
+
+## Inference judgments
+
+Ongoing work with Helena Aparicio (Cornell Linguistics):
+
+- Collect [scale norming]{.gb-orange} data. 
+  - "X drank a coffee. Guess how [expensive]{.gb-orange} it was?" 
+- Collect [adjectival inference]{.gb-orange} data. 
+  - "X drank a coffee. How likely is it that it was [expensive]{.gb-orange}?" (vague) 
+
+---
+
+## Modeling pipeline
+
+Using the norming data to help model the adjectival inference data: 
+
+- Assume that people make likelihood judgments based on their probabilistic estimate of where an object lands on the adjective's scale.<br> 
+- Then, we can model the distribution over these estimates *using* a model fit to the norming data.
+
+---
+
+## Norming task
+
+<br>
+<div style="text-align: center;">
+<img src="images/expensive_norming.png" style="width: 60%;">
+</div>
+
+- 6 relative adjectives
+- 3 possible contexts for each adjective ("high", "medium", "low")
+
+---
+
+## Norming data
+
+![](images/norming_histograms.png)
+
+---
+
+## Adjectival inference task
+
+<br>
+<div style="text-align: center;">
+<img src="images/expensive_test.png" style="width: 70%;">
+</div>
+
+- Same 6 adjectives (six relative, six absolute)
+- Same 3 possible contexts for each adjective ("high", "medium", "low") 
+
+---
+
+## Adjectival inference data
+  
+::: {style="text-align: center;"}
+![](images/expensive.png){height=200}
+![](images/tall_wide.png){height=200}
+:::
+
+::: {style="text-align: center;"}
+![](images/deep.png){height=200}
+![](images/heavy_old.png){height=200}
+$\scriptsize \text{Likelihood that adj. is true}$
+:::
 
 ---
 

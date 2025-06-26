@@ -5,8 +5,8 @@ project:
     # - "background/background.qmd"
     # - "background/rsa.qmd"
     # - "pds-intro/pds-intro.qmd"
-    - "adjectives/adjectives-intro.qmd"
-    # - "adjectives/pds-to-stan.qmd"
+    # - "adjectives/adjectives-intro.qmd"
+    - "adjectives/gradable-adjectives.qmd"
     # - "factivity/factivity.qmd"
     # - "qud/qud.qmd"
  
