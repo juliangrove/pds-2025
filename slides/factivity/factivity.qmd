@@ -318,7 +318,7 @@ Alternative lexical entry branches on common ground indices:
 ```
 
 ::: {.fragment}
-Now `TauKnow` parameter varies by *index* rather than discourse state
+Now `TauKnow` parameter varies by *index* rather than by discourse state
 :::
 
 ---
