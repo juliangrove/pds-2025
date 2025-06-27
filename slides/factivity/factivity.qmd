@@ -481,12 +481,6 @@ PDS derives the first two from theoretical commitments; the others are computati
 Discrete-factivity dramatically outperforms alternatives
 :::
 
-::: {.fragment}
-- vs. wholly-gradient: ΔELPD = 834.5 ± 55.4
-- vs. discrete-world: ΔELPD = 766.1 ± 53.8
-- vs. wholly-discrete: ΔELPD = 295.1 ± 34.8
-:::
-
 ---
 
 ## Posterior predictive checks
@@ -529,83 +523,15 @@ Wholly-gradient model produces smooth, unimodal distributions—missing the bimo
 Pattern holds even with anti-veridicality component
 :::
 
----
-
-## Cross-experimental validation
-
-::: {style="text-align: center;"}
-![](plots/contentful_elpd.png){width=500}
-
-Discrete-factivity advantage persists in replication
-:::
-
----
-
-## Replication success
-
-::: {style="text-align: center;"}
-![](plots/projection_item_means.png){width=700}
-
-Near-perfect correlation at verb level (r = 0.98)
-:::
-
----
-
-## Non-contentful experiments
-
-Test with minimal contexts:
-
-::: {.columns}
-::: {.column width="50%"}
-**Bleached**: "a particular thing happened"
-
-**Templatic**: "X happened"
-:::
-::: {.column width="50%"}
-![](plots/bleached_verb_means.png){width=350}
-:::
-:::
-
-::: {.fragment}
-Factivity patterns persist even without rich content!
-:::
-
----
-
-## Context effects
-
-The norming study reveals how world knowledge varies:
-
-::: {style="text-align: center;"}
-![](plots/norming_3_thetas.png){width=600}
-
-Clear separation between high/low prior contexts validates experimental manipulation
-:::
-
----
-
-## Predicate-specific patterns
-
-::: {style="text-align: center;"}
-![](plots/fit_6_thetas.png){width=700}
-
-Variation in propensity to trigger factive interpretations
-:::
-
-::: {.fragment}
-**Key insight**: Canonical factives (*know*, *discover*) show high probability; variable predicates (*confirm*, *prove*) show intermediate probabilities with high uncertainty
-:::
 
 ---
 
 ## Complete posterior predictive distributions
 
-:::{.callout-tip collapse="true" title="Click to see all 20 predicates"}
 ::: {style="text-align: center;"}
 ![](plots/fits_all_full_pp.png){width=700}
 
 Posterior predictive distributions for all predicates
-:::
 :::
 
 ---
@@ -618,6 +544,7 @@ In mixture models, components can sometimes "trade off"—different parameter co
 
 ::: {.fragment}
 **Solutions**:
+
 - Informative priors using norming data to constrain world knowledge parameters
 - Hierarchical structure with partial pooling across predicates and contexts
 - Multiple contexts per predicate
@@ -631,6 +558,7 @@ Mixture models can be slow to fit or fail to converge.
 
 ::: {.fragment}
 **Improvements**:
+
 - Non-centered parameterizations (as shown in transformed parameters blocks)
 - Vectorization (operating on arrays rather than loops where possible)  
 - Warm starts (initializing chains near reasonable values)
@@ -654,15 +582,12 @@ Beyond posterior predictive checks:
 
 To ensure robustness, we tested ordered beta distributions:
 
-:::{.callout-tip collapse="true" title="Robustness to response distribution choice"}
 ::: {style="text-align: center;"}
 ![](plots/ordered_beta_elpd.png){width=600}
 
-Left: ELPDs for ordered beta models. Right: Truncated normal vs. ordered beta comparison
 :::
 
 Discrete-factivity maintains advantage regardless of response distribution
-:::
 
 ---
 
@@ -721,43 +646,25 @@ Whether QUD-based, at-issueness, or commitment-based:
 
 ## Connections across phenomena
 
-### Adjectives vs. Factivity
-
 ::: {style="font-size: 90%;"}
 **Adjectives**:
+
 - Gradient uncertainty from vagueness
 - Unresolved indeterminacy
 - Continuous threshold parameters
 
+::: {.fragment}
+
 **Factivity**:
+
 - Discrete uncertainty from interpretation
 - Resolved indeterminacy  
 - Mixture model components
 :::
-
-::: {.fragment}
-PDS compilation naturally reflects these theoretical distinctions
-:::
-
----
-
-## Summary
-
-### Empirically
-Discrete-factivity models dramatically outperform gradient alternatives
-
-::: {.fragment}
-### Theoretically
-Factivity involves categorical interpretation selection
 :::
 
 ::: {.fragment}
-### Methodologically
-PDS enables principled theory comparison through compositional semantics → statistical models
-:::
-
-::: {.fragment}
-The framework provides a template for investigating similar questions across semantic phenomena
+PDS compilation naturally reflects these distinctions
 :::
 
 ---
@@ -779,11 +686,6 @@ The framework provides a template for investigating similar questions across sem
 
 ---
 
-## Thank you
+## Questions and discussion
 
-Questions and discussion
-
-::: {style="text-align: center; margin-top: 40px; font-size: 80%;"}
-**Previous sections:**  
-[← Factivity Introduction](factivity-intro.html) | [← Models and Implementation](factivity-models.html)
-:::
+---
