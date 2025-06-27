@@ -29,9 +29,9 @@ In all cases, there's a strong inference that Mo actually left. We say that this
 
 Here, using (@non-factive-neg) doesn't commit us to Mo having left. Given just these examples, the contrast feels sharp: predicates are either associated with factive presuppositions or not.
 
-But this traditional picture has been challenged by experimental work showing substantial gradience in projection judgments. Some predicates (like *love*) are almost always associated with projection, others (like *think*) rarely trigger it, but many fall somewhere in between. For instance, @white_role_2018 measured veridicality inferences for more than 700 predicates in their MegaVeridicality dataset–visualized in @fig:veridicality-factivity.
+But this traditional picture has been challenged by experimental work showing substantial gradience in projection judgments. Some predicates (like *love*) are almost always associated with projection, others (like *think*) rarely trigger it, but many fall somewhere in between. For instance, @white_role_2018 measured veridicality inferences for more than 700 predicates in their MegaVeridicality dataset–visualized in @fig-veridicality-factivity.
 
-![An aggregate measure of factivity, derived from the MegaVeridicality dataset of @white_role_2018. Points are jittered (0.05) to avoid overplotting. The x-axis corresponds to mean scores for affirmative contexts, the y-axis for negative contexts. Each point is a predicate. Note the continuous gradient rather than discrete clusters.](plots/veridicality_factivity.pdf){#fig:veridicality-factivity}
+![An aggregate measure of factivity, derived from the MegaVeridicality dataset of @white_role_2018. Points are jittered (0.05) to avoid overplotting. The x-axis corresponds to mean scores for affirmative contexts, the y-axis for negative contexts. Each point is a predicate. Note the continuous gradient rather than discrete clusters.](plots/veridicality_factivity.png){#fig-veridicality-factivity}
 
 What explains this gradience?
 
@@ -39,14 +39,14 @@ What explains this gradience?
 
 There are two importantly distinct questions that we need to disentangle before moving on:
 
-1. Whether the gradience in @fig:veridicality-factivity suggests that there is no *class* (or subclasses) of factive predicates.
+1. Whether the gradience in @fig-veridicality-factivity suggests that there is no *class* (or subclasses) of factive predicates.
 2. Whether the veridicality inferences triggered by a particular expression containing a particular clause-embedding predicate are themselves gradient (whatever that would mean).
 
 We're going to be concerned with the latter question (i) because it is something PDS, we believe, is uniquely well positioned to ask, and thus asking it provides a useful demonstration of the PDS's use; and (ii) because the former question has already been answered.
 
 [As discussed on Day 1](../background/case-studies.qmd), @degen_are_2022 argue that no clear line separates factive from non-factive predicates. Mean projection ratings vary continuously from *pretend* (lowest) to *be annoyed* (highest).
 
-![Aggregate factivity measures from @degen_are_2022, showing continuous variation in projection ratings across predicates under questioning.](plots/projection_no_fact_means.pdf){width=750}
+![Aggregate factivity measures from @degen_are_2022, showing continuous variation in projection ratings across predicates under questioning.](plots/projection_no_fact_means.png){#fig-projection-verb-means width=750}
 
 @kane_intensional_2022 later showed that this gradience is likely due largely to task effects and measurement noise. They demonstrate that when one applies a clustering model to these data that accounts for noise due to various factors, many of the standard subclasses of factives pop out. 
 
@@ -54,7 +54,7 @@ To get a sense for how these clusters appear in the data, we can look back at @f
 
 ![One way of deriving a factivity measure from the MegaVeridicality dataset.](plots/derived_factivity_measure.png){#fig-derived-factivity width=750}
 
-Remember that the idea behind this figure is that we could in principle derive a continuous measure of factivity by taking the minimum along the axes of @fig:veridicality-factivity and rectifying.
+Remember that the idea behind this figure is that we could in principle derive a continuous measure of factivity by taking the minimum along the axes of @fig-veridicality-factivity and rectifying.
 
 The thing to note is that (i) there are clearly at least two separate "bumps" in the histogram; but (ii) the peak of the right bump is not at 1, as we might have expected. This is because some of these subclasses–e.g. the cognitive factives, which @karttunen_observations_1971 observes to not always give rise factivity–appear to themselves be associated with non-necessary factive inferences, while other classes–e.g. the emotive factives, such as *love*, *hate*, and *be annoyed*–always do (up to measurement error and other sources of noise). 
 
@@ -116,15 +116,15 @@ The experiments tested 20 predicates that theory suggests might pattern differen
   - **Veridical non-factive:** *be right*, *demonstrate*
 - **Optionally factive:** *acknowledge*, *admit*, *announce*, *confess*, *confirm*, *establish*, *hear*, *inform*, *prove* 
 
-Each participant saw 20 items (one per predicate) plus controls, with predicates paired with different complement clauses and prior contexts across participants. @fig:projection-verb-means shows the resulting distributions.
+Each participant saw 20 items (one per predicate) plus controls, with predicates paired with different complement clauses and prior contexts across participants. @fig-projection-verb-means shows the resulting distributions.
 
 ## World knowledge: gradient or discrete?
 
 Before examining factivity proper, let's understand how the norming study helps us model world knowledge. The norming data allows us to test whether world knowledge itself involves discrete or gradient uncertainty. (The structure of this model is very similar to the one we covered in the [adjectives section](../adjectives/adjectives-aaron.html#world-knowledge-gradient-or-discrete).)
 
-![Left: ELPDs for the two models of the norming data from @degen_prior_2021's experiment 2a. Dotted line indicates estimated difference between the norming-discrete model and the norming-gradient model.](plots/norming_elpd.pdf){#fig:norming-elpds-pps}
+![Left: ELPDs for the two models of the norming data from @degen_prior_2021's experiment 2a. Dotted line indicates estimated difference between the norming-discrete model and the norming-gradient model.](plots/norming_elpd.png){#fig-norming-elpds-pps}
 
-As @fig:norming-elpds-pps shows, the gradient model of world knowledge substantially outperforms the discrete model (ΔELPD = 442.3 ± 23.1). The posterior predictive distributions reveal why: participants' judgments cluster away from the scale endpoints, a pattern the gradient model captures naturally but the discrete model cannot. This establishes that world knowledge contributes gradient uncertainty to factivity judgments.
+As @fig-norming-elpds-pps shows, the gradient model of world knowledge substantially outperforms the discrete model (ΔELPD = 442.3 ± 23.1). The posterior predictive distributions reveal why: participants' judgments cluster away from the scale endpoints, a pattern the gradient model captures naturally but the discrete model cannot. This establishes that world knowledge contributes gradient uncertainty to factivity judgments.
 
 ## From PDS to Stan: implementing the theories
 
@@ -439,9 +439,9 @@ To evaluate these competing hypotheses, we can examine their empirical predictio
 
 First, let's visualize how well each model captures the distribution of responses:
 
-![Posterior predictive distributions (with simulated participant intercepts) of all four models for six predicates from @degen_prior_2021's projection experiment 2b, for all contexts combined. Empirical distributions are represented by density histograms of data from @degen_prior_2021.](plots/contentful_all_6_pp.pdf){#fig:factivity-posteriors}
+![Posterior predictive distributions (with simulated participant intercepts) of all four models for six predicates from @degen_prior_2021's projection experiment 2b, for all contexts combined. Empirical distributions are represented by density histograms of data from @degen_prior_2021.](plots/contentful_all_6_pp.png){#fig-factivity-posteriors}
 
-@fig:factivity-posteriors reveals striking differences between the models:
+@fig-factivity-posteriors reveals striking differences between the models:
 
 - **Discrete-factivity** (top left): Captures the characteristic dips in response frequency mid-scale—reflecting its mixture of factive (response ≈ 1) and non-factive (response varies) interpretations
 - **Wholly-gradient** (bottom left): Produces smoother, unimodal distributions, unable to capture the multi-modal patterns in the data
@@ -454,7 +454,7 @@ The discrete-factivity model's ability to capture the non-monotonic response pat
 
 Looking at the expected log pointwise predictive densities reveals a clear winner. The discrete-factivity model substantially outperforms all alternatives across the board. Compared to the wholly-gradient model, it achieves a ΔELPD of 834.5 ± 55.4—a massive improvement in predictive accuracy. The advantages over discrete-world (ΔELPD = 766.1 ± 53.8) and wholly-discrete (ΔELPD = 295.1 ± 34.8) models are similarly impressive. These differences are not just statistically significant but practically large, indicating that the discrete-factivity model provides a dramatically better account of the data.
 
-![ELPDs for the four models. Dotted lines indicate estimated differences between each model and the discrete-factivity model. Error bars indicate standard errors.](plots/fits_elpd.pdf){#fig:factivity-elpds}
+![ELPDs for the four models. Dotted lines indicate estimated differences between each model and the discrete-factivity model. Error bars indicate standard errors.](plots/fits_elpd.png){#fig-factivity-elpds}
 
 ## Exploring additional dimensions
 
@@ -462,21 +462,21 @@ Looking at the expected log pointwise predictive densities reveals a clear winne
 
 Not all predicates show the same degree of discreteness. We can examine the posterior distributions of the factivity parameter by predicate:
 
-![Density plots of the posterior log-odds of projection (with participant intercepts zeroed out) for all four models for six predicates from @degen_prior_2021's projection experiment 2b.](plots/fit_6_thetas.pdf){#fig:factivity-predicate-posteriors}
+![Density plots of the posterior log-odds of projection (with participant intercepts zeroed out) for all four models for six predicates from @degen_prior_2021's projection experiment 2b.](plots/fit_6_thetas.png){#fig-factivity-predicate-posteriors}
 
 Several patterns emerge from these posterior distributions. Canonical factives like *know* and *discover* show high probability of being interpreted with factive presupposition across models, while non-factives like *think* and *say* show consistently low probability. The most interesting cases are variable predicates like *confirm* and *prove*, which show intermediate probabilities with high uncertainty. This variation suggests that while factivity is discrete at the token level (each use involves either a factive or non-factive interpretation), predicates differ systematically in their propensity to trigger factive interpretations.
 
 For a complete view of all 20 predicates tested:
 
 :::{.callout-tip collapse="true" title="Click to see posterior distributions for all predicates"}
-![Density plots of the posterior log-odds of projection for all predicates from @degen_prior_2021's projection experiment 2b.](plots/fit_full_thetas.pdf){#fig:factivity-all-predicate-posteriors}
+![Density plots of the posterior log-odds of projection for all predicates from @degen_prior_2021's projection experiment 2b.](plots/fit_full_thetas.png){#fig-factivity-all-predicate-posteriors}
 :::
 
 ### Context effects
 
 The norming study reveals how world knowledge varies across contexts:
 
-![Density plots of the posterior log-odds certainty (with participant intercepts zeroed out) for three items in @degen_prior_2021's norming task (experiment 2a). Low and high priors are for *Grace visited her sister*, given the facts *Grace hates her sister* and *Grace loves her sister*, respectively. Mid prior is for *Sophia got a tattoo*, given the fact *Sophia is a hipster*.](plots/norming_3_thetas.pdf){#fig:norming-contexts}
+![Density plots of the posterior log-odds certainty (with participant intercepts zeroed out) for three items in @degen_prior_2021's norming task (experiment 2a). Low and high priors are for *Grace visited her sister*, given the facts *Grace hates her sister* and *Grace loves her sister*, respectively. Mid prior is for *Sophia got a tattoo*, given the fact *Sophia is a hipster*.](plots/norming_3_thetas.png){#fig-norming-contexts}
 
 The separation between low and high prior contexts validates the experimental manipulation—participants genuinely use world knowledge when judging likelihood. This makes the discrete-factivity model's success more impressive: it must overcome this continuous variation to produce discrete projection patterns.
 
@@ -485,7 +485,7 @@ The separation between low and high prior contexts validates the experimental ma
 For researchers interested in the full pattern across all predicates:
 
 :::{.callout-tip collapse="true" title="Click to see posterior predictive distributions for all 20 predicates"}
-![Posterior predictive distributions (with simulated participant intercepts) of all four models for all predicates in @degen_prior_2021's projection experiment 2b, for all contexts combined. Empirical distributions are represented by density histograms.](plots/fits_all_full_pp.pdf){#fig:factivity-all-posteriors}
+![Posterior predictive distributions (with simulated participant intercepts) of all four models for all predicates in @degen_prior_2021's projection experiment 2b, for all contexts combined. Empirical distributions are represented by density histograms.](plots/fits_all_full_pp.png){#fig-factivity-all-posteriors}
 :::
 
 ## Implementation challenges and solutions
@@ -511,7 +511,7 @@ To ensure our results aren't artifacts of the truncated normal distribution, we 
 :::{.callout-note collapse="true" title="Robustness to response distribution choice"}
 We also fit models using ordered beta distributions, which handle bounded responses differently:
 
-![Left: ELPDs for all four ordered beta models. Right: ELPDs for truncated normal vs. ordered beta models on non-endpoint responses. Dotted lines indicate differences from discrete-factivity model.](plots/ordered_beta_elpd.pdf){#fig:ordered-beta-comparison}
+![Left: ELPDs for all four ordered beta models. Right: ELPDs for truncated normal vs. ordered beta models on non-endpoint responses. Dotted lines indicate differences from discrete-factivity model.](plots/ordered_beta_elpd.png){#fig-ordered-beta-comparison}
 
 The discrete-factivity model maintains its advantage regardless of response distribution, confirming the robustness of our findings.
 :::

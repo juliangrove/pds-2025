@@ -1,0 +1,201 @@
+---
+title: "Factivity, presupposition projection, and the role of discrete knowledge in gradient inference judgments"
+bibliography: ../../pds.bib
+format:
+  revealjs:
+    css: ../styles.css
+    html-math-method: mathjax
+    mathjax-config:
+      loader: {load: ['[tex]/bussproofs','[tex]/bbox','[tex]/colorbox']}
+      tex:
+        packages: {'[+]': ['bussproofs','bbox','colorbox']}
+---
+
+# Factivity and projection
+
+## The phenomenon
+
+While gradience in adjectives arises from reasonably well-understood sources, factivity presents a deeper puzzle.
+
+::: {.incremental}
+- **Traditional view**: Predicates either trigger presuppositions or they don't
+- **Empirical reality**: Pervasive gradience in projection judgments
+- **The challenge**: What explains this gradience?
+:::
+
+---
+
+## What makes factivity special
+
+Factivity = property of predicates associated with presupposition that complements are true
+
+::: {.fragment}
+Compare:
+
+**Factive**: 
+- Jo loved that Mo left. ⟹ Mo left.
+- Jo didn't love that Mo left. ⟹ Mo left.
+- Did Jo love that Mo left? ⟹ Mo left.
+:::
+
+::: {.fragment}
+**Non-factive**:
+- Jo thinks that Mo left. ⏸ Mo left.
+- Jo doesn't think that Mo left. ⏸ Mo left.
+:::
+
+---
+
+## The empirical landscape
+
+::: {style="text-align: center;"}
+![](plots/veridicality_factivity.png){width=500}
+
+::: {style="font-size: 85%;"}
+MegaVeridicality dataset (@white_role_2018): continuous gradient, not discrete clusters
+:::
+:::
+
+---
+
+## An important distinction
+
+There are two importantly distinct questions that we need to disentangle:
+
+::: {.incremental}
+1. Whether the gradience suggests that there is no *class* (or subclasses) of factive predicates
+2. Whether the veridicality inferences triggered by a particular expression containing a particular clause-embedding predicate are themselves gradient
+:::
+
+::: {.fragment}
+We'll focus on the latter question—PDS is uniquely positioned to ask it
+:::
+
+---
+
+## The first question has been answered
+
+@degen_are_2022 argue no clear line separates factive from non-factive predicates
+
+::: {.fragment}
+@kane_intensional_2022 show this gradience is likely due to task effects and measurement noise
+:::
+
+::: {.fragment}
+::: {style="text-align: center;"}
+![](plots/derived_factivity_measure.png){width=600}
+
+When accounting for noise, standard subclasses of factives emerge
+:::
+:::
+
+::: {.fragment}
+**Note**: Some subclasses (e.g., cognitive factives like *discover*) appear to be associated with non-necessary factive inferences—@karttunen_observations_1971 observed this 60+ years ago!
+:::
+
+---
+
+## Two competing hypotheses
+
+### Discrete-factivity hypothesis
+
+- Factivity is discrete—speakers either interpret as factive or not
+- Gradience reflects uncertainty about interpretation
+- Analogous to lexical ambiguity
+
+::: {.fragment}
+### Wholly-gradient hypothesis
+
+- No discrete factivity property exists
+- Predicates make gradient contributions to complement truth
+- Aligned with Gradient Projection Principle
+:::
+
+---
+
+## Experimental paradigms
+
+### The challenge
+
+Judgments about certainty depend on:
+
+1. Properties of the predicate (factivity)
+2. World knowledge about proposition likelihood
+
+::: {.fragment}
+@degen_prior_2021 developed a two-stage design to tease these apart
+:::
+
+---
+
+## Stage 1: Norming study
+
+Measure world knowledge independent of embedding predicates:
+
+::: {style="background-color: #f0f0f0; padding: 15px; margin: 20px 0;"}
+**Fact**: Sophia is a hipster.  
+**Question**: How likely is it that Sophia got a tattoo?  
+**Response**: [slider from 0 to 1]
+:::
+
+::: {.fragment}
+Created high/low likelihood contexts for each proposition
+:::
+
+---
+
+## Stage 2: Projection study
+
+Embed propositions under predicates, ask about speaker certainty:
+
+::: {style="background-color: #f0f0f0; padding: 15px; margin: 20px 0;"}
+**Context**: Isabella said that Sophia is a hipster.  
+**Utterance**: Noah knows that Sophia got a tattoo.  
+**Question**: Is Noah certain that Sophia got a tattoo?  
+**Response**: [slider from 0 to 1]
+:::
+
+---
+
+## Predicates tested
+
+20 predicates spanning theoretical categories:
+
+::: {style="font-size: 90%;"}
+- **Canonical factives**: *know*, *discover*, *realize*, *be aware*
+- **Non-factives**: *think*, *believe*, *say*, *suggest*  
+- **"Semifactives"**: *see*, *hear*, *notice*, *find out*
+- **Variable behavior**: *confirm*, *admit*, *be right*
+:::
+
+---
+
+## The empirical challenge
+
+::: {style="text-align: center;"}
+![](plots/projection_no_fact_means.png){width=600}
+
+Continuous gradient of projection behavior
+:::
+
+---
+
+## World knowledge: gradient or discrete?
+
+First, test whether world knowledge itself is discrete or gradient:
+
+::: {style="text-align: center;"}
+![](plots/norming_elpd.png){width=600}
+
+Gradient model substantially outperforms discrete (ΔELPD = 442.3)
+:::
+
+---
+
+## Next: Models and Implementation
+
+Now that we understand the phenomenon and experimental approach, let's see how PDS allows us to implement the competing theories as statistical models.
+
+::: {style="text-align: center; margin-top: 40px;"}
+**Continue to:** [Factivity Models →](factivity-models.html)
+:::

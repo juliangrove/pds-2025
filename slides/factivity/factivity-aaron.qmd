@@ -49,11 +49,48 @@ Compare:
 ## The empirical landscape
 
 ::: {style="text-align: center;"}
-![](plots/veridicality_factivity.pdf){width=500}
+![](plots/veridicality_factivity.png){width=500}
 
 ::: {style="font-size: 85%;"}
 MegaVeridicality dataset (@white_role_2018): continuous gradient, not discrete clusters
 :::
+:::
+
+---
+
+## An important distinction
+
+There are two importantly distinct questions that we need to disentangle:
+
+::: {.incremental}
+1. Whether the gradience suggests that there is no *class* (or subclasses) of factive predicates
+2. Whether the veridicality inferences triggered by a particular expression containing a particular clause-embedding predicate are themselves gradient
+:::
+
+::: {.fragment}
+We'll focus on the latter question—PDS is uniquely positioned to ask it
+:::
+
+---
+
+## The first question has been answered
+
+@degen_are_2022 argue no clear line separates factive from non-factive predicates
+
+::: {.fragment}
+@kane_intensional_2022 show this gradience is likely due to task effects and measurement noise
+:::
+
+::: {.fragment}
+::: {style="text-align: center;"}
+![](plots/derived_factivity_measure.png){width=600}
+
+When accounting for noise, standard subclasses of factives emerge
+:::
+:::
+
+::: {.fragment}
+**Note**: Some subclasses (e.g., cognitive factives like *discover*) appear to be associated with non-necessary factive inferences—@karttunen_observations_1971 observed this 60+ years ago!
 :::
 
 ---
@@ -136,7 +173,7 @@ Embed propositions under predicates, ask about speaker certainty:
 ## The empirical challenge
 
 ::: {style="text-align: center;"}
-![](plots/projection_no_fact_means.pdf){width=600}
+![](plots/projection_no_fact_means.png){width=600}
 
 Continuous gradient of projection behavior
 :::
@@ -148,7 +185,7 @@ Continuous gradient of projection behavior
 First, test whether world knowledge itself is discrete or gradient:
 
 ::: {style="text-align: center;"}
-![](plots/norming_elpd.pdf){width=600}
+![](plots/norming_elpd.png){width=600}
 
 Gradient model substantially outperforms discrete (ΔELPD = 442.3)
 :::
@@ -224,6 +261,46 @@ model {
 
 ---
 
+## Wholly-gradient factivity in PDS
+
+Alternative lexical entry branches on common ground indices:
+
+```haskell
+-- From Grammar.Lexica.SynSem.Factivity
+"knows" -> [ SynSem {
+    syn = S :\: NP :/: S,
+    sem = ty tau (lam s (purePP (lam p (lam x (lam i
+      (ITE (TauKnow i)
+           (And (epi i @@ x @@ p) (p @@ i)) -- factive
+           (epi i @@ x @@ p))))) @@ s))     -- non-factive
+    } ]
+```
+
+::: {.fragment}
+Now `TauKnow` parameter varies by *index* rather than discourse state
+:::
+
+---
+
+## Gradient Stan kernel
+
+```stan
+model {
+  // FIXED EFFECTS
+  v ~ logit_normal(0.0, 1.0);  // degree of factivity
+  w ~ logit_normal(0.0, 1.0);  // world knowledge
+  
+  // GRADIENT LIKELIHOOD
+  target += truncated_normal_lpdf(y | v + (1.0 - v) * w, sigma, 0.0, 1.0);
+}
+```
+
+::: {.fragment}
+Continuous computation: `response = v + (1-v) * w`
+:::
+
+---
+
 ## Model comparison
 
 Four models tested:
@@ -238,7 +315,7 @@ Four models tested:
 ## Quantitative results
 
 ::: {style="text-align: center;"}
-![](plots/fits_elpd.pdf){width=600}
+![](plots/fits_elpd.png){width=600}
 
 Discrete-factivity dramatically outperforms alternatives
 :::
@@ -251,12 +328,26 @@ Discrete-factivity dramatically outperforms alternatives
 
 ---
 
+## Posterior predictive checks
+
+::: {style="text-align: center;"}
+![](plots/contentful_all_6_pp.png){width=700}
+
+How well do models capture response distributions?
+:::
+
+::: {.fragment}
+**Discrete-factivity** captures characteristic dips mid-scale—mixture of factive (≈1) and non-factive (varies) interpretations
+:::
+
+---
+
 ## Robustness checks
 
 ### Anti-veridicality
 
 ::: {style="text-align: center;"}
-![](plots/fits_a-v_elpd.pdf){width=500}
+![](plots/fits_a-v_elpd.png){width=500}
 
 Pattern holds even with anti-veridicality component
 :::
@@ -266,7 +357,7 @@ Pattern holds even with anti-veridicality component
 ## Cross-experimental validation
 
 ::: {style="text-align: center;"}
-![](plots/contentful_elpd.pdf){width=500}
+![](plots/contentful_elpd.png){width=500}
 
 Discrete-factivity advantage persists in replication
 :::
@@ -276,7 +367,7 @@ Discrete-factivity advantage persists in replication
 ## Replication success
 
 ::: {style="text-align: center;"}
-![](plots/projection_item_means.pdf){width=700}
+![](plots/projection_item_means.png){width=700}
 
 Near-perfect correlation at verb level (r = 0.98)
 :::
@@ -294,7 +385,7 @@ Test with minimal contexts:
 **Templatic**: "X happened"
 :::
 ::: {.column width="50%"}
-![](plots/bleached_verb_means.pdf){width=350}
+![](plots/bleached_verb_means.png){width=350}
 :::
 :::
 
@@ -307,9 +398,21 @@ Factivity patterns persist even without rich content!
 ## Model performance on minimal contexts
 
 ::: {style="text-align: center;"}
-![](plots/non-contentful_elpds.pdf){width=700}
+![](plots/non-contentful_elpds.png){width=700}
 
 Discrete-factivity maintains advantage
+:::
+
+---
+
+## Context effects
+
+The norming study reveals how world knowledge varies:
+
+::: {style="text-align: center;"}
+![](plots/norming_3_thetas.png){width=600}
+
+Clear separation between high/low prior contexts validates experimental manipulation
 :::
 
 ---
@@ -317,9 +420,13 @@ Discrete-factivity maintains advantage
 ## Predicate-specific patterns
 
 ::: {style="text-align: center;"}
-![](plots/fit_6_thetas.pdf){width=700}
+![](plots/fit_6_thetas.png){width=700}
 
 Variation in propensity to trigger factive interpretations
+:::
+
+::: {.fragment}
+**Key insight**: Canonical factives (*know*, *discover*) show high probability; variable predicates (*confirm*, *prove*) show intermediate probabilities with high uncertainty
 :::
 
 ---
