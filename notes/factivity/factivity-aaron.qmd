@@ -23,16 +23,16 @@ In all cases, there's a strong inference that Mo actually left. This inference *
 []{@non-factive-pos}
 []{@non-factive-neg}
 
-(@non-factive-pos) Jo thinks/believes/said that Mo left.
-(@non-factive-neg) Jo doesn't think/believe/say that Mo left.
+(@non-factive-pos) Jo {thinks, believes, said} that Mo left.
+(@non-factive-neg) Jo doesn't {think, believe, say} that Mo left.
 
 Here, using (@non-factive-neg) doesn't commit us to Mo having left. Given just these examples, the contrast feels charp: predicates are either associated with factive presuppositions or not.
 
-But this traditional picture has been challenged by experimental work showing substantial gradience in projection judgments. Some predicates (like *know*) are almost always associated with projection, others (like *think*) rarely trigger it, and many fall somewhere in between. What explains this gradience? For instance, @white_role_2018 measured veridicality inferences for more than 700 predicates in their MegaVeridicality dataset–visualized in @fig:veridicality-factivity.
+But this traditional picture has been challenged by experimental work showing substantial gradience in projection judgments. Some predicates (like *love*) are almost always associated with projection, others (like *think*) rarely trigger it, but many fall somewhere in between. For instance, @white_role_2018 measured veridicality inferences for more than 700 predicates in their MegaVeridicality dataset–visualized in @fig:veridicality-factivity.
 
 ![An aggregate measure of factivity, derived from the MegaVeridicality dataset of @white_role_2018. Points are jittered (0.05) to avoid overplotting. The x-axis corresponds to mean scores for affirmative contexts, the y-axis for negative contexts. Each point is a predicate. Note the continuous gradient rather than discrete clusters.](plots/veridicality_factivity.pdf){#fig:veridicality-factivity}
 
-As @fig:veridicality-factivity shows, the empirical landscape reveals a continuum of projection behavior rather than the discrete categories traditional theories would predict. This gradience is what our models must explain.
+What explains this gradience?
 
 ## Two competing hypotheses
 
@@ -187,7 +187,7 @@ The factivity-specific components are:
 
 Here's how the discrete-factivity kernel is augmented for real data:
 
-```{.stan .line-numbers}
+```{.stan .line-numbers highlight="16-27"}
 model {
   // PRIORS (analyst-added)
   verb_intercept_std ~ exponential(1);
@@ -205,22 +205,22 @@ model {
   // DISCRETE FACTIVITY (PDS kernel structure)
   for (n in 1:N) {
     // Probability of factive interpretation for this verb/subject combo
-    real verb_prob = inv_logit(verb_intercept[verb[n]] + // |highlight: 17|
-                               subj_intercept_verb[subj[n], verb[n]]); // |highlight: 18|
+    real verb_prob = inv_logit(verb_intercept[verb[n]] +
+                               subj_intercept_verb[subj[n], verb[n]]);
     
     // World knowledge probability for this context/subject combo  
-    real context_prob = inv_logit(context_intercept[context[n]] + // |highlight: 21|
-                                  subj_intercept_context[subj[n], context[n]]); // |highlight: 22|
+    real context_prob = inv_logit(context_intercept[context[n]] +
+                                  subj_intercept_context[subj[n], context[n]]);
     
     // MIXTURE LIKELIHOOD (PDS kernel structure)
-    target += log_mix(verb_prob, // |highlight: 25|
-                      truncated_normal_lpdf(y[n] | 1.0, sigma_e, 0.0, 1.0), // |highlight: 26|
-                      truncated_normal_lpdf(y[n] | context_prob, sigma_e, 0.0, 1.0)); // |highlight: 27|
+    target += log_mix(verb_prob,
+                      truncated_normal_lpdf(y[n] | 1.0, sigma_e, 0.0, 1.0),
+                      truncated_normal_lpdf(y[n] | context_prob, sigma_e, 0.0, 1.0));
   }
 }
 ```
 
-The highlighted lines (17-18, 21-22, 25-27) represent the kernel model from PDS—encoding discrete factivity as a mixture of two response distributions. The unhighlighted portions add the statistical machinery needed for real data.
+The highlighted lines represent the kernel model from PDS—encoding discrete factivity as a mixture of two response distributions. The unhighlighted portions add the statistical machinery needed for real data.
 
 ### Wholly-gradient factivity
 
@@ -248,7 +248,7 @@ Let's trace through this computation:
 
 The full model augments this kernel with the same hierarchical structure as before:
 
-```{.stan .line-numbers}
+```{.stan .line-numbers highlight="16-26"}
 model {
   // PRIORS (analyst-added)
   verb_intercept_std ~ exponential(1);
@@ -266,21 +266,21 @@ model {
   // GRADIENT COMPUTATION (PDS kernel structure)
   for (n in 1:N) {
     // Degree of factivity for this verb/subject
-    real verb_boost = inv_logit(verb_intercept[verb[n]] + // |highlight: 17|
-                                subj_intercept_verb[subj[n], verb[n]]); // |highlight: 18|
+    real verb_boost = inv_logit(verb_intercept[verb[n]] +
+                                subj_intercept_verb[subj[n], verb[n]]);
     
     // World knowledge for this context/subject
-    real context_prob = inv_logit(context_intercept[context[n]] + // |highlight: 21|
-                                  subj_intercept_context[subj[n], context[n]]); // |highlight: 22|
+    real context_prob = inv_logit(context_intercept[context[n]] +
+                                  subj_intercept_context[subj[n], context[n]]);
     
     // GRADIENT LIKELIHOOD (PDS kernel computation)
-    real response_prob = verb_boost + (1.0 - verb_boost) * context_prob; // |highlight: 25|
-    target += truncated_normal_lpdf(y[n] | response_prob, sigma_e, 0.0, 1.0); // |highlight: 26|
+    real response_prob = verb_boost + (1.0 - verb_boost) * context_prob;
+    target += truncated_normal_lpdf(y[n] | response_prob, sigma_e, 0.0, 1.0);
   }
 }
 ```
 
-Lines 17-18, 21-22, and 25-26 (highlighted) show the PDS kernel—a continuous computation rather than discrete branching. The gradient contribution of factivity is clear in line 25: the verb provides a multiplicative boost to world knowledge rather than overriding it entirely.
+The highlighted lines show the PDS kernel—a continuous computation rather than discrete branching. The gradient contribution of factivity is clear in line 25: the verb provides a multiplicative boost to world knowledge rather than overriding it entirely.
 
 ### Response distributions and censoring
 
@@ -395,42 +395,6 @@ The discrete-factivity model's ability to capture the non-monotonic response pat
 Looking at the expected log pointwise predictive densities reveals a clear winner. The discrete-factivity model substantially outperforms all alternatives across the board. Compared to the wholly-gradient model, it achieves a ΔELPD of 834.5 ± 55.4—a massive improvement in predictive accuracy. The advantages over discrete-world (ΔELPD = 766.1 ± 53.8) and wholly-discrete (ΔELPD = 295.1 ± 34.8) models are similarly impressive. These differences are not just statistically significant but practically large, indicating that the discrete-factivity model provides a dramatically better account of the data.
 
 ![ELPDs for the four models. Dotted lines indicate estimated differences between each model and the discrete-factivity model. Error bars indicate standard errors.](plots/fits_elpd.pdf){#fig:factivity-elpds}
-
-### Robustness across paradigms
-
-To ensure these results aren't artifacts of the particular experimental design, we can examine how the models perform on variations:
-
-![ELPDs for the four models with an anti-veridicality component added for each predicate.](plots/fits_a-v_elpd.pdf){#fig:factivity-av-elpds}
-
-Even when we add an anti-veridicality component (allowing predicates like *pretend* to actively signal falsity), the discrete-factivity model maintains its advantage. The relative ordering of models remains unchanged.
-
-### Cross-experimental validation
-
-The discrete-factivity advantage persists across different experimental contexts:
-
-![ELPDs for the four model evaluations on our replication experiment data.](plots/contentful_elpd.pdf){#fig:factivity-replication-elpds}
-
-In a direct replication with new participants, the same pattern emerges. The discrete-factivity model's ELPD advantage remains substantial, confirming that the results reflect genuine properties of factivity rather than experimental artifacts.
-
-### Replication success
-
-To verify that our replication captured the same empirical patterns as the original study:
-
-![Left: item means from @degen_prior_2021 vs. our replication (Spearman's r = 0.68, p ≤ 0.001). Right: verb means (Spearman's r = 0.98, p ≤ 0.001). "Non-factive" verbs are in red, "optionally factive" verbs are in teal, and "canonically factive" verbs are in green.](plots/projection_item_means.pdf){#fig:replication-comparison}
-
-The near-perfect correlation at the verb level (r = 0.98) confirms that our replication successfully captured the same factivity patterns as the original study, validating our model comparisons.
-
-### Non-contentful experiments
-
-To test whether factivity patterns depend on rich lexical content, we conducted two additional experiments with minimal contexts:
-
-![Left: @degen_prior_2021's projection data vs. bleached contexts (Spearman's r = 0.97, p ≤ 0.001). Right: templatic contexts (Spearman's r = 0.87, p ≤ 0.001). "Non-factive" verbs are in red, "optionally factive" verbs are in teal, and "canonically factive" verbs are in green.](plots/bleached_verb_means.pdf){#fig:non-contentful-comparison}
-
-Remarkably, even when complement clauses are reduced to "a particular thing happened" (bleached) or "X happened" (templatic), the factivity patterns persist with high correlations to the original data.
-
-![ELPDs for the four model evaluations on the bleached data (left) and the templatic data (right). Dotted lines indicate estimated differences between each model and the discrete-factivity model. Error bars indicate standard errors.](plots/non-contentful_elpds.pdf){#fig:non-contentful-elpds}
-
-Crucially, the discrete-factivity model maintains its advantage even in these minimal contexts. This suggests that discrete factivity is a robust property of how speakers interpret predicates, not dependent on rich contextual information.
 
 ## Exploring additional dimensions
 
