@@ -1,9 +1,10 @@
 ---
 title: "Factivity"
 bibliography: ../../pds.bib
+format:
+  revealjs:
+    css: ../styles.css
 ---
-
-# Factivity and projection
 
 ## The phenomenon
 
@@ -147,7 +148,9 @@ Measure world knowledge independent of embedding predicates:
 ::: {style="background-color: #f0f0f0; padding: 15px; margin: 20px 0;"}
 **Fact**: Sophia is a hipster.  
 **Question**: How likely is it that Sophia got a tattoo?  
-**Response**: [slider from 0 to 1]
+**Response**: <div>
+  <input type="range" id="response" name="response" min="0" max="100" />
+</div>impossible $\hspace{17cm}$ definitely
 :::
 
 ::: {.fragment}
@@ -164,7 +167,9 @@ Embed propositions under predicates, ask about speaker certainty:
 **Context**: Isabella said that Sophia is a hipster.  
 **Utterance**: Noah knows that Sophia got a tattoo.  
 **Question**: Is Noah certain that Sophia got a tattoo?  
-**Response**: [slider from 0 to 1]
+**Response**: <div>
+  <input type="range" id="response" name="response" min="0" max="100" />
+</div>no $\hspace{23cm}$ yes
 :::
 
 ---

@@ -24,3 +24,7 @@
 .smaller {
   font-size: 90%;
 }
+
+#response {
+  width: 1000px; /* or whatever length you want */
+}
