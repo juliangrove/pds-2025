@@ -31,13 +31,17 @@ website:
       - pds-intro/delta-rules.qmd
     - section: "Vagueness and imprecision"
       contents:
-      - adjectives/index.qmd
+      - adjectives/adjectives-intro.qmd
+      - adjectives/collecting-judgments.qmd
+      - adjectives/compiling-kernel-models.qmd
+      - adjectives/norming-model.qmd
+      - adjectives/modeling-vagueness.qmd
     - section: "Factivity inferences"
       contents:
       - factivity/index.qmd
-    - section: "Modeling the question prompt"
-      contents:
-      - qud/index.qmd
+    # - section: "Modeling the question prompt"
+      # contents:
+      # - qud/index.qmd
 
 format:
   html:
