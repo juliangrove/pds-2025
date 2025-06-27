@@ -5,8 +5,6 @@ bibliography: ../../pds.bib
 
 Having explored how PDS handles expected gradience in adjectives, we now turn to factivity—where gradience poses a deeper theoretical puzzle. While the gradience in adjective meanings arises from well-understood sources like vagueness and contextual variation, the gradience observed in judgments aimed at measuring factivity is more difficult to explain.
 
-## Factivity and projection
-
 Before diving into computational models, let's review what makes factivity special. Factivity describes the property of certain predicates that are associated with the presupposition that their complements are true, even when the predicate is embedded under various operators. Compare these sentences:
 
 []{#factive-projection-pos}
