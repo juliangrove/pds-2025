@@ -47,4 +47,4 @@ The experiments tested 20 predicates that theory suggests might pattern differen
   - **Veridical non-factive:** *be right*, *demonstrate*
 - **Optionally factive:** *acknowledge*, *admit*, *announce*, *confess*, *confirm*, *establish*, *hear*, *inform*, *prove* 
 
-Each participant saw 20 items (one per predicate) plus controls, with predicates paired with different complement clauses and prior contexts across participants. @fig-projection-verb-means shows the resulting distributions.
+Each participant saw 20 items (one per predicate) plus controls, with predicates paired with different complement clauses and prior contexts across participants.

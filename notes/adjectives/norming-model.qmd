@@ -405,7 +405,7 @@ instance Interpretation Adjectives SynSem where
 
 ### delta-rules and semantic computation
 
-PDS applies delta-rules to simplify these complex λ-terms. As discussed in [the implementation section](../pds-intro/implementation.md), delta-rules enable different semantic computations while preserving semantic equivalence. The formalism is strongly normalizing and confluent, so the order of rule application doesn't affect the final result—a crucial property that ensures our semantic theory remains consistent.
+PDS applies delta-rules to simplify these complex λ-terms. As discussed in [the implementation section](../pds-intro/delta-rules.qmd), delta-rules enable different semantic computations while preserving semantic equivalence. The formalism is strongly normalizing and confluent, so the order of rule application doesn't affect the final result—a crucial property that ensures our semantic theory remains consistent.
 
 Key delta-rules for adjectives include:
 - **Arithmetic operations**: Simplifying comparisons like $\ct{(≥)}$ when applied to constants
