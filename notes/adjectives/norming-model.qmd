@@ -144,6 +144,7 @@ But people differ! We need random effects to capture individual variation:
 ```
 
 This uses a clever trick called "non-centered parameterization":
+
 - `sigma_epsilon_guess`: The overall amount of person-to-person variation
 - `z_epsilon_guess`: Standardized (z-score) deviations for each person
 
