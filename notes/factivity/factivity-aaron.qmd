@@ -2,7 +2,7 @@
 title: "Factivity"
 ---
 
-Having explored how PDS handles expected gradience in adjectives, we now turn to factivity—where gradience poses a deeper theoretical puzzle. While the gradience in adjective meanings arises from well-understood sources like vagueness and contextual variation, the gradience observed in factivity judgments challenges our basic understanding of what it means for speakers to presuppose the truth of a complement when using certain predicates.
+Having explored how PDS handles expected gradience in adjectives, we now turn to factivity—where gradience poses a deeper theoretical puzzle. While the gradience in adjective meanings arises from well-understood sources like vagueness and contextual variation, the gradience observed in judgments aimed at measuring is more difficult to explain.
 
 ## Factivity and projection
 
@@ -18,7 +18,7 @@ Before diving into computational models, let's review what makes factivity speci
 (@factive-projection-q) Did Jo love that Mo left?
 (@factive-projection-cond) If Jo loved that Mo left, she'll won't be upset that Bo left.
 
-In all cases, there's a strong inference that Mo actually left. This inference **projects** through negation, questions, and conditionals—the hallmark of presupposition. Contrast this with non-factive predicates:
+In all cases, there's a strong inference that Mo actually left. We say that this inference *projects* through negation, questions, and conditionals. Contrast this with non-factive predicates:
 
 []{@non-factive-pos}
 []{@non-factive-neg}
@@ -26,13 +26,38 @@ In all cases, there's a strong inference that Mo actually left. This inference *
 (@non-factive-pos) Jo {thinks, believes, said} that Mo left.
 (@non-factive-neg) Jo doesn't {think, believe, say} that Mo left.
 
-Here, using (@non-factive-neg) doesn't commit us to Mo having left. Given just these examples, the contrast feels charp: predicates are either associated with factive presuppositions or not.
+Here, using (@non-factive-neg) doesn't commit us to Mo having left. Given just these examples, the contrast feels sharp: predicates are either associated with factive presuppositions or not.
 
 But this traditional picture has been challenged by experimental work showing substantial gradience in projection judgments. Some predicates (like *love*) are almost always associated with projection, others (like *think*) rarely trigger it, but many fall somewhere in between. For instance, @white_role_2018 measured veridicality inferences for more than 700 predicates in their MegaVeridicality dataset–visualized in @fig:veridicality-factivity.
 
 ![An aggregate measure of factivity, derived from the MegaVeridicality dataset of @white_role_2018. Points are jittered (0.05) to avoid overplotting. The x-axis corresponds to mean scores for affirmative contexts, the y-axis for negative contexts. Each point is a predicate. Note the continuous gradient rather than discrete clusters.](plots/veridicality_factivity.pdf){#fig:veridicality-factivity}
 
 What explains this gradience?
+
+## An importance distinction
+
+There are two importantly distinct questions that we need to disentangle before moving on:
+
+1. Whether the gradience in @fig:veridicality-factivity suggests that there is no *class* (or subclasses) of factive predicates.
+2. Whether the veridicality inferences triggered by a particular expression containing a particular clause-embedding predicate are themselves gradient (whatever that would mean).
+
+We're going to be concerned with the latter question (i) because it is something PDS, we believe, is uniquely well positioned to ask, and thus asking it provides a useful demonstration of the PDS's use; and (ii) because the former question has already been answered.
+
+[As discussed on Day 1](../background/case-studies.qmd), @degen_are_2022 argue that there is no clear line separates factive from non-factive predicates. Mean projection ratings vary continuously from *pretend* (lowest) to *be annoyed* (highest).
+
+![Aggregate factivity measures from @degen_are_2022, showing continuous variation in projection ratings across predicates under questioning.](plots/projection_no_fact_means.pdf){width=750}
+
+@kane_intensional_2022 later showed that this gradience is likely due largely to task effects and measurement noise. They demonstrate that when one applies a clustering model to these data that accounts for noise due to various factors, many of the standard subclasses of factives pop out. 
+
+To get a sense for how these clusters appear in the data, we can look back at @fig-derived-factivity, which [we discussed on Day 1](../background/understanding-gradience.qmd).
+
+![One way of deriving a factivity measure from the MegaVeridicality dataset.](plots/derived_factivity_measure.png){#fig-derived-factivity width=750}
+
+Remember that the idea behind this figure is that we could in principle derive a continuous measure of factivity by taking the minimum along the axes of @fig:veridicality-factivity and rectifying.
+
+The thing to note is that (i) there are clearly at least two separate "bumps" in the histogram; but (ii) the peak of the right bump is not at 1, as we might have expected. This is because some of these subclasses–e.g. the cognitive factives, which @karttunen_observations_1971 observes to not always give rise factivity–appear to themselves be associated with non-necessary factive inferences, while other classes–e.g. the emtoive factives, such as *love*, *hate*, and *be annoyed*–always do (up to measurement error and other sources of noise). 
+
+What explains the gradience *internal* to a class like the cognitive factives (which, again, we have known for more than 60 years *should* show this pattern)?
 
 ## Two competing hypotheses
 
@@ -84,16 +109,15 @@ They reasoned that, if speakers categorically interpret *know* as triggering a f
 
 The experiments tested 20 predicates that theory suggests might pattern differently:
 
-- **Canonical factives**: *know*, *discover*, *realize*, *be aware*, *reveal*
-- **Non-factives**: *think*, *believe*, *say*, *suggest*, *pretend*  
-- **"Semifactives"**: *see*, *hear*, *notice*, *find out*
-- **Others with variable behavior**: *confirm*, *admit*, *be right*
+- **Canonical factives:** *be annoyed*, *discover*, *know*, *reveal*, *see*
+- **Non-factives:**
+  - **Non-veridical non-factive:** *pretend*, *say*, *suggest*, *think* 
+  - **Veridical non-factive:** *be right*, *demonstrate*
+- **Optionally factive:** *acknowledge*, *admit*, *announce*, *confess*, *confirm*, *establish*, *hear*, *inform*, *prove* 
 
-Each participant saw 20 items (one per predicate) plus controls, with predicates paired with different complement clauses and prior contexts across participants.
+Each participant saw 20 items (one per predicate) plus controls, with predicates paired with different complement clauses and prior contexts across participants. @fig:projection-verb-means shows the resulting distributions.
 
-![Verb means from @degen_prior_2021's experiment 2b. "Non-factive" verbs are in red, "optionally factive" verbs are in teal, and "canonically factive" verbs are in green. Violin plots indicate the probability density of responses, showing the gradient nature of the empirical data.](plots/projection_no_fact_means.pdf){#fig:projection-verb-means}
-
-@fig:projection-verb-means reveals the empirical challenge: rather than clustering into discrete categories, predicates show a (qualitatively) continuous gradient of projection behavior. This is precisely what our competing hypotheses must explain.
+![Verb means from @degen_prior_2021's experiment 2b. Non-factive predicates are in red, "optionally factive" verbs are in teal, and "canonically factive" verbs are in green. Violin plots indicate the probability density of responses, showing the gradient nature of the empirical data.](plots/projection_no_fact_means.pdf){#fig:projection-verb-means}
 
 ## World knowledge: gradient or discrete?
 
@@ -105,7 +129,8 @@ As @fig:norming-elpds-pps shows, the gradient model of world knowledge substanti
 
 ## From PDS to Stan: implementing the theories
 
-Building on [the compilation pipeline introduced for adjectives](../adjectives/adjectives-aaron.html#the-pds-to-stan-pipeline), let's see how PDS handles the competing theories of factivity. Recall that PDS outputs **kernel models**—the semantic core corresponding directly to our theoretical commitments.
+Building on [the compilation pipeline introduced for adjectives](../adjectives/norming-model.qmd), let's see how PDS handles the competing theories of factivity. Recall that PDS outputs **kernel models**—the semantic core corresponding directly to our theoretical commitments.
+We'll focus mainly on the actual experimental items here, since the norming models for this task have a very similar character to the ones we introduced for gradable adjectives.
 
 ### Discrete-factivity in PDS
 
@@ -178,7 +203,7 @@ This kernel captures the discrete branching: with probability `v`, the response 
 
 ### Understanding the Stan implementation
 
-Before augmenting this kernel to handle real data, let's briefly review the key additions for factivity.^[For a detailed introduction to Stan's blocks and syntax, see [the Stan introduction in the adjectives section](../adjectives/adjectives-aaron.html#stan-a-language-for-statistical-modeling).]
+Before augmenting this kernel to handle real data, let's briefly review the key additions for factivity.^[For a detailed introduction to Stan's blocks and syntax, see [the Stan introduction in the adjectives section](../adjectives/norming-model.qmd).]
 
 The factivity-specific components are:
 - Hierarchical structure for verb-specific and context-specific effects
@@ -456,26 +481,3 @@ We also fit models using ordered beta distributions, which handle bounded respon
 The discrete-factivity model maintains its advantage regardless of response distribution, confirming the robustness of our findings.
 :::
 
-## Theoretical implications
-
-The strong empirical support for discrete-factivity has important theoretical consequences:
-
-### For semantic theory
-
-The results support views where factivity involves categorical semantic properties. These might manifest as lexical ambiguity (predicates having distinct factive and non-factive entries), structural ambiguity (different syntactic structures triggering or not triggering presupposition), or pragmatic ambiguity (context determining whether speakers presuppose the complement). The key insight is that gradience emerges from uncertainty about which categorical option speakers adopt, not from gradient truth conditions.
-
-### For projection theories
-
-Even theories that derive projection from pragmatic principles must explain the discrete patterns. Whether projection is driven by Questions Under Discussion (with complements being categorically included or excluded), at-issueness (with content being categorically at-issue or not-at-issue), or speaker commitment (with speakers being discretely committed or uncommitted to the truth of the complement), the underlying mechanism operates discretely, not continuously.
-
-### For experimental methodology
-
-The success of model-based analysis highlights important methodological points. First, aggregate gradience does not imply individual gradience—population-level continuous patterns can emerge from individual-level discrete processes. Second, theory-driven models matter—the PDS framework maintains theoretical commitments while enabling quantitative tests. Finally, multiple paradigms strengthen conclusions—convergent results across experiments provide robust evidence for theoretical claims.
-
-## Connections across phenomena
-
-The contrast between factivity and adjectives is theoretically illuminating. Adjectives show gradient uncertainty from vagueness—an expected source of unresolved indeterminacy. In contrast, factivity shows discrete uncertainty from interpretation selection—resolved indeterminacy. This difference emerges naturally from the PDS compilation: vague adjectives yield continuous threshold parameters while factive predicates yield mixture model components. The framework thus maintains theoretical distinctions while enabling quantitative comparison.
-
-## Summary
-
-The discrete nature of factivity emerges clearly from our model comparison. Empirically, discrete-factivity models dramatically outperform gradient alternatives. Theoretically, factivity involves categorical interpretation selection rather than continuous meaning modulation—speakers either interpret predicates as triggering presupposition or not. Methodologically, the PDS framework enables principled theory comparison through compilation from compositional semantics to statistical models. These findings vindicate the traditional view of factivity as a discrete phenomenon while explaining gradient patterns through probabilistic interpretation selection. The framework developed here—from compositional semantics through PDS compilation to statistical models—provides a template for investigating similar questions across semantic phenomena.
