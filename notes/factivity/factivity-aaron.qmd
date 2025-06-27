@@ -265,11 +265,13 @@ Following the discrete lexical entry for *know*, the `ITE` here creates a discre
 i.e., how to use the index it receives from the common ground.
 
 
-To accommodate the novel type of index-sensitivity of *know*, the prior over indices encoded in the common ground must be updated:
+To accommodate the novel index-sensitivity of *know*, the prior over indices encoded in the common ground must be also updated:
 
 ```haskell
 factivityPrior = let' x (LogitNormal 0 1) (let' y (LogitNormal 0 1) (let' z (LogitNormal 0 1) (Return (UpdCG (let' b (Bern x) (let' c (Bern y) (let' d (Bern z) (Return (UpdTauKnow b (UpdLing (lam x c) (UpdEpi (lam x (lam p d)) _0))))))) ϵ))))
 ```
+Here, the Bernoulli statement that regulates whether or not *know* is factive has been added to the definition of the common ground itself.
+
 
 The delta rules must also be modified to handle the factivity parameter as it is regulated by *indices*:
 
@@ -277,8 +279,8 @@ The delta rules must also be modified to handle the factivity parameter as it is
 indices :: DeltaRule
 indices = \case
   TauKnow (UpdTauKnow b _) -> Just b
-  TauKnow (UpdEpi _ s)      -> Just (TauKnow s)
-  TauKnow (UpdLing _ s)     -> Just (TauKnow s)
+  TauKnow (UpdEpi _ i)     -> Just (TauKnow i)
+  TauKnow (UpdLing _ i)    -> Just (TauKnow i)
   -- ... other cases
 ```
 
@@ -340,7 +342,7 @@ model {
 
 The highlighted lines show the PDS kernel—a continuous computation rather than discrete branching. The gradient contribution of factivity is clear in line 25: the verb provides a multiplicative boost to world knowledge rather than overriding it entirely.
 
-### Response distributions and censoring
+### Response distributions
 
 Both models use truncated normal distributions as response functions. As discussed in [the adjectives section](../adjectives/adjectives-aaron.html#censoring-and-boundary-effects), this handles the bounded nature of slider scales:
 
