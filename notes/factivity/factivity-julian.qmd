@@ -1,3 +1,0 @@
-# Some implementation details
-
-## Delta rules
