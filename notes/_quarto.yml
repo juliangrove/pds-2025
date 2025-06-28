@@ -38,10 +38,13 @@ website:
       - adjectives/modeling-vagueness.qmd
     - section: "Factivity inferences"
       contents:
-      - factivity/index.qmd
-    # - section: "Modeling the question prompt"
-      # contents:
-      # - qud/index.qmd
+      - factivity/factivity-projection.qmd
+      - factivity/important-distinction.qmd
+      - factivity/hypotheses.qmd
+      - factivity/experimental-paradigms.qmd
+      - factivity/additional-models.qmd
+      - factivity/additional-dimensions.qmd
+      - factivity/challenges-solutions.qmd
 
 format:
   html:
