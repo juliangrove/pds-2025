@@ -29,7 +29,7 @@ website:
       - pds-intro/expressions-and-discourses.qmd
       - pds-intro/constants.qmd
       - pds-intro/delta-rules.qmd
-    - section: "Vagueness and imprecision"
+    - section: "Gradable adjectives"
       contents:
       - adjectives/adjectives-intro.qmd
       - adjectives/collecting-judgments.qmd
