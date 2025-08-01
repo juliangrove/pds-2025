@@ -14,6 +14,7 @@ website:
     - section: "Background"
       contents:
       - background/traditional-methodology.qmd
+      - background/formal-pragmatics.qmd
       - background/experimental-turn.qmd
       - background/understanding-gradience.qmd
       - background/case-studies.qmd

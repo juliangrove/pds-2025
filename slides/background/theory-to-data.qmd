@@ -74,6 +74,17 @@ This is what motivates PDS - we need a framework that respects the insights of f
 
 ---
 
+## Dynamic semantics
+
+(@ex-indef-pronoun) Some linguist walked in. They gave a lecture.
+
+- $λs.\{ x{::}s^{\prime} ∣ s^{\prime} = s ∧ \ct{ling}(x) ∧ \ct{walk}(x)\}$
+
+- $λs.\{ s^{\prime} ∣ s^{\prime} = s ∧ \ct{lecture}(\ct{sel}(s))\}$
+
+
+---
+
 ## Standard methodology
 
 **Acceptability judgments**: assess whether strings are well-formed in context [@chomsky_syntactic_1957; see @schütze_gramaticality_2016]

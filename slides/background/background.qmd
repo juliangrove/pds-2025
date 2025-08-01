@@ -11,6 +11,26 @@ format:
         packages: {'[+]': ['bussproofs','bbox','colorbox']}
 ---
 
+::: {.hidden}
+$$
+\newcommand{\expr}[3]{\begin{array}{c}
+#1 \\
+\bbox[lightblue,5px]{#2}
+\end{array} ⊢ #3}
+\newcommand{\ct}[1]{\bbox[font-size: 0.8em]{\mathsf{#1}}}
+\newcommand{\updct}[1]{\ct{upd\_#1}}
+\newcommand{\abbr}[1]{\bbox[transform: scale(0.95)]{\mathtt{#1}}}
+\newcommand{\pure}[1]{\bbox[border: 1px solid orange]{\bbox[border: 4px solid transparent]{#1}}}
+\newcommand{\return}[1]{\bbox[border: 1px solid black]{\bbox[border: 4px solid transparent]{#1}}}
+\def\P{\mathtt{P}}
+\def\Q{\mathtt{Q}}
+\def\True{\ct{T}}
+\def\False{\ct{F}}
+\def\ite{\ct{if\_then\_else}}
+\def\Do{\abbr{do}}
+$$
+:::
+
 ## Background
 
 Who might benefit from this course?
@@ -86,6 +106,43 @@ These theories explain two fundamental types of judgments speakers make: whether
 But here's our challenge: How do we test these theories when we move from a handful of carefully constructed examples to thousands of judgments across hundreds of predicates? How do we maintain formal rigor while engaging with messy empirical reality?
 
 This is what motivates PDS - we need a framework that respects the insights of formal semantics while enabling quantitative evaluation against large-scale data.
+:::
+
+---
+
+## Dynamic semantics
+
+(@ex-indef-pronoun) Some linguist walked in. They gave a lecture.
+
+::: {.fragment}
+### Popular idea
+Many frameworks for dynamic semantics model sentence meanings as maps from input states to sets of output states [e.g., @groenendijk_dynamic_1991;@muskens_combining_1996, i.a.].
+:::
+
+
+::: {.fragment}
+- 1st sentence: $λs.\{ x{::}s^{\prime} ∣ s^{\prime} = s ∧ \ct{ling}(x) ∧ \ct{walk}(x)\}$
+- 2nd sentence: $λs.\{ s^{\prime} ∣ s^{\prime} = s ∧ \ct{lecture}(\ct{sel}(s))\}$
+:::
+
+---
+
+## Formal pragmatics
+
+Much work has built on these ideas by enriching the notion of a state to countenance broader aspects of discourse structure.
+
+::: {.fragment}
+Besides entities for anaphora:
+
+- Common grounds [@stalnaker_assertion_1978, et seq.].
+- Questions under discussion [QUDs, @roberts_information_2012;@ginzburg_dynamics_1996].
+- Contexts combining these and other structures [@farkas_reacting_2010].
+:::
+
+::: {.fragment}
+::: {style="text-align: center;"}
+Enriched states: central to PDS.
+:::
 :::
 
 ---
@@ -840,7 +897,6 @@ There are also asymmetries between minimum and maximum standard adjectives. "Dir
 
 ## Case Study 1: Integration with models
 
-### Integration with computational models:
 ::: {.smaller}
 [@lassiter_context_2013; @qing_gradable_2014; @kao_nonliteral_2014; @lassiter_adjectival_2017; @bumford_rationalizing_2021]
 :::
@@ -848,6 +904,29 @@ There are also asymmetries between minimum and maximum standard adjectives. "Dir
 PDS synthesizes and compares these approaches
 
 Both support and refine formal theories
+
+---
+
+## How?
+
+::: {.fragment}
+More or less: <br><br>
+
+$⟦\textit{how tall is X}⟧ ⇒$
+
+```stan
+parameters {
+  real w;
+  real<lower=0.0, upper=1.0> x;
+}
+
+model {
+  w ~ normal(0.0, 1.0);
+
+  target += normal_lpdf(y | w, x);
+}
+```
+:::
 
 ::: {.notes}
 Recent years have seen partial integration of adjective theories into computational models. These models make quantitative predictions about judgment patterns, but often in framework-specific ways.
