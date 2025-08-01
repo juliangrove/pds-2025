@@ -912,18 +912,18 @@ Both support and refine formal theories
 ::: {.fragment}
 More or less: <br><br>
 
-$⟦\textit{how tall is X}⟧ ⇒$
+$⟦\textit{how likely is it that X is tall}⟧ ⇒$
 
 ```stan
 parameters {
-  real w;
-  real<lower=0.0, upper=1.0> x;
+  real v;
+  real<lower=0.0, upper=1.0> w;
 }
 
 model {
-  w ~ normal(0.0, 1.0);
+  v ~ normal(0.0, 1.0);
 
-  target += normal_lpdf(y | w, x);
+  target += normal_lpdf(y | 1.0 - normal_cdf(v, 0.0, 1.0), w);
 }
 ```
 :::
@@ -1137,6 +1137,28 @@ We also need mechanisms that produce continuous variation. Discrete categories u
 Finally, how do semantic and pragmatic factors interact? Is projection computed by semantic mechanisms then modulated by pragmatics? Or is it pragmatic from the start?
 
 PDS provides tools to address these questions formally. We can implement different theoretical positions, derive their predictions, and test them against data. This moves debates from intuition to empirical testing.
+:::
+
+---
+
+## What PDS provides
+
+A possible discourse:
+
+- Prior knowledge: *Zoe is a math major*
+- Some predicate: *X [discovered]{.underline} that Zoe calculated the tip*
+- Question: *How likely is it that Zoe calculated the tip?*
+
+::: {.fragment}
+$$⇒$$
+```stan
+model {
+  v ~ logit_normal(0.0, 1.0);
+  w ~ logit_normal(0.0, 1.0);
+
+  target += log_mix(v, truncated_normal_lpdf(y | 1.0, u, 0.0, 1.0), truncated_normal_lpdf(y | w, u, 0.0, 1.0));
+}
+```
 :::
 
 ---
