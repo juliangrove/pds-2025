@@ -402,7 +402,7 @@ $$
 \end{align*}
 $$
 
-E.g., $s/np, s\backslash np, np/n, (np\backslash n)/ np, (s\backslash s)/s$
+<!-- E.g., $s/np, s\backslash np, np/n, (np\backslash n)/ np, (s\backslash s)/s$ -->
 :::
 
 --- 
@@ -412,9 +412,9 @@ E.g., $s/np, s\backslash np, np/n, (np\backslash n)/ np, (s\backslash s)/s$
 <br><br>
 
 ``` haskell
-data Cat = NP | N | S  -- atomic categories
-         | Cat :/: Cat -- the forward slash
-         | Cat :\: Cat -- the backward slash
+data Cat = Base String  -- atomic categories
+         | Cat :/: Cat  -- the forward slash
+         | Cat :\: Cat  -- the backward slash
   deriving (Eq)
 ```
 
@@ -444,7 +444,7 @@ $$
 
 $$
 \begin{align*}
-A \Coloneqq e ∣ t
+A \Coloneqq e ∣ t ∣\,\,...
 \end{align*}
 $$
 :::
@@ -464,15 +464,11 @@ $$
 ## Haskell
 
 ```haskell
--- | Atomic types for entities and truth values.
-data Atom = E | T deriving (Eq, Show)
-
--- | Arrows, and products, as well as type variables for encoding polymorphism.
-data Type = At Atom
-          | Type :→ Type
-          | Unit
-          | Type :× Type
-          | TyVar String
+data Type = Atom String  -- atomic types
+          | Type :→ Type -- arrows
+          | Unit         -- unit type
+          | Type :× Type -- products
+          | TyVar String -- type variables
   deriving (Eq)
 ```
 
@@ -480,22 +476,22 @@ data Type = At Atom
 
 ---
 
-## Hindley-Milner style polymorphism
+<!-- ## Hindley-Milner style polymorphism -->
 
-::: {.fragment}
-Good:
+<!-- ::: {.fragment} -->
+<!-- Good: -->
 
-- $λx^{α}.x^{α} : α → α$ \ \  🥰
-- $λx^{α → β}, y^{α}.x(y)^{β} : (α → β) → α → β$ \ \  🥰
-:::
+<!-- - $λx^{α}.x^{α} : α → α$ \ \  🥰 -->
+<!-- - $λx^{α → β}, y^{α}.x(y)^{β} : (α → β) → α → β$ \ \  🥰 -->
+<!-- ::: -->
 
-::: {.fragment}
-Bad:
+<!-- ::: {.fragment} -->
+<!-- Bad: -->
 
-- $λf^{α → t}.f(λy^{β}.y^{β}) ∧ f(λx^{β}, y^{γ}.x^{γ})$ \ \  🙁
-:::
+<!-- - $λf^{α → t}.f(λy^{β}.y^{β}) ∧ f(λx^{β}, y^{γ}.x^{γ})$ \ \  🙁 -->
+<!-- ::: -->
 
----
+<!-- --- -->
 
 ## Typing rules
 
@@ -561,8 +557,6 @@ data Term = Var VarName           -- Variables.
           | Pi1 Term              -- First projection.
           | Pi2 Term              -- Second projection.
 ```
-- Terms are "Curry-typed".
-
 ::: {.fragment}
 Constants:
 
@@ -615,7 +609,7 @@ $$
 ### New atomic types
 
 $$
-A \Coloneqq e ∣ t ∣ r
+A \Coloneqq e ∣ t ∣ r ∣\,\,...
 $$
 :::
 
@@ -636,17 +630,12 @@ $$
 ## Haskell
 
 ```haskell
--- | Atomic types for entities, truth values, and real numbers.
-data Atom = E | T | R deriving (Eq, Show)
-
--- | Arrows, products, and probabilistic types, as well as type variables for
--- encoding polymorphism.
-data Type = At Atom
-          | Type :→ Type
-          | Unit
-          | Type :× Type
-          | P Type
-          | TyVar String
+data Type = Atom String  -- atomic types
+          | Type :→ Type -- arrows
+          | Unit         -- unit type
+          | Type :× Type -- products
+          | P Type       -- probabilistic types
+          | TyVar String -- type variables
   deriving (Eq)
 ```
 
@@ -837,7 +826,6 @@ r = At R
 
 tau :: Sig
 tau = \case
-  Left  "factor"  -> Just (r :→ P Unit)
   Left  "observe" -> Just (t :→ P Unit)
   Right _         -> Just r
 ```
@@ -988,7 +976,7 @@ $$
 -- | Arrows, products, and probabilistic types, as well as (a) abstract types
 -- representing the addition of a new Q, and (b) type variables for encoding
 -- polymorphism.
-data Type = At Atom
+data Type = Atom String
           | Type :→ Type
           | Unit
           | Type :× Type

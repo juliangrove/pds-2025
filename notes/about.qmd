@@ -20,7 +20,7 @@ The source files for this site are available on github at [`juliangrove/pds-2025
 
 ## Acknowledgments
 
-The materials for [Module 3](adjectives/adjectives-intro.html) were developed partly in collaboration with [Helena Aparicio](https://lime-lab-cornell.github.io/HelenaWebsite/index.html).
+The materials for [Module 3](adjectives/adjectives.html) were developed partly in collaboration with [Helena Aparicio](https://lime-lab-cornell.github.io/HelenaWebsite/index.html).
 
 ## License <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>
 
