@@ -317,9 +317,7 @@ In some sense, independent of speech act.
 
 - Probability distributions over indices of some type
   - encode what is true "in the world" <br> 
-	e.g., $\ct{height}(i) : e → r$ returns people's heights
   - maybe certain linguistic parameters
-	- e.g., the height threshold for *tall*: $\ct{d}_{\textit{tall}}(i) : r$
 
 ::: {.fragment}
 ### States vs. indices of the common ground
@@ -327,6 +325,23 @@ In some sense, independent of speech act.
 What kind of thing goes where?
 
 - Ultimately, an empirical question.
+:::
+
+---
+
+## Dynamic semantics
+
+(@ex-indef-pronoun) Some linguist walked in. They gave a lecture.
+
+::: {.fragment}
+### Popular idea
+Many frameworks for dynamic semantics model sentence meanings as maps from input states to sets of output states [e.g., @groenendijk_dynamic_1991;@muskens_combining_1996, i.a.].
+:::
+
+
+::: {.fragment}
+- 1st sentence: $λs.\{ x{::}s^{\prime} ∣ s^{\prime} = s ∧ \ct{ling}(x) ∧ \ct{walk}(x)\}$
+- 2nd sentence: $λs.\{ s^{\prime} ∣ s^{\prime} = s ∧ \ct{lecture}(\ct{sel}(s))\}$
 :::
 
 ---
@@ -389,7 +404,7 @@ $$
 ### Atomic types
 $$
 \begin{align*}
-\mathcal{A} &\Coloneqq np ∣ n ∣ s
+\mathcal{A} &\Coloneqq np ∣ n ∣ s ∣\,\,...
 \end{align*}
 $$
 Noun phrases ($np$), nouns ($n$), and sentences ($s$).
@@ -736,6 +751,8 @@ data Term = Var VarName           -- Variables.
 
 <!-- --- -->
 
+---
+
 ### Mother
 
 $$
@@ -746,23 +763,31 @@ x ∼ \ct{mammal}\\
 $$
 
 - Some distribution $\ct{mammal} : \P e$
-- Sample a mammal from it; return that mammal's mother.
-- You get a distribution over mothers of mammals.
+- Some function $\ct{mother} : e → e$.
+- What is the type of the whole expression?
 
 ---
 
-## Reweighting distributions
+## Making observations
 
-$$\ct{factor} : r → \P ⋄$$
+$$
+\begin{align*}
+\ct{observe}\ \ &:\ \ t → \P ⋄ \\
+\end{align*}
+$$
 
 ::: {.fragment}
+$$
+\begin{array}[t]{l}
+x ∼ \ct{Normal}(0, 1) \\
+\ct{observe}(-1 ≤ x ≤ 1) \\
+\pure{x}
+\end{array}
+$$
+:::
 
-$$\begin{array}[t]{l}
-x ∼ \ct{mammal} \\
-\ct{factor}(\ct{hungry}(x)) \\
-\pure{\ct{mother}(x)}
-\end{array}$$
-
+:::{.fragment}
+![](images/normal.png){fig-align="center" width=500}
 :::
 
 ---
@@ -772,38 +797,57 @@ x ∼ \ct{mammal} \\
 $$
 \begin{align*}
 \ct{observe}\ \ &:\ \ t → \P ⋄ \\
-\ct{observe}(p)\ \ &=\ \ \ct{factor}(𝟙(p))
 \end{align*}
 $$
 
-::: {.fragment}
-
 $$
 \begin{array}[t]{l}
-x ∼ \ct{mammal} \\
-\ct{observe}(\ct{dog}(x)) \\
-\pure{\ct{mother}(x)}
+x ∼ \ct{Normal}(0, 1) \\
+\ct{observe}(-1 ≤ x ≤ 1) \\
+\pure{x}
 \end{array}
 $$
 
-- Distribution over mothers of mammals which are also dogs.
-
-:::
+![](images/normal_observe.png){fig-align="center" width=500}
 
 ---
 
-### Something wacky
+### More mammals
 
 $$
 \begin{array}[t]{l}
 x ∼ \ct{mammal} \\
-\ct{factor}(\ct{hungry}(x)) \\
 \ct{observe}(\ct{dog}(x)) \\
-\pure{\ct{mother}(x)}
+\ct{observe}(\ct{friendly}(x)) \\
+\pure{\ct{father}(x)}
+\end{array}
+$$
+
+- $\ct{dog}, \ct{friendly} : e → t$
+- $\ct{father} : e → e$
+- What distribution is this?
+
+---
+
+### Bad Bernoulli
+
+$$
+\ct{Bernoulli} : r → \P t
+$$
+
+<br>
+
+::: {.fragment}
+$$
+\begin{array}[t]{l}
+b ∼ \ct{Bernoulli}(0.5) \\
+\ct{observe}(b) \\
+\pure{b}
 \end{array}
 $$
 
 - What distribution is this?
+:::
 
 ---
 
@@ -820,22 +864,143 @@ type Sig = Constant -> Maybe Type
 ### An example signature
 
 ```haskell
-t, r :: Type
+e, t, r :: Type
+e = At E
 t = At T
 r = At R
 
 tau :: Sig
 tau = \case
-  Left  "observe" -> Just (t :→ P Unit)
-  Right _         -> Just r
+  Left  "observe"   -> Just (t :→ P Unit)
+  Left  "Normal"    -> Just (r :× r → P r)
+  Left  "Bernoulli" -> Just (r :→ P t)
+  Left  "mother"    -> Just (e :→ e)
+  Right _           -> Just r
 ```
 :::
 
 ---
 
+## Types of expressions
+
+$$\Large
+σ → \P (α × σ^{\prime})
+$$
+
+::: {.fragment}
+$α$ could be:
+
+- $e → ι → t \hspace{2cm}$ (a predicate meaning)
+- $e \hspace{7cm}$ (a np meaning)
+- etc.
+:::
+
+---
+
+## An interface for meaning composition
+
+$$
+\begin{align*}
+ℙ^{σ}_{σ^{\prime}} α\ \ &=\ \ σ → \P (α × σ^{\prime})
+\end{align*}
+$$
+
+::: {.fragment}
+$$
+\begin{align*}
+\return{v}\ \ &=\ \ λs.\pure{⟨v, s⟩} : ℙ^{σ}_{σ}
+\end{align*}
+$$
+:::
+
+::: {.fragment}
+$$
+\begin{align*}
+\begin{array}{rl}
+\Do & x ← m : ℙ^{σ}_{σ^{\prime}} \\
+& k(x) : ℙ^{σ^{\prime}}_{σ^{\prime\prime}}
+\end{array}\ \ 
+&=\ \ λs.\left(\begin{array}{l}
+⟨x, s^{\prime}⟩ ∼ m(s) \\
+k(x)(s^{\prime})
+\end{array}\right) : ℙ^{σ}_{σ^{\prime\prime}}
+\end{align*}
+$$
+:::
+
+---
+
+## Types of expressions
+
+(@ex-jo-ran) Jo ran a race.
+
+::: {.fragment}
+$⟦\textit{run}⟧ : ℙ^{σ}_{σ} (e → ι → t)$
+:::
+
+::: {.fragment}
+$$
+\expr{\textit{run}}{λs.\pure{⟨λx, i.\ct{if\_then\_else}(τ_{\textit{run}}(s))(\ct{run}_{loc.}(i)(x), \ct{run}_{org.}(i)(x)), s⟩}}{s \backslash np}
+$$
+:::
+
+- Depends on the state.
+- Doesn't update it.
+- Not very probabilistic.
+
+---
+
+## PDS Rules
+
+### Example: leftward application
+
+$$
+\begin{prooftree}
+\AxiomC{$\expr{s_{1}}{M_{1}}{b}$}
+\AxiomC{$\expr{s_{2}}{M_{2}}{c\backslash b}$}
+\RightLabel{$<$}\BinaryInfC{$\expr{s_{1}\,s_{2}}{
+\begin{array}{rl}
+\Do & m_{1} ← M_{1} \\
+& m_{2} ← M_{2}; \\
+& \return{m_{2}(m_{1})}
+\end{array}
+}{c}$}
+\end{prooftree}
+$$
+
+---
+
+## A sentence meaning
+
+(@ex-linguist-philosopher) A linguist saw a philosopher.
+
+::: {.fragment}
+$$\tiny\hspace{-6cm}
+\begin{prooftree}
+\AxiomC{$\expr{\textit{a ling.}}{λs.\pure{⟨λi, k.∃x.\ct{ling}(i)(x) ∧ k(i)(x), s⟩}}{s/(s\backslash np)}$}
+\AxiomC{$\expr{\textit{saw}}{λs.\pure{⟨λi, y, x.\ct{see}(i)(y)(x), s⟩}}{s\backslash np/ np}$}
+\AxiomC{$\expr{\textit{a phil.}}{λs.\pure{⟨λi, k, x.∃y.\ct{phil}(i)(y) ∧ k(i)(y)(x), s⟩}}{s\backslash np/(s\backslash np/np)}$}
+\RightLabel{$<$}\BinaryInfC{$\expr{\textit{saw a phil.}}{λs.\pure{⟨λx, i.∃y.\ct{phil}(i)(y) ∧ \ct{see}(i)(y)(x), s⟩}}{s \backslash np}$}
+\RightLabel{$<$}\BinaryInfC{$\expr{\textit{a linguist saw a philosopher}}{λs.\pure{⟨λi.∃x, y.\ct{ling}(i)(x) ∧ \ct{phil}(i)(y) ∧ \ct{see}(i)(y)(x), s⟩}}{s}$}
+\end{prooftree}
+$$
+:::
+
+---
+
+## A sentence meaning
+
+<br>
+
+$$
+\expr{\textit{a linguist saw a philosopher}}{λs.\pure{⟨λi.∃x, y.\ct{ling}(i)(x) ∧ \ct{phil}(i)(y) ∧ \ct{see}(i)(y)(x), s⟩}}{s}
+$$
+
+---
+
 ## Intensionality
 
-Some intensional constants:
+Intensional constants:
 
 $$
 \begin{align*}
@@ -885,8 +1050,8 @@ $$
 $$
 
 - Can be seen as a theory of states and locations.
-  - Indices are states.
-  - (Pairs of) constants are "locations".
+  - Indices are "states".
+  - (Pairs of) constants correspond to "locations".
   
 :::
 
@@ -976,7 +1141,7 @@ $$
 -- | Arrows, products, and probabilistic types, as well as (a) abstract types
 -- representing the addition of a new Q, and (b) type variables for encoding
 -- polymorphism.
-data Type = Atom String
+data Type = At Atom
           | Type :→ Type
           | Unit
           | Type :× Type
@@ -994,108 +1159,23 @@ $$
 \ct{CG}(\updct{CG}(cg)(s)) = cg
 $$
 
-::: {.fragment}
-$$
-\ct{CG}(\updct{QUD}(q)(s)) = \ct{CG}(s)
-$$
-:::
-
-::: {.fragment}
-$$
-\ct{QUD}(\updct{QUD}(q)(s)) = q \\
-$$
-:::
-
-::: {.fragment}
-$$
-\ct{QUD}(\updct{CG}(cg)(s)) = \ct{QUD}(s)
-$$
-:::
-
----
-
-## Expression meanings
-
-$$
-ℙ^{σ}_{σ^{\prime}} α ≝ σ → \P (α × σ^{\prime})
-$$
-
-- New type for, e.g., noun phrases:
-  $$
-  ℙ^{σ}_{σ^{\prime}}(⟦np⟧) \,\, = \,\, ℙ^{σ}_{σ^{\prime}} e \,\, = \,\, σ → \P (e × σ^{\prime})
-  $$
-
----
-
-## Program composition via parameterized monads
-
-$$
-\begin{align*}
-ℙ^{σ}_{σ^{\prime}} α\ \ &=\ \ σ → \P (α × σ^{\prime})
-\end{align*}
-$$
-
-::: {.fragment}
-$$
-\begin{align*}
-\return{v}_{σ}\ \ &=\ \ λs.\pure{⟨v, s⟩} : ℙ^{σ}_{σ}
-\end{align*}
-$$
-:::
-
-::: {.fragment}
-$$
-\begin{align*}
-\begin{array}{rl}
-\Do_{σ, σ^{\prime}, σ^{\prime\prime}} & x ← m : ℙ^{σ}_{σ^{\prime}} \\
-& k(x) : ℙ^{σ^{\prime}}_{σ^{\prime\prime}}
-\end{array}\ \ 
-&=\ \ λs.\left(\begin{array}{l}
-⟨x, s^{\prime}⟩ ∼ m(s) \\
-k(x)(s^{\prime})
-\end{array}\right) : ℙ^{σ}_{σ^{\prime\prime}}
-\end{align*}
-$$
-:::
-
-<!-- ## Parameterized monad laws -->
-
-<!-- $$\small -->
-<!-- \begin{array}{c} -->
-<!-- \textit{Left identity} & \textit{Right identity} \\[1mm] -->
-<!-- \begin{array}{rl} -->
-<!-- \Do_{p, p, q} & x ← \return{v}_{p} \\ -->
-<!-- & k(x) -->
-<!-- \end{array}\ \ =\ \ \ k(v) -->
-<!-- & \begin{array}{rl} -->
-<!-- \Do_{p, q, q} & x ← m \\ -->
-<!-- & \return{x}_{q} -->
-<!-- \end{array} \ \ =\ \ \ m -->
-<!-- \end{array} -->
-<!-- $$ -->
-
 <!-- ::: {.fragment} -->
-<!-- $$\small -->
-<!-- \begin{array}{c} -->
-<!-- \textit{Associativity} \\[1mm] -->
-<!-- \begin{array}{rl} -->
-<!-- \Do_{p, r, s} & y ← \left(\begin{array}{rl} -->
-<!-- 	\Do_{p, q, r} & x ← m \\ -->
-<!-- 	& n(x) -->
-<!-- 	\end{array}\right) \\ -->
-<!-- 	& o(y) -->
-<!-- \end{array}\ \ =\ \ \begin{array}{rl} -->
-<!-- 	\Do_{p, q, s} & x ← m \\ -->
-<!-- 	& \begin{array}{rl}  -->
-<!-- 		\Do_{q, r, s} & y ← n(x) \\ -->
-<!-- 		& o(y) -->
-<!-- 	\end{array} -->
-<!-- \end{array} -->
-<!-- \end{array} -->
+<!-- $$ -->
+<!-- \ct{CG}(\updct{QUD}(q)(s)) = \ct{CG}(s) -->
 <!-- $$ -->
 <!-- ::: -->
 
-<!-- --- -->
+<!-- ::: {.fragment} -->
+<!-- $$ -->
+<!-- \ct{QUD}(\updct{QUD}(q)(s)) = q \\ -->
+<!-- $$ -->
+<!-- ::: -->
+
+<!-- ::: {.fragment} -->
+<!-- $$ -->
+<!-- \ct{QUD}(\updct{CG}(cg)(s)) = \ct{QUD}(s) -->
+<!-- $$ -->
+<!-- ::: -->
 
 ---
 
@@ -1135,26 +1215,6 @@ putPP :: Term -> Term
 putPP s = Lam fr (Return (TT & s))
   where fr:esh = fresh [s]
 ```
-
----
-
-
-## PDS Rules
-
-### Example: rightward application/composition
-
-$$ \scriptsize
-\begin{prooftree}
-\AxiomC{$\expr{s_{1}}{M_{1}}{c/ b}$}
-\AxiomC{$\expr{s_{2}}{M_{2}}{b∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}$}
-\RightLabel{${>}\textbf{B}_{n}$}\BinaryInfC{\(\expr{s_{1}\,s_{2}}{
-\begin{array}{rl}
-\Do & \{\,m_{1} ← M_{1};\,m_{2} ← M_{2}; \\
-& \return{λx_{1}, …, x_{n}.m_{1}(m_{2}(x_{1})…(x_{n}))}\,\}
-\end{array}
-}{c∣_{n}a_{n}\,\,⋯∣_{1}a_{1}}\)}
-\end{prooftree}
-$$
 
 ---
 
@@ -1210,27 +1270,51 @@ $$
 
 ## Responding to a question
 
+<br><br>
+
 $$
 \begin{align*}
 \abbr{respond}^{f_Φ : r → \P ρ} &: \P σ → ℙ^{σ}_{\Q ι r σ^{\prime}} ⋄ → \P ρ
 \end{align*}
 $$
 
-::: {.fragment}
+---
+
+## Responding to a question
+
 $$
 \begin{align*}
-\abbr{respond}^{f_Φ : r → \P ρ}(bg)(m) &= \begin{array}[t]{l}
-s ∼ bg \\
-⟨⋄, s^{\prime}⟩ ∼ m(s) \\
+&\abbr{respond}^{f_Φ : r → \P ρ}(prior)(discourse) \\[5mm]
+&= \begin{array}[t]{l}
+s ∼ prior \\
+⟨⋄, s^{\prime}⟩ ∼ discourse(s)\\
 i ∼ \ct{CG}(s^{\prime}) \\
-f(\ct{max}(λd.\ct{QUD}(s)(d)(i)), Φ)
+f(\ct{max}(λd.\ct{QUD}(s^{\prime})(d)(i)), Φ)
 \end{array}
 \end{align*}
 $$
-:::
 
 - Example $f_{Φ}$
-  - $f(x, Φ) = \abbr{Normal}(x, 1)$
+  - $f(x, Φ) = \ct{Normal}(x, 1)$
+
+---
+
+## A probabilistic model
+
+$$
+\begin{align*}
+\abbr{respond}^{f_Φ : r → \P ρ} &: \P σ → ℙ^{σ}_{\Q ι r σ^{\prime}} ⋄ → \P ρ
+\end{align*}
+$$
+
+$$
+\abbr{respond}^{λx.\ct{Normal}(x, 1)}(prior)\left(
+\begin{array}{rl}
+\Do & \abbr{assert}(⟦\textit{Jo is tall}⟧) \\
+& \abbr{ask}(⟦\textit{how tall?}⟧)
+\end{array}
+\right)
+$$
 
 ---
 
@@ -1255,10 +1339,10 @@ type DeltaRule = Term -> Maybe Term
 -- | Computes functions on indices.
 indices :: DeltaRule
 indices = \case
-  Ling   (UpdLing p _)   -> Just p
+  Ling   (UpdLing   p _) -> Just p
   Ling   (UpdSocPla _ i) -> Just (Ling i)
   SocPla (UpdSocPla p _) -> Just p
-  SocPla (UpdLing _ i)   -> Just (SocPla i)
+  SocPla (UpdLing   _ i) -> Just (SocPla i)
   _                      -> Nothing
 ```
 
@@ -1269,12 +1353,11 @@ indices = \case
 -- | Computes functions on states.
 states :: DeltaRule
 states = \case
-  CG      (UpdCG cg _)     -> Just cg
-  CG      (UpdQUD _ s)     -> Just (CG s)
-  CG      (UpdTauKnow _ s) -> Just (CG s)
-  QUD     (UpdQUD q _)     -> Just q
-  QUD     (UpdCG _ s)      -> Just (QUD s)
-  _                        -> Nothing
+  CG      (UpdCG      cg _) -> Just cg
+  CG      (UpdTauKnow _  s) -> Just (CG s)
+  TauKnow (UpdTauKnow b  _) -> Just b
+  TauKnow (UpdCG      _  s) -> Just (TauKnow s)
+  _                         -> Nothing
 ```
 :::
 
@@ -1322,7 +1405,7 @@ observations = \case
 - Delta-rules are in principle open ended!
   - You just need to show that they're sound.
   - Might incorporate more sophisticated means of simplifying representations of probability distributions.
-  - Might incorporate theorem provers (so, sound-ish, perhaps).
+  - Might incorporate theorem provers (e.g., if there are FOL representations).
 
 ---
 

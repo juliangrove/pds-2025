@@ -1,0 +1,831 @@
+---
+title: "PDS intro continued"
+bibliography: ../../pds.bib
+format:
+  revealjs:
+    css: ../styles.css
+    html-math-method: mathjax
+    mathjax-config:
+      loader: {load: ['[tex]/bussproofs','[tex]/bbox','[tex]/colorbox']}
+      tex:
+        packages: {'[+]': ['bussproofs','bbox','colorbox']}
+---
+
+::: {.hidden}
+$$
+\newcommand{\expr}[3]{\begin{array}{c}
+#1 \\
+\bbox[lightblue,5px]{#2}
+\end{array} ⊢ #3}
+\newcommand{\ct}[1]{\bbox[font-size: 0.8em]{\mathsf{#1}}}
+\newcommand{\updct}[1]{\ct{upd\_#1}}
+\newcommand{\abbr}[1]{\bbox[transform: scale(0.95)]{\mathtt{#1}}}
+\newcommand{\pure}[1]{\bbox[border: 3px solid orange]{\bbox[border: 4px solid transparent]{#1}}}
+\newcommand{\return}[1]{\bbox[border: 1px solid black]{\bbox[border: 4px solid transparent]{#1}}}
+\def\P{\mathtt{P}}
+\def\Q{\mathtt{Q}}
+\def\True{\ct{T}}
+\def\False{\ct{F}}
+\def\ite{\ct{if\_then\_else}}
+\def\Do{\abbr{do}}
+$$
+:::
+
+---
+
+## Adding probabilistic types
+
+::: {.fragment}
+### Atomic types
+
+$$
+A \Coloneqq e ∣ t ∣ r
+$$
+:::
+
+::: {.fragment}
+### Complex types
+
+$$
+\mathcal{T}_{A} \Coloneqq A ∣ \mathcal{T}_{A} → \mathcal{T}_{A} ∣ \mathcal{T}_{A} × \mathcal{T}_{A} ∣ ⋄ ∣ \P \mathcal{T}_{A}
+$$
+
+- $\P t$: a Bernoulli distribution---probabilistically True or False.
+- $\P r$: e.g., a normal distribution.
+
+:::
+
+---
+
+## Haskell
+
+```haskell
+-- | Atomic types for entities, truth values, and real numbers.
+data Atom = E | T | R deriving (Eq, Show)
+
+-- | Arrows, products, and probabilistic types, as well as type variables for
+-- encoding polymorphism.
+data Type = At Atom
+          | Type :→ Type
+          | Unit
+          | Type :× Type
+          | P Type
+          | TyVar String
+  deriving (Eq)
+```
+
+---
+
+## Probabilistic typing rules
+
+<br><br>
+$$
+\begin{array}{c}
+\begin{prooftree}
+\AxiomC{$Γ ⊢ t : α$}
+\RightLabel{$\mathtt{Return}$}\UnaryInfC{$Γ ⊢ \pure{t} : \P α$}
+\end{prooftree}
+& \begin{prooftree}
+\AxiomC{$Γ ⊢ t : \P α$}
+\AxiomC{$Γ, x : α ⊢ u : \P β$}
+\RightLabel{$\mathtt{Bind}$}\BinaryInfC{$Γ ⊢ \left(\begin{array}{l} x ∼ t \\ u\end{array}\right) : \P β$}
+\end{prooftree}
+\end{array}
+$$
+
+---
+
+## Haskell: probabilistic programs
+
+```haskell
+-- | Untyped λ-terms. Types are assigned separately (i.e., "extrinsically").
+data Term = Var VarName           -- Variables.
+          | Con Constant          -- Constants.
+          | Lam VarName Term      -- Abstractions.
+          | App Term Term         -- Applications.
+          | TT                    -- The 0-tuple.
+          | Pair Term Term        -- Pairing.
+          | Pi1 Term              -- First projection.
+          | Pi2 Term              -- Second projection.
+          | Return Term           -- Construct a degenerate distribution.
+          | Let VarName Term Term -- Sample from a distribution and continue.
+```
+
+- `Let x t u` \ \ \ =\ \ \ 
+  $\begin{array}[t]{l}
+  x ∼ t \\
+  u
+  \end{array}$
+- `Return t` \ \ \ = \ \ \ $\pure{t}$
+
+
+---
+
+<!-- ## The probability monad -->
+
+<!-- $$\small -->
+<!-- \begin{array}{c} -->
+<!-- \textit{Left identity} & \textit{Right identity} & \textit{Associativity} \\[1mm] -->
+<!-- \begin{array}{l} -->
+<!-- x ∼ \pure{v} \\ -->
+<!-- k -->
+<!-- \end{array}\ \ =\ \ k[v/x]  -->
+<!-- & \begin{array}{l} -->
+<!-- x ∼ m \\ -->
+<!-- \pure{x} -->
+<!-- \end{array}\ \ =\ \ m  -->
+<!-- & \begin{array}{l} -->
+<!-- y ∼ \left(\begin{array}{l} -->
+<!-- x ∼ m \\ -->
+<!-- n -->
+<!-- \end{array}\right) \\ -->
+<!-- o -->
+<!-- \end{array}\ \ =\ \ \begin{array}{l} -->
+<!-- x ∼ m \\ -->
+<!-- y ∼ n \\ -->
+<!-- o -->
+<!-- \end{array} -->
+<!-- \end{array} -->
+<!-- $$ -->
+
+<!-- ::: {.fragment} -->
+
+<!-- ### Example (associativity) -->
+
+<!-- $$ -->
+<!-- \begin{array}{l} -->
+<!-- y ∼ \left(\begin{array}{l} -->
+<!-- x ∼ \abbr{Normal}(0, 1) \\ -->
+<!-- \abbr{Normal}(x, 1) -->
+<!-- \end{array}\right) \\ -->
+<!-- o -->
+<!-- \end{array} \ \ =\ \  -->
+<!-- \begin{array}{l} -->
+<!-- x ∼ \abbr{Normal}(0, 1) \\ -->
+<!-- y ∼ \abbr{Normal}(x, 1) \\ -->
+<!-- o -->
+<!-- \end{array} -->
+<!-- $$ -->
+
+<!-- ::: -->
+
+<!-- --- -->
+
+### Mother
+
+$$
+\begin{array}[t]{l}
+x ∼ \ct{mammal}\\
+\pure{\ct{mother}(x)}
+\end{array}
+$$
+
+- Some distribution $\ct{mammal} : \P e$
+- Some function $\ct{mother} : e → e$.
+- What is the type of the whole expression?
+
+---
+
+## Making observations
+
+$$
+\begin{align*}
+\ct{observe}\ \ &:\ \ t → \P ⋄ \\
+\end{align*}
+$$
+
+::: {.fragment}
+$$
+\begin{array}[t]{l}
+x ∼ \ct{Normal}(0, 1) \\
+\ct{observe}(-1 ≤ x ≤ 1) \\
+\pure{x}
+\end{array}
+$$
+:::
+
+:::{.fragment}
+![](images/normal.png){fig-align="center" width=500}
+:::
+
+---
+
+## Making observations
+
+$$
+\begin{align*}
+\ct{observe}\ \ &:\ \ t → \P ⋄ \\
+\end{align*}
+$$
+
+$$
+\begin{array}[t]{l}
+x ∼ \ct{Normal}(0, 1) \\
+\ct{observe}(-1 ≤ x ≤ 1) \\
+\pure{x}
+\end{array}
+$$
+
+![](images/normal_observe.png){fig-align="center" width=500}
+
+---
+
+### More mammals
+
+$$
+\begin{array}[t]{l}
+x ∼ \ct{mammal} \\
+\ct{observe}(\ct{dog}(x)) \\
+\ct{observe}(\ct{friendly}(x)) \\
+\pure{\ct{father}(x)}
+\end{array}
+$$
+
+- $\ct{dog}, \ct{friendly} : e → t$
+- $\ct{father} : e → e$
+- What distribution is this?
+
+---
+
+### Bad Bernoulli
+
+$$
+\ct{Bernoulli} : r → \P t
+$$
+
+<br>
+
+::: {.fragment}
+$$
+\begin{array}[t]{l}
+b ∼ \ct{Bernoulli}(0.5) \\
+\ct{observe}(b) \\
+\pure{b}
+\end{array}
+$$
+
+- What distribution is this?
+:::
+
+---
+
+## Haskell: typing constants
+
+```haskell
+-- | Assign types to constants.
+type Sig = Constant -> Maybe Type
+```
+<br>
+
+::: {.fragment}
+
+### An example signature
+
+```haskell
+e, t, r :: Type
+e = At E
+t = At T
+r = At R
+
+tau :: Sig
+tau = \case
+  Left  "observe"   -> Just (t :→ P Unit)
+  Left  "Normal"    -> Just (r :× r → P r)
+  Left  "Bernoulli" -> Just (r :→ P t)
+  Left  "mother"    -> Just (e :→ e)
+  Right _           -> Just r
+```
+:::
+
+---
+
+## Types of expressions
+
+$$\Large
+σ → \P (α × σ^{\prime})
+$$
+
+::: {.fragment}
+$α$ could be:
+
+- $e → ι → t \hspace{2cm}$ (a predicate meaning)
+- $e \hspace{7cm}$ (a np meaning)
+- etc.
+:::
+
+---
+
+## An interface for meaning composition
+
+$$
+\begin{align*}
+ℙ^{σ}_{σ^{\prime}} α\ \ &=\ \ σ → \P (α × σ^{\prime})
+\end{align*}
+$$
+
+::: {.fragment}
+$$
+\begin{align*}
+\return{v}\ \ &=\ \ λs.\pure{⟨v, s⟩} : ℙ^{σ}_{σ}
+\end{align*}
+$$
+:::
+
+::: {.fragment}
+$$
+\begin{align*}
+\begin{array}{rl}
+\Do & x ← m : ℙ^{σ}_{σ^{\prime}} \\
+& k(x) : ℙ^{σ^{\prime}}_{σ^{\prime\prime}}
+\end{array}\ \ 
+&=\ \ λs.\left(\begin{array}{l}
+⟨x, s^{\prime}⟩ ∼ m(s) \\
+k(x)(s^{\prime})
+\end{array}\right) : ℙ^{σ}_{σ^{\prime\prime}}
+\end{align*}
+$$
+:::
+
+---
+
+## Types of expressions
+
+(@ex-jo-ran) Jo ran a race.
+
+::: {.fragment}
+$⟦\textit{run}⟧ : ℙ^{σ}_{σ} (e → ι → t)$
+:::
+
+::: {.fragment}
+$$
+\expr{\textit{run}}{λs.\pure{⟨λx, i.\ct{if\_then\_else}(τ_{\textit{run}}(s))(\ct{run}_{loc.}(i)(x), \ct{run}_{org.}(i)(x)), s⟩}}{s \backslash np}
+$$
+:::
+
+- Depends on the state.
+- Doesn't update it.
+- Not very probabilistic.
+
+---
+
+## PDS Rules
+
+### Example: leftward application
+
+$$
+\begin{prooftree}
+\AxiomC{$\expr{s_{1}}{M_{1}}{b}$}
+\AxiomC{$\expr{s_{2}}{M_{2}}{c\backslash b}$}
+\RightLabel{$<$}\BinaryInfC{$\expr{s_{1}\,s_{2}}{
+\begin{array}{rl}
+\Do & m_{1} ← M_{1} \\
+& m_{2} ← M_{2}; \\
+& \return{m_{2}(m_{1})}
+\end{array}
+}{c}$}
+\end{prooftree}
+$$
+
+---
+
+## A sentence meaning
+
+(@ex-linguist-philosopher) A linguist saw a philosopher.
+
+::: {.fragment}
+$$\tiny\hspace{-6cm}
+\begin{prooftree}
+\AxiomC{$\expr{\textit{a ling.}}{λs.\pure{⟨λi, k.∃x.\ct{ling}(i)(x) ∧ k(i)(x), s⟩}}{s/(s\backslash np)}$}
+\AxiomC{$\expr{\textit{saw}}{λs.\pure{⟨λi, y, x.\ct{see}(i)(y)(x), s⟩}}{s\backslash np/ np}$}
+\AxiomC{$\expr{\textit{a phil.}}{λs.\pure{⟨λi, k, x.∃y.\ct{phil}(i)(y) ∧ k(i)(y)(x), s⟩}}{s\backslash np/(s\backslash np/np)}$}
+\RightLabel{$<$}\BinaryInfC{$\expr{\textit{saw a phil.}}{λs.\pure{⟨λx, i.∃y.\ct{phil}(i)(y) ∧ \ct{see}(i)(y)(x), s⟩}}{s \backslash np}$}
+\RightLabel{$<$}\BinaryInfC{$\expr{\textit{a linguist saw a philosopher}}{λs.\pure{⟨λi.∃x, y.\ct{ling}(i)(x) ∧ \ct{phil}(i)(y) ∧ \ct{see}(i)(y)(x), s⟩}}{s}$}
+\end{prooftree}
+$$
+:::
+
+---
+
+## A sentence meaning
+
+<br>
+
+$$
+\expr{\textit{a linguist saw a philosopher}}{λs.\pure{⟨λi.∃x, y.\ct{ling}(i)(x) ∧ \ct{phil}(i)(y) ∧ \ct{see}(i)(y)(x), s⟩}}{s}
+$$
+
+---
+
+## Intensionality
+
+Intensional constants:
+
+$$
+\begin{align*}
+\ct{see} &: ι → e → e → t \\
+\ct{ling} &: ι → e → t
+\end{align*}
+$$
+
+::: {.fragment}
+
+We require other constants:
+
+$$
+\begin{align*}
+\updct{see} &: (e → e → t) → ι → ι \\
+\updct{ling} &: (e → t) → ι → ι 
+\end{align*}
+$$
+
+:::
+
+---
+
+## How intensional constants interact
+
+::: {.fragment}
+$$
+\ct{see}(\updct{see}(p)(i)) = p \\
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{see}(\updct{ling}(p)(i)) = \ct{see}(i)
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{ling}(\updct{ling}(p)(i)) = p \\
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{ling}(\updct{see}(p)(i)) = \ct{ling}(i)
+$$
+
+- Can be seen as a theory of states and locations.
+  - Indices are "states".
+  - (Pairs of) constants correspond to "locations".
+  
+:::
+
+---
+
+## The common ground
+
+### Definition
+
+A *common ground* is a probabilistic program of type $\P ι$.
+
+- $ι$, a variable over types.
+
+::: {.fragment}
+### A "starting" index
+
+$$\ct{@} : ι$$
+
+- Constants that *update* indices can add information, to be later retrieved by intensional constants.
+
+:::
+
+---
+
+### An example common ground
+
+$$\small
+\begin{array}[t]{l}
+h ∼ \abbr{Normal}(0, 1) \\
+\pure{\updct{height}(λx.h)(\ct{@})}
+\end{array}
+$$
+
+- Encodes uncertainty about Jo's height.
+
+::: {.fragment}
+
+### Another one
+
+$$\scriptsize
+\begin{array}[t]{l}
+h_{j} ∼ \abbr{Normal}(0, 1) \\
+h_{b} ∼ \abbr{Normal}(0, 1) \\
+\pure{\updct{height}(λx.\ite(x = \ct{j}, h_{j}, h_{b}))(\ct{@})}
+\end{array}
+$$
+
+- Encodes uncertainty about Jo's height and Bo's height.
+:::
+
+---
+
+## States
+
+Some state-sensitive constants:
+
+::: {.fragment}
+$$
+\ct{CG} : σ → \P ι \\
+$$
+:::
+
+::: {.fragment}
+$$
+\updct{CG} : \P ι → σ → σ \\
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{QUD} : \Q ι α σ → α → ι → t
+$$
+:::
+
+::: {.fragment}
+$$
+\updct{QUD} : (α → ι → t) → σ → \Q ι α σ 
+$$
+:::
+
+---
+
+## Haskell: the $\Q$ constructor
+
+<br><br>
+```haskell
+-- | Arrows, products, and probabilistic types, as well as (a) abstract types
+-- representing the addition of a new Q, and (b) type variables for encoding
+-- polymorphism.
+data Type = At Atom
+          | Type :→ Type
+          | Unit
+          | Type :× Type
+          | P Type
+          | Q Type Type Type
+          | TyVar String
+  deriving (Eq)
+```
+
+---
+
+## How stateful constants interact
+
+$$
+\ct{CG}(\updct{CG}(cg)(s)) = cg
+$$
+
+::: {.fragment}
+$$
+\ct{CG}(\updct{QUD}(q)(s)) = \ct{CG}(s)
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{QUD}(\updct{QUD}(q)(s)) = q \\
+$$
+:::
+
+::: {.fragment}
+$$
+\ct{QUD}(\updct{CG}(cg)(s)) = \ct{QUD}(s)
+$$
+:::
+
+---
+
+## Manipulating stateful programs
+
+### $\ct{get}$ and $\ct{put}$
+
+$$
+\begin{align*}
+\abbr{get} &: ℙ^{σ}_{σ} σ
+\end{align*}
+$$
+
+- Gets the current state.
+
+::: {.fragment}
+$$
+\begin{align*}
+\abbr{put} &: σ^{\prime} → ℙ^{σ}_{σ^{\prime}} ⋄ \\
+\end{align*}
+$$
+
+- Overwrites the current state with a new one.
+
+:::
+
+---
+
+## Haskell
+
+<br><br>
+```haskell
+getPP :: Term
+getPP = lam' s (Return (s & s))
+
+putPP :: Term -> Term
+putPP s = Lam fr (Return (TT & s))
+  where fr:esh = fresh [s]
+```
+
+---
+
+### Making an assertion
+
+$$
+\begin{align*}
+\abbr{assert} &: ℙ^{σ}_{σ^{\prime}} (ι → t) → ℙ^{σ}_{σ^{\prime}} ⋄
+\end{align*}
+$$
+
+::: {.fragment}
+$$
+\begin{align*}
+\abbr{assert}(⟦\textit{Jo is tall}⟧) &= \begin{array}[t]{rl}
+\Do & p^{ι → t} ← ⟦\textit{Jo is tall}⟧^{ℙ^{σ}_{σ} (ι → t)} \\
+& s ← \abbr{get} \\
+& c ← \return{\ct{CG}(s)} \\
+& c^{\prime} ← \return{\left(\begin{array}{l}
+i ∼ c \\
+\ct{observe}(p(i)) \\
+\pure{i}
+\end{array}\right)} \\
+& \abbr{put}(\updct{CG}(c^{\prime})(s))
+\end{array}
+\end{align*}
+$$
+:::
+
+---
+
+## Asking a question
+
+$$
+\begin{align*}
+\abbr{ask} &: ℙ^{σ}_{σ^{\prime}} (α → ι → t) → ℙ^{σ}_{\Q ι α σ^{\prime}} ⋄
+\end{align*}
+$$
+
+::: {.fragment}
+$$
+\begin{align*}
+\abbr{ask}(⟦\textit{how tall?}⟧) &= \begin{array}[t]{rl}
+\Do & q^{r → ι → t} ← ⟦\textit{how tall?}⟧^{ℙ^{σ}_{σ}(r → ι → t)} \\
+& s ← \abbr{get} \\
+& \abbr{put}(\updct{QUD}(q)(s))
+\end{array}
+\end{align*}
+$$
+:::
+
+---
+
+## Responding to a question
+
+<br><br>
+
+$$
+\begin{align*}
+\abbr{respond}^{f_Φ : r → \P ρ} &: \P σ → ℙ^{σ}_{\Q ι r σ^{\prime}} ⋄ → \P ρ
+\end{align*}
+$$
+
+---
+
+## Responding to a question
+
+$$
+\begin{align*}
+&\abbr{respond}^{f_Φ : r → \P ρ}(prior)(discourse) \\[5mm]
+&= \begin{array}[t]{l}
+s ∼ prior \\
+⟨⋄, s^{\prime}⟩ ∼ discourse(s)\\
+i ∼ \ct{CG}(s^{\prime}) \\
+f(\ct{max}(λd.\ct{QUD}(s^{\prime})(d)(i)), Φ)
+\end{array}
+\end{align*}
+$$
+
+- Example $f_{Φ}$
+  - $f(x, Φ) = \ct{Normal}(x, 1)$
+
+---
+
+## A probabilistic model
+
+$$
+\begin{align*}
+\abbr{respond}^{f_Φ : r → \P ρ} &: \P σ → ℙ^{σ}_{\Q ι r σ^{\prime}} ⋄ → \P ρ
+\end{align*}
+$$
+
+$$
+\abbr{respond}^{λx.\ct{Normal}(x, 1)}(prior)\left(
+\begin{array}{rl}
+\Do & \abbr{assert}(⟦\textit{Jo is tall}⟧) \\
+& \abbr{ask}(⟦\textit{how tall?}⟧)
+\end{array}
+\right)
+$$
+
+---
+
+## How do we actually compute this stuff?
+
+<br>
+
+::: {.fragment}
+Delta-rules.
+
+```haskell
+-- | The type of Delta-rules.
+type DeltaRule = Term -> Maybe Term
+```
+:::
+
+--- 
+
+### Indices
+
+```haskell
+-- | Computes functions on indices.
+indices :: DeltaRule
+indices = \case
+  Ling   (UpdLing p _)   -> Just p
+  Ling   (UpdSocPla _ i) -> Just (Ling i)
+  SocPla (UpdSocPla p _) -> Just p
+  SocPla (UpdLing _ i)   -> Just (SocPla i)
+  _                      -> Nothing
+```
+
+::: {.fragment}
+### States
+
+```haskell
+-- | Computes functions on states.
+states :: DeltaRule
+states = \case
+  CG      (UpdCG cg _)     -> Just cg
+  CG      (UpdQUD _ s)     -> Just (CG s)
+  CG      (UpdTauKnow _ s) -> Just (CG s)
+  QUD     (UpdQUD q _)     -> Just q
+  QUD     (UpdCG _ s)      -> Just (QUD s)
+  _                        -> Nothing
+```
+:::
+
+---
+
+### If then else
+
+```haskell
+-- | Computes /if then else/.
+ite :: DeltaRule
+ite = \case
+  ITE Tr x y -> Just x
+  ITE Fa x y -> Just y
+  _          -> Nothing
+```
+
+---
+
+### Making observations
+
+```haskell
+-- | Observing @Tr@ is trivial, while observing @Fa@ yields an undefined
+-- probability distribution.
+observations :: DeltaRule
+observations = \case
+  Let _ (Observe Tr) k -> Just k
+  Let _ (Observe Fa) k -> Just Undefined
+  _                    -> Nothing
+```
+
+---
+
+## Summing up
+
+- We have a computational framework for:
+  - encoding grammar fragments
+  - representing speech acts (assertions, questions)
+  - representing theories linking inferences to behavior (as response functions)
+  - computing with the resulting probabilistic programs (via delta-rules)
+
+---
+
+### Note
+
+- Delta-rules are in principle open ended!
+  - You just need to show that they're sound.
+  - Might incorporate more sophisticated means of simplifying representations of probability distributions.
+  - Might incorporate theorem provers (so, sound-ish, perhaps).
+
+---
+
+### References
