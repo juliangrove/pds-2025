@@ -23,7 +23,8 @@ website:
       - background/setting-stage.qmd
     - section: "Introduction to probabilistic dynamic semantics"
       contents:
-      - pds-intro/pds-intro.qmd
+      - pds-intro/overview.qmd
+      - pds-intro/ccg.qmd
     - section: "Gradable adjectives"
       contents:
       - adjectives/adjectives.qmd

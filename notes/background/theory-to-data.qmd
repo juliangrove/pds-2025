@@ -1,5 +1,5 @@
 ---
-title: "The bridge from theory to data"
+title: "From theory to data"
 bibliography: ../../pds.bib
 format:
   html:
