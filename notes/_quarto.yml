@@ -13,7 +13,14 @@ website:
     - index.qmd
     - section: "Background"
       contents:
-      - background/background.qmd
+      - background/theory-to-data.qmd
+      - background/formal-pragmatics.qmd
+      - background/experimental-turn.qmd
+      - background/understanding-gradience.qmd
+      - background/case-studies.qmd
+      - background/new-frameworks.qmd
+      - background/rsa.qmd
+      - background/setting-stage.qmd
     - section: "Introduction to probabilistic dynamic semantics"
       contents:
       - pds-intro/pds-intro.qmd
