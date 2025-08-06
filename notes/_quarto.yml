@@ -25,6 +25,11 @@ website:
       contents:
       - pds-intro/overview.qmd
       - pds-intro/ccg.qmd
+      - pds-intro/adding-probabilistic-types.qmd
+      - pds-intro/common-ground.qmd
+      - pds-intro/expressoins-and-discourses.qmd
+      - pds-intro/constants.qmd
+      - pds-intro/delta-rules.qmd
     - section: "Gradable adjectives"
       contents:
       - adjectives/adjectives.qmd
