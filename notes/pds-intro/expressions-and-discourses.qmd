@@ -37,7 +37,13 @@ These, like indices, are understood in terms of a theory of states and locations
 We generally refer to the values stored in discourse states as *metalinguistic parameters*.
 These include, e.g., the common ground and the QUD, along with other conversationally relevant features of discourse (e.g., representations of the entities to which pronouns can refer, the available antecedents for ellipsis, etc.).
 One can view a discourse state as akin to the context state of @farkas_reacting_2010, though the type of state we employ is in principle less constrained, insofar as the type of individual parameters is open ended.
-Since discourse states provide access to the common ground and the QUD, they are associated with constants and equations like the following:
+Since discourse states provide access to the common ground and the QUD, they are associated with constants and equations like the following:^[
+The Haskell implementation provided at [juliangrove.github.io/pds](https://juliangrove.github.io/pds/) regards the constants $\ct{CG}$ and $\ct{QUD}$ somewhat differently:
+$\ct{CG}$, like intensional constants, reads values from the state;
+meanwhile, $\ct{QUD}$ is assigned a slightly different type to reflect the fact that it pops an element off of a *stack*.
+Specifically, its type there is $σ → (α → ι → t) × (\mathtt{unQ} ι α σ)$, where $\mathtt{unQ} ι α σ$ modifies σ to reflect this popping action, while $α → ι → t$ is the type of the question popped.
+Here we avoid discussing this more elaborate typing scheme, since it isn't especially important for the overall discussion. 
+]
 
 (@ex-states-eqs)
 $$

@@ -32,7 +32,11 @@ website:
       - pds-intro/delta-rules.qmd
     - section: "Gradable adjectives"
       contents:
-      - adjectives/adjectives.qmd
+      - adjectives/adjectives-intro.qmd
+      - adjectives/collecting-judgments.qmd
+      - adjectives/compiling-kernel-models.qmd
+      - adjectives/norming-model.qmd
+      - adjectives/modeling-vagueness.qmd
     - section: "Factivity inferences"
       contents:
       - factivity/factivity.qmd
