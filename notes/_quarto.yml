@@ -39,7 +39,15 @@ website:
       - adjectives/modeling-vagueness.qmd
     - section: "Factivity inferences"
       contents:
-      - factivity/factivity.qmd
+      - factivity/factivity-projection.qmd
+      - factivity/important-distinction.qmd
+      - factivity/experimental-paradigms.qmd
+      - factivity/hypotheses.qmd
+      - factivity/pds-to-stan.qmd
+      - factivity/additional-models.qmd
+      - factivity/world-knowledge.qmd
+      - factivity/model-comparison.qmd
+      - factivity/additional-dimensions.qmd
 
 format:
   html:
